@@ -1,7 +1,11 @@
+---
+format: gfm
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # actxpspy <a href="https://github.com/mattheaphy/actxpspy/"><img src="doc/images/logo.png" align="right" height="138" /></a>
+ 
 
 The actxpspy package provides a set of tools to assist with the creation
 of actuarial experience studies. Experience studies are used by

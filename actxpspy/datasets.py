@@ -21,6 +21,6 @@ def load_toy_census() -> pd.DataFrame:
     stream = pkg_resources.resource_stream(__name__, 'data/toy_census.csv')
     return pd.read_csv(stream,
                        index_col=0,
-                       dtype={'pol_num': str,
+                       dtype={'pol_num': int,
                               'status': 'category'},
                        parse_dates=['issue_date', 'term_date'])

@@ -1,5 +1,7 @@
 import pkg_resources
 import pandas as pd
+from actxps.tools import document
+from joblib import load
 
 def load_toy_census() -> pd.DataFrame:
     """
@@ -24,3 +26,61 @@ def load_toy_census() -> pd.DataFrame:
                        dtype={'pol_num': int,
                               'status': 'category'},
                        parse_dates=['issue_date', 'term_date'])
+    
+_sim_doc = """
+# Simulated annuity data
+
+Simulated data for a theoretical deferred annuity product with
+an optional guaranteed income rider. This data is theoretical only and
+does not represent the experience on any specific product.
+
+Three data frames contain census records (`census_dat`),
+withdrawal transactions (`withdrawals`), and historical account values
+(`account_vals`).
+
+## Returns
+
+### Census data (`load_census_dat()`)
+
+A data frame with 20,000 rows and 11 columns:
+
+- `pol_num` = policy number
+- `status` - policy status: Active, Surrender, or Death
+- `issue_date` - issue date
+- `inc_guar` - indicates whether the policy was issued with an income guarantee
+- `qual` - indicates whether the policy was purchased with tax-qualified funds
+- `age` - issue age
+- `product` - product: a, b, or c
+- `gender` - M (Male) or F (Female)
+- `wd_age` - Age that withdrawals commence
+- `premium` - Single premium deposit
+- `term_date` - termination date upon death or surrender
+
+### Withdrawal data (`load_withdrawals()`)
+
+- `pol_num` - policy number}
+- `trx_date` - withdrawal transaction date}
+- `trx_type` - withdrawal transaction type, either Base or Rider}
+- `trx_amt` - withdrawal transaction amount}
+
+### Account values data (`load_account_vals()`)
+
+- `pol_num` - policy number
+- `pol_date_yr` - policy anniversary date (beginning of year)
+- `av_anniv` - account value on the policy anniversary date
+"""    
+
+@document(_sim_doc)
+def load_census_dat() -> pd.DataFrame:
+    stream = pkg_resources.resource_stream(__name__, 'data/census_dat')
+    return load(stream)
+
+@document(_sim_doc)
+def load_withdrawals() -> pd.DataFrame:
+    stream = pkg_resources.resource_stream(__name__, 'data/withdrawals')
+    return load(stream)
+
+@document(_sim_doc)
+def load_account_vals() -> pd.DataFrame:
+    stream = pkg_resources.resource_stream(__name__, 'data/account_vals')
+    return load(stream)

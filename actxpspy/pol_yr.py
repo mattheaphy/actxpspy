@@ -6,7 +6,7 @@ from datetime import datetime
 from actxpspy.tools import document
 
 _pol_doc = """
-Calculate policy duration
+# Calculate policy durations
 
 Given a vector of dates and a vector of issue dates, calculate
 policy years (`pol_yr()`), quarters (`pol_qtr()`), months (`pol_mth()`), 

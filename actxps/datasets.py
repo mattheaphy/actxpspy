@@ -58,12 +58,16 @@ A data frame with 20,000 rows and 11 columns:
 
 ### Withdrawal data (`load_withdrawals()`)
 
-- `pol_num` - policy number}
-- `trx_date` - withdrawal transaction date}
-- `trx_type` - withdrawal transaction type, either Base or Rider}
-- `trx_amt` - withdrawal transaction amount}
+A data frame with 4 columns:
+
+- `pol_num` - policy number
+- `trx_date` - withdrawal transaction date
+- `trx_type` - withdrawal transaction type, either Base or Rider
+- `trx_amt` - withdrawal transaction amount
 
 ### Account values data (`load_account_vals()`)
+
+A data frame with 3 columns:
 
 - `pol_num` - policy number
 - `pol_date_yr` - policy anniversary date (beginning of year)
@@ -84,3 +88,52 @@ def load_withdrawals() -> pd.DataFrame:
 def load_account_vals() -> pd.DataFrame:
     stream = pkg_resources.resource_stream(__name__, 'data/account_vals')
     return load(stream)
+
+_mort_doc = """
+# 2012 Individual Annuity Mortality Table and Projection Scale G2
+
+Mortality rates and mortality improvement rates from the 2012 Individual
+Annuity Mortality Basic (IAMB) Table and Projection Scale G2.
+
+## Returns
+
+### 2012 IAMB table (`load_qx_iamb()`)
+
+A data frame with 242 rows and 3 columns:
+
+- `age` - attained age
+- `qx` - mortality rate
+- `gender` - Female or Male
+
+
+### Projection Scale G2 (`load_scale_g2()`)
+
+A data frame with 242 rows and 3 columns:
+
+- `age` - attained age
+- `mi` - mortality improvement rate
+- `gender` - Female or Male
+
+
+## Source
+
+ - https://mort.soa.org/
+ - https://www.actuary.org/sites/default/files/files/publications/Payout_Annuity_Report_09-28-11.pdf
+"""
+
+@document(_mort_doc)
+def load_qx_iamb():
+    stream = pkg_resources.resource_stream(__name__, 'data/qx_iamb.csv')
+    return pd.read_csv(stream, index_col=0,
+                       dtype={'age': int,
+                              'qx': float,
+                              'gender': str})
+
+@document(_mort_doc)
+def load_scale_g2():
+    stream = pkg_resources.resource_stream(__name__, 'data/scaleG2.csv')
+    return pd.read_csv(stream, index_col=0,
+                       dtype={'age': int,
+                              'mi': float,
+                              'gender': str})
+    

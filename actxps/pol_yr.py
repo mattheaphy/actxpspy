@@ -3,7 +3,7 @@ import pandas as pd
 from pandas.core.indexes.datetimes import DatetimeIndex
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
-from actxpspy.tools import document
+from actxps.tools import document
 
 _pol_doc = """
 # Calculate policy durations

@@ -1,4 +1,4 @@
-from actxpspy.pol_yr import *
+from actxps.pol_yr import *
 import numpy as np
 import pandas as pd
 

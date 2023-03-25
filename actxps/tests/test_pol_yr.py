@@ -73,10 +73,10 @@ class TestLeapYear():
 class TestPolInterval():
     def test_year_interval(self):
         x = pol_yr("2021-02-28", "2020-02-29")
-        y = pol_interval("2021-02-28", "2020-02-29", "Y")
+        y = pol_interval("2021-02-28", "2020-02-29", "year")
         assert x == y
 
     def test_month_interval(self):
-        x = pol_interval("2022-03-14", "2022-01-05", "M")
+        x = pol_interval("2022-03-14", "2022-01-05", "month")
         y = pol_mth("2022-03-14", "2022-01-05")
         assert x == y

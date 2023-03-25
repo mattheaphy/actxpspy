@@ -3,7 +3,7 @@ import pandas as pd
 from pandas.core.indexes.datetimes import DatetimeIndex
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
-from actxps.tools import document
+from actxps.tools import document, arg_match
 
 _pol_doc = """
 # Calculate policy durations
@@ -23,8 +23,8 @@ are used for policy quarters, policy months, and policy weeks.
 `issue_date`: str or datetime or DatetimeIndex
   Issue date(s)
 `dur_length`: str
-  Duration length. Only applies to `pol_duration()`. Must be 'Y' (year), 
-  'Q' (quarter), 'M' (month), or 'W' (week)
+  Duration length. Only applies to `pol_duration()`. Must be 'year', 
+  'quarter', 'month', or 'week'
 
 ## Returns 
 
@@ -37,9 +37,8 @@ An integer vector
 def pol_interval(x: str | datetime | DatetimeIndex,
                  issue_date: str | datetime | DatetimeIndex,
                  dur_length: str) -> np.ndarray:
-
-    assert dur_length in list('YQMW'), \
-        "`dur_length` must be 'Y' (year), 'Q' (quarter), 'M' (month), or 'W' (week)"
+    
+    arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
 
     if not isinstance(x, DatetimeIndex):
         x = pd.to_datetime(x)
@@ -51,16 +50,16 @@ def pol_interval(x: str | datetime | DatetimeIndex,
         'x': x
     }, index=np.arange(max(len2(x), len2(issue_date))))
 
-    if dur_length == "Y":
+    if dur_length == "year":
         res = [relativedelta(a, b).years for a,
                b in zip(dat.x, dat.issue_date)]
 
-    elif dur_length in ["M", "Q"]:
+    elif dur_length in ["month", "quarter"]:
         def mth_calc(a, b):
             delta = relativedelta(a, b)
             return 12 * delta.years + delta.months
 
-        if dur_length == "Q":
+        if dur_length == "quarter":
             res = [mth_calc(a, b) // 3 for a, b in zip(dat.x, dat.issue_date)]
         else:
             res = [mth_calc(a, b) for a, b in zip(dat.x, dat.issue_date)]
@@ -74,25 +73,25 @@ def pol_interval(x: str | datetime | DatetimeIndex,
 @document(_pol_doc)
 def pol_yr(x: str | datetime | DatetimeIndex,
            issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-    return pol_interval(x, issue_date, 'Y')
+    return pol_interval(x, issue_date, 'year')
 
 
 @document(_pol_doc)
 def pol_mth(x: str | datetime | DatetimeIndex,
             issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-    return pol_interval(x, issue_date, 'M')
+    return pol_interval(x, issue_date, 'month')
 
 
 @document(_pol_doc)
 def pol_qtr(x: str | datetime | DatetimeIndex,
             issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-    return pol_interval(x, issue_date, 'Q')
+    return pol_interval(x, issue_date, 'quarter')
 
 
 @document(_pol_doc)
 def pol_wk(x: str | datetime | DatetimeIndex,
            issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-    return pol_interval(x, issue_date, 'W')
+    return pol_interval(x, issue_date, 'week')
 
 
 def len2(x) -> int:

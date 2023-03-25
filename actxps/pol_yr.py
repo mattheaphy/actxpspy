@@ -32,78 +32,84 @@ An integer vector
 
 """
 
+
 @document(_pol_doc)
-def pol_interval(x: str | datetime | DatetimeIndex, 
+def pol_interval(x: str | datetime | DatetimeIndex,
                  issue_date: str | datetime | DatetimeIndex,
                  dur_length: str) -> np.ndarray:
-  
-  
-  assert dur_length in list('YQMW'), \
-    "`dur_length` must be 'Y' (year), 'Q' (quarter), 'M' (month), or 'W' (week)"
-  
-  if not isinstance(x, DatetimeIndex):
-    x = pd.to_datetime(x)
-  if not isinstance(issue_date, DatetimeIndex):
-    issue_date = pd.to_datetime(issue_date)
-    
-  dat = pd.DataFrame({
-    'issue_date': issue_date,
-    'x': x
-  }, index=np.arange(max(len2(x), len2(issue_date))))
-  
-  if dur_length == "Y":
-    res = [relativedelta(a, b).years for a, b in zip(dat.x, dat.issue_date)]
-    
-  elif dur_length in ["M", "Q"]:
-    def mth_calc(a, b):
-      delta = relativedelta(a, b)
-      return 12 * delta.years + delta.months
 
-    if dur_length == "Q":
-      res = [mth_calc(a, b) // 3 for a, b in zip(dat.x, dat.issue_date)]
+    assert dur_length in list('YQMW'), \
+        "`dur_length` must be 'Y' (year), 'Q' (quarter), 'M' (month), or 'W' (week)"
+
+    if not isinstance(x, DatetimeIndex):
+        x = pd.to_datetime(x)
+    if not isinstance(issue_date, DatetimeIndex):
+        issue_date = pd.to_datetime(issue_date)
+
+    dat = pd.DataFrame({
+        'issue_date': issue_date,
+        'x': x
+    }, index=np.arange(max(len2(x), len2(issue_date))))
+
+    if dur_length == "Y":
+        res = [relativedelta(a, b).years for a,
+               b in zip(dat.x, dat.issue_date)]
+
+    elif dur_length in ["M", "Q"]:
+        def mth_calc(a, b):
+            delta = relativedelta(a, b)
+            return 12 * delta.years + delta.months
+
+        if dur_length == "Q":
+            res = [mth_calc(a, b) // 3 for a, b in zip(dat.x, dat.issue_date)]
+        else:
+            res = [mth_calc(a, b) for a, b in zip(dat.x, dat.issue_date)]
+
     else:
-      res = [mth_calc(a, b) for a, b in zip(dat.x, dat.issue_date)]
-      
-  else:
-    res = (dat.x - dat.issue_date).dt.days // 7
-  
-  return np.array(res) + 1
-  
+        res = (dat.x - dat.issue_date).dt.days // 7
+
+    return np.array(res) + 1
+
+
 @document(_pol_doc)
-def pol_yr(x: str | datetime | DatetimeIndex, 
+def pol_yr(x: str | datetime | DatetimeIndex,
            issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-  return pol_interval(x, issue_date, 'Y')
+    return pol_interval(x, issue_date, 'Y')
+
 
 @document(_pol_doc)
-def pol_mth(x: str | datetime | DatetimeIndex, 
+def pol_mth(x: str | datetime | DatetimeIndex,
             issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-  return pol_interval(x, issue_date, 'M')
+    return pol_interval(x, issue_date, 'M')
+
 
 @document(_pol_doc)
-def pol_qtr(x: str | datetime | DatetimeIndex, 
+def pol_qtr(x: str | datetime | DatetimeIndex,
             issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-  return pol_interval(x, issue_date, 'Q')
+    return pol_interval(x, issue_date, 'Q')
+
 
 @document(_pol_doc)
-def pol_wk(x: str | datetime | DatetimeIndex, 
+def pol_wk(x: str | datetime | DatetimeIndex,
            issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-  return pol_interval(x, issue_date, 'W')
+    return pol_interval(x, issue_date, 'W')
+
 
 def len2(x) -> int:
-  """Length function with non-iterables and strings returning 1
+    """Length function with non-iterables and strings returning 1
 
-  ## Parameters
-  
-  `x`: Any
+    ## Parameters
 
-  ## Returns
-    
-  An integer equal to 1 if `x` is not iterable or if `x` is a string.
-  Otherwise, the length of `x`.
-  """
-  if isinstance(x, str):
-    return 1
-  try:
-    return len(x)
-  except TypeError:
-    return 1
+    `x`: Any
+
+    ## Returns
+
+    An integer equal to 1 if `x` is not iterable or if `x` is a string.
+    Otherwise, the length of `x`.
+    """
+    if isinstance(x, str):
+        return 1
+    try:
+        return len(x)
+    except TypeError:
+        return 1

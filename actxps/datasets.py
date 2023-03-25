@@ -3,22 +3,23 @@ import pandas as pd
 from actxps.tools import document
 from joblib import load
 
+
 def load_toy_census() -> pd.DataFrame:
     """
     # Toy policy census data
-    
+
     A tiny dataset containing 3 policies: one active, one terminated due to
     death, and one terminated due to surrender.    
 
     ## Returns:
-    
+
     A data frame with 3 rows and 4 columns:
-    
+
     - `pol_num` = policy number
     - `status` = policy status
     - `issue_date` = issue date
     - `term_date` = termination date
-    
+
     """
     stream = pkg_resources.resource_stream(__name__, 'data/toy_census.csv')
     return pd.read_csv(stream,
@@ -26,7 +27,8 @@ def load_toy_census() -> pd.DataFrame:
                        dtype={'pol_num': int,
                               'status': 'category'},
                        parse_dates=['issue_date', 'term_date'])
-    
+
+
 _sim_doc = """
 # Simulated annuity data
 
@@ -72,22 +74,26 @@ A data frame with 3 columns:
 - `pol_num` - policy number
 - `pol_date_yr` - policy anniversary date (beginning of year)
 - `av_anniv` - account value on the policy anniversary date
-"""    
+"""
+
 
 @document(_sim_doc)
 def load_census_dat() -> pd.DataFrame:
     stream = pkg_resources.resource_stream(__name__, 'data/census_dat')
     return load(stream)
 
+
 @document(_sim_doc)
 def load_withdrawals() -> pd.DataFrame:
     stream = pkg_resources.resource_stream(__name__, 'data/withdrawals')
     return load(stream)
 
+
 @document(_sim_doc)
 def load_account_vals() -> pd.DataFrame:
     stream = pkg_resources.resource_stream(__name__, 'data/account_vals')
     return load(stream)
+
 
 _mort_doc = """
 # 2012 Individual Annuity Mortality Table and Projection Scale G2
@@ -121,6 +127,7 @@ A data frame with 242 rows and 3 columns:
  - https://www.actuary.org/sites/default/files/files/publications/Payout_Annuity_Report_09-28-11.pdf
 """
 
+
 @document(_mort_doc)
 def load_qx_iamb():
     stream = pkg_resources.resource_stream(__name__, 'data/qx_iamb.csv')
@@ -129,6 +136,7 @@ def load_qx_iamb():
                               'qx': float,
                               'gender': str})
 
+
 @document(_mort_doc)
 def load_scale_g2():
     stream = pkg_resources.resource_stream(__name__, 'data/scaleG2.csv')
@@ -136,4 +144,3 @@ def load_scale_g2():
                        dtype={'age': int,
                               'mi': float,
                               'gender': str})
-    

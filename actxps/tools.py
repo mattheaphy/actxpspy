@@ -35,6 +35,11 @@ def arg_match(name: str, x, allowed):
         Argument value
     `allowed`: Any
         A list of allowed argument values
+        
+    ## Source
+    
+    This function is inspired by the R language's `arg.match()` and 
+    `rlang::arg_match()` functions.
     """
     if x not in allowed:
         allowed = ", ".join([f'"{a}"' for a in allowed[:-1]]) + \

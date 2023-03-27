@@ -39,10 +39,8 @@ def pol_interval(x: str | datetime | DatetimeIndex,
 
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
 
-    if not isinstance(x, DatetimeIndex):
-        x = pd.to_datetime(x)
-    if not isinstance(issue_date, DatetimeIndex):
-        issue_date = pd.to_datetime(issue_date)
+    x = _convert_date(x)
+    issue_date = _convert_date(issue_date)
 
     dat = pd.DataFrame({
         'issue_date': issue_date,
@@ -142,10 +140,8 @@ def frac_interval(start: str | datetime | DatetimeIndex,
 
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
 
-    if not isinstance(start, DatetimeIndex):
-        start = pd.to_datetime(start)
-    if not isinstance(end, DatetimeIndex):
-        end = pd.to_datetime(end)
+    start = _convert_date(start)
+    end = _convert_date(end)
 
     dat = pd.DataFrame({
         'start': start,
@@ -228,3 +224,16 @@ def frac_qtr(start: str | datetime | DatetimeIndex,
 def frac_wk(start: str | datetime | DatetimeIndex,
             end: str | datetime | DatetimeIndex) -> np.ndarray:
     return frac_interval(start, end, 'week')
+
+
+def _convert_date(x):
+    """
+    Helper function to convert inputs to dates. 
+    This function should not be called directly.
+    """
+    if isinstance(x, pd.Series):
+        x = x.values
+    else:
+        if not isinstance(x, DatetimeIndex):
+            x = pd.to_datetime(x)
+    return x

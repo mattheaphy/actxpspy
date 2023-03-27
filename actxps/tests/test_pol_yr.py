@@ -80,3 +80,62 @@ class TestPolInterval():
         x = pol_interval("2022-03-14", "2022-01-05", "month")
         y = pol_mth("2022-03-14", "2022-01-05")
         assert x == y
+
+
+class TestPolFrac():
+
+    def test_frac_yr_1(self):
+        assert frac_yr("2023-03-15", "2024-03-14") == 365 / \
+            366  # (11 + 28/29) / 12
+
+    def test_frac_yr_2(self):
+        assert frac_yr("2023-03-15", "2024-03-15") == 1
+
+    def test_frac_qtr_1(self):
+        assert frac_qtr("2023-03-15", "2023-06-14") == (31+30+30) / (31+30+31)
+
+    def test_frac_qtr_2(self):
+        assert frac_qtr("2023-03-15", "2023-06-15") == 1
+
+    def test_frac_mth_1(self):
+        assert frac_mth("2023-03-15", "2023-04-14") == 30/31
+
+    def test_frac_mth_2(self):
+        assert frac_mth("2023-03-15", "2023-04-15") == 1
+
+    def test_frac_wk_1(self):
+        assert frac_wk("2023-03-15", "2023-03-21") == 6/7
+
+    def test_frac_wk_2(self):
+        assert frac_wk("2023-03-15", "2023-03-22") == 1
+
+    def test_vec_1(self):
+        a = frac_yr("2023-03-15",
+                    ["2024-03-14", "2024-03-15", "2025-04-15"])
+        b = frac_yr("2023-03-15",
+                    pd.to_datetime(["2024-03-14", "2024-03-15", "2025-04-15"]))
+        c = frac_yr(["2023-03-15", "2023-03-15", "2023-03-15"],
+                    ["2024-03-14", "2024-03-15", "2025-04-15"])
+        d = np.array([365/366, 1, 2 + 31/365])
+        assert all(a == b)
+        assert all(a == c)
+        assert all(a == d)
+
+    def test_vec_2(self):
+        a = frac_yr(["2023-03-15", "2023-03-15"],
+                    "2024-03-14")
+        b = frac_yr(["2023-03-15", "2023-03-15"],
+                    ["2024-03-14", "2024-03-14"])
+        assert all(a == b)
+
+
+class TestFracInterval():
+    def test_frac_year_interval(self):
+        x = frac_yr("2020-02-29", "2021-02-28")
+        y = frac_interval("2020-02-29", "2021-02-28", "year")
+        assert x == y
+
+    def test_month_interval(self):
+        x = frac_interval("2022-01-05", "2022-03-14", "month")
+        y = frac_mth("2022-01-05", "2022-03-14")
+        assert x == y

@@ -184,22 +184,24 @@ def _delta_frac(start: datetime, end: datetime, dur_length: str) -> float:
         return (end - start).days / 7
 
     delta = relativedelta(end, start)
+
     if dur_length == 'year':
-        denom = ((start + relativedelta(years=delta.years + 1)) -
-                 (start + relativedelta(years=delta.years))).days
-        res = delta.years + delta.months / 12 + delta.days / denom
+        dt = (start + relativedelta(years=delta.years))
+        numer = (end - dt).days
+        denom = ((dt + relativedelta(years=1)) - dt).days
+        res = delta.years + numer / denom
     elif dur_length == 'quarter':
-        denom = ((start + relativedelta(years=delta.years,
-                                        months=delta.months + 1)) -
-                 (start + relativedelta(years=delta.years,
-                                        months=delta.months))).days
-        res = delta.years * 4 + (delta.months + delta.days / denom) / 3
+        dt = (start + relativedelta(years=delta.years,
+                                    months=3 * (delta.months // 3)))
+        numer = (end - dt).days
+        denom = ((dt + relativedelta(months=3)) - dt).days
+        res = delta.years * 4 + delta.months // 3 + numer / denom
     else:
-        denom = ((start + relativedelta(years=delta.years,
-                                        months=delta.months + 1)) -
-                 (start + relativedelta(years=delta.years,
-                                        months=delta.months))).days
-        res = delta.years * 12 + delta.months + delta.days / denom
+        dt = (start + relativedelta(years=delta.years,
+                                    months=delta.months))
+        numer = (end - dt).days
+        denom = ((dt + relativedelta(months=1)) - dt).days
+        res = delta.years * 12 + delta.months + numer / denom
 
     return res
 

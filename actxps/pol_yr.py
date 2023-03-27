@@ -19,17 +19,16 @@ are used for policy quarters, policy months, and policy weeks.
 
 ## Parameters
 `x`: str or datetime or DatetimeIndex 
-  Date(s)
+    Date(s)
 `issue_date`: str or datetime or DatetimeIndex
-  Issue date(s)
+    Issue date(s)
 `dur_length`: str
-  Duration length. Only applies to `pol_duration()`. Must be 'year', 
-  'quarter', 'month', or 'week'
+    Duration length. Only applies to `pol_interval()`. Must be 'year', 
+    'quarter', 'month', or 'week'
 
 ## Returns 
 
-An integer vector
-
+Vector of integers
 """
 
 
@@ -37,7 +36,7 @@ An integer vector
 def pol_interval(x: str | datetime | DatetimeIndex,
                  issue_date: str | datetime | DatetimeIndex,
                  dur_length: str) -> np.ndarray:
-    
+
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
 
     if not isinstance(x, DatetimeIndex):
@@ -51,8 +50,8 @@ def pol_interval(x: str | datetime | DatetimeIndex,
     }, index=np.arange(max(len2(x), len2(issue_date))))
 
     if dur_length == "year":
-        res = [relativedelta(a, b).years for a,
-               b in zip(dat.x, dat.issue_date)]
+        res = [relativedelta(a, b).years for a, b in
+               zip(dat.x, dat.issue_date)]
 
     elif dur_length in ["month", "quarter"]:
         def mth_calc(a, b):
@@ -112,3 +111,118 @@ def len2(x) -> int:
         return len(x)
     except TypeError:
         return 1
+
+
+_frac_doc = """
+# Calculate fractional durations
+
+Given vectors of start and end dates, calculate elapsed years (`frac_yr()`), 
+quarters (`frac_qtr()`), months (`frac_mth()`), or weeks (`frac_wk()`).
+
+## Parameters
+
+`start`: str or datetime or DatetimeIndex 
+    Start dates
+`end`: str or datetime or DatetimeIndex
+    End dates
+`dur_length`: str
+    Duration length. Only applies to `frac_interval()`. Must be 'year', 
+    'quarter', 'month', or 'week'
+
+## Returns 
+
+Vector of floats
+"""
+
+
+@document(_frac_doc)
+def frac_interval(start: str | datetime | DatetimeIndex,
+                  end: str | datetime | DatetimeIndex,
+                  dur_length: str) -> np.ndarray:
+
+    arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
+
+    if not isinstance(start, DatetimeIndex):
+        start = pd.to_datetime(start)
+    if not isinstance(end, DatetimeIndex):
+        end = pd.to_datetime(end)
+
+    dat = pd.DataFrame({
+        'start': start,
+        'end': end
+    }, index=np.arange(max(len2(start), len2(end))))
+
+    res = [_delta_frac(a, b, dur_length) for a, b
+           in zip(dat.start, dat.end)]
+
+    return np.array(res)
+
+
+def _delta_frac(start: datetime, end: datetime, dur_length: str) -> float:
+    """
+    Internal function for calculating one set of fractional durations.
+
+    This function is used by `frac_interval()` and is not meant to be called
+    directly.
+
+    ## Parameters
+
+    `start`: datetime
+        Start date
+    `end`: datetime
+        end date
+    `dur_length`: str
+    Duration length. Only applies to `frac_interval()`. Must be 'year', 
+    'quarter', 'month', or 'week'
+
+    ## Returns
+
+    Float
+    """
+
+    if dur_length == 'week':
+        return (end - start).days / 7
+
+    delta = relativedelta(end, start)
+    if dur_length == 'year':
+        denom = ((start + relativedelta(years=delta.years + 1)) -
+                 (start + relativedelta(years=delta.years))).days
+        res = delta.years + delta.months / 12 + delta.days / denom
+    elif dur_length == 'quarter':
+        denom = ((start + relativedelta(years=delta.years,
+                                        months=delta.months + 1)) -
+                 (start + relativedelta(years=delta.years,
+                                        months=delta.months))).days
+        res = delta.years * 4 + (delta.months + delta.days / denom) / 3
+    else:
+        denom = ((start + relativedelta(years=delta.years,
+                                        months=delta.months + 1)) -
+                 (start + relativedelta(years=delta.years,
+                                        months=delta.months))).days
+        res = delta.years * 12 + delta.months + delta.days / denom
+
+    return res
+
+
+@document(_frac_doc)
+def frac_yr(start: str | datetime | DatetimeIndex,
+            end: str | datetime | DatetimeIndex) -> np.ndarray:
+    return frac_interval(start, end, 'year')
+
+
+@document(_frac_doc)
+def frac_mth(start: str | datetime | DatetimeIndex,
+             end: str | datetime | DatetimeIndex) -> np.ndarray:
+    return frac_interval(start, end, 'month')
+
+
+@document(_frac_doc)
+def frac_qtr(start: str | datetime | DatetimeIndex,
+             end: str | datetime | DatetimeIndex) -> np.ndarray:
+    return frac_interval(start, end, 'quarter')
+
+
+@document(_frac_doc)
+def frac_wk(start: str | datetime | DatetimeIndex,
+            end: str | datetime | DatetimeIndex) -> np.ndarray:
+    return frac_interval(start, end, 'week')

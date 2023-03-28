@@ -270,12 +270,15 @@ def add_interval(dates: str | datetime | DatetimeIndex | pd.Series,
 
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
 
-    dates = pd.Series(_convert_date(dates))
-    if isinstance(x, pd.Series):
-        x = x.values
-    if isinstance(x, list):
-        x = np.array(x)
+    dates = _convert_date(dates)
+        
+    dat = pd.DataFrame({
+        'dates': dates,
+        'x': x
+    }, index=np.arange(max(len2(dates), len2(x))))
+    dates = dat.dates
 
+    x = dat.x.values
     y = dates.dt.year.values
     m = dates.dt.month.values
     d = dates.dt.day.values

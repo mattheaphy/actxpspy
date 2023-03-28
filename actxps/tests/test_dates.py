@@ -85,8 +85,7 @@ class TestPolInterval():
 class TestPolFrac():
 
     def test_frac_yr_1(self):
-        assert frac_yr("2023-03-15", "2024-03-14") == 365 / \
-            366  # (11 + 28/29) / 12
+        assert frac_yr("2023-03-15", "2024-03-14") == 365 / 366
 
     def test_frac_yr_2(self):
         assert frac_yr("2023-03-15", "2024-03-15") == 1
@@ -138,4 +137,56 @@ class TestFracInterval():
     def test_month_interval(self):
         x = frac_interval("2022-01-05", "2022-03-14", "month")
         y = frac_mth("2022-01-05", "2022-03-14")
+        assert x == y
+
+
+class TestAddDates():
+
+    def test_add_yr_1(self):
+        assert add_yr("2023-03-15", 1) == pd.to_datetime("2024-03-15")
+
+    def test_add_yr_2(self):
+        assert add_yr("2020-02-29", 1) == pd.to_datetime("2021-02-28")
+
+    def test_add_qtr_1(self):
+        assert add_qtr("2023-03-15", 1) == pd.to_datetime('2023-06-15')
+
+    def test_add_qtr_2(self):
+        assert add_qtr("2019-11-30", 1) == pd.to_datetime('2020-02-29')
+
+    def test_add_mth_1(self):
+        assert add_mth("2023-03-15", 2) == pd.to_datetime('2023-05-15')
+
+    def test_add_mth_2(self):
+        assert add_mth("2019-12-31", 2) == pd.to_datetime('2020-02-29')
+
+    def test_add_wk_1(self):
+        assert add_wk("2023-03-15", 2) == pd.to_datetime("2023-03-29")
+
+    def test_vec_1(self):
+        a = add_yr("2023-03-15", np.arange(3))
+        b = add_yr(np.repeat("2023-03-15", 3),
+                   np.arange(3))
+        c = add_yr(["2023-03-15"] * 3,
+                   [0, 1, 2])
+        d = pd.to_datetime(["2023-03-15", "2024-03-15", "2025-03-15"])
+        assert all(a == b)
+        assert all(a == c)
+        assert all(a == d)
+
+    def test_vec_2(self):
+        a = add_yr(["2023-03-15", "2023-03-15"], 1)
+        b = add_yr("2023-03-15", [1, 1])
+        assert all(a == b)
+
+
+class TestAddInterval():
+    def test_add_year_interval(self):
+        x = add_yr("2020-02-29", 1)
+        y = add_interval("2020-02-29", 1, "year")
+        assert x == y
+
+    def test_month_interval(self):
+        x = add_interval("2022-01-05", 10, "month")
+        y = add_mth("2022-01-05", 10)
         assert x == y

@@ -18,7 +18,7 @@ policy year is the day before the next anniversary date. Analogous rules
 are used for policy quarters, policy months, and policy weeks.
 
 ## Parameters
-`x`: str or datetime or DatetimeIndex 
+`dates`: str or datetime or DatetimeIndex 
     Date(s)
 `issue_date`: str or datetime or DatetimeIndex
     Issue date(s)
@@ -33,23 +33,23 @@ Vector of integers
 
 
 @document(_pol_doc)
-def pol_interval(x: str | datetime | DatetimeIndex,
-                 issue_date: str | datetime | DatetimeIndex,
+def pol_interval(dates: str | datetime | DatetimeIndex | pd.Series,
+                 issue_date: str | datetime | DatetimeIndex | pd.Series,
                  dur_length: str) -> np.ndarray:
 
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
 
-    x = _convert_date(x)
+    dates = _convert_date(dates)
     issue_date = _convert_date(issue_date)
 
     dat = pd.DataFrame({
         'issue_date': issue_date,
-        'x': x
-    }, index=np.arange(max(len2(x), len2(issue_date))))
+        'dates': dates
+    }, index=np.arange(max(len2(dates), len2(issue_date))))
 
     if dur_length == "year":
         res = [relativedelta(a, b).years for a, b in
-               zip(dat.x, dat.issue_date)]
+               zip(dat.dates, dat.issue_date)]
 
     elif dur_length in ["month", "quarter"]:
         def mth_calc(a, b):
@@ -57,38 +57,39 @@ def pol_interval(x: str | datetime | DatetimeIndex,
             return 12 * delta.years + delta.months
 
         if dur_length == "quarter":
-            res = [mth_calc(a, b) // 3 for a, b in zip(dat.x, dat.issue_date)]
+            res = [mth_calc(a, b) // 3 for a, b
+                   in zip(dat.dates, dat.issue_date)]
         else:
-            res = [mth_calc(a, b) for a, b in zip(dat.x, dat.issue_date)]
+            res = [mth_calc(a, b) for a, b in zip(dat.dates, dat.issue_date)]
 
     else:
-        res = (dat.x - dat.issue_date).dt.days // 7
+        res = (dat.dates - dat.issue_date).dt.days // 7
 
     return np.array(res) + 1
 
 
 @document(_pol_doc)
-def pol_yr(x: str | datetime | DatetimeIndex,
-           issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-    return pol_interval(x, issue_date, 'year')
+def pol_yr(dates: str | datetime | DatetimeIndex | pd.Series,
+           issue_date: str | datetime | DatetimeIndex | pd.Series) -> np.ndarray:
+    return pol_interval(dates, issue_date, 'year')
 
 
 @document(_pol_doc)
-def pol_mth(x: str | datetime | DatetimeIndex,
-            issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-    return pol_interval(x, issue_date, 'month')
+def pol_mth(dates: str | datetime | DatetimeIndex | pd.Series,
+            issue_date: str | datetime | DatetimeIndex | pd.Series) -> np.ndarray:
+    return pol_interval(dates, issue_date, 'month')
 
 
 @document(_pol_doc)
-def pol_qtr(x: str | datetime | DatetimeIndex,
-            issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-    return pol_interval(x, issue_date, 'quarter')
+def pol_qtr(dates: str | datetime | DatetimeIndex | pd.Series,
+            issue_date: str | datetime | DatetimeIndex | pd.Series) -> np.ndarray:
+    return pol_interval(dates, issue_date, 'quarter')
 
 
 @document(_pol_doc)
-def pol_wk(x: str | datetime | DatetimeIndex,
-           issue_date: str | datetime | DatetimeIndex) -> np.ndarray:
-    return pol_interval(x, issue_date, 'week')
+def pol_wk(dates: str | datetime | DatetimeIndex | pd.Series,
+           issue_date: str | datetime | DatetimeIndex | pd.Series) -> np.ndarray:
+    return pol_interval(dates, issue_date, 'week')
 
 
 def len2(x) -> int:
@@ -134,8 +135,8 @@ Vector of floats
 
 
 @document(_frac_doc)
-def frac_interval(start: str | datetime | DatetimeIndex,
-                  end: str | datetime | DatetimeIndex,
+def frac_interval(start: str | datetime | DatetimeIndex | pd.Series,
+                  end: str | datetime | DatetimeIndex | pd.Series,
                   dur_length: str) -> np.ndarray:
 
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
@@ -203,26 +204,26 @@ def _delta_frac(start: datetime, end: datetime, dur_length: str) -> float:
 
 
 @document(_frac_doc)
-def frac_yr(start: str | datetime | DatetimeIndex,
-            end: str | datetime | DatetimeIndex) -> np.ndarray:
+def frac_yr(start: str | datetime | DatetimeIndex | pd.Series,
+            end: str | datetime | DatetimeIndex | pd.Series) -> np.ndarray:
     return frac_interval(start, end, 'year')
 
 
 @document(_frac_doc)
-def frac_mth(start: str | datetime | DatetimeIndex,
-             end: str | datetime | DatetimeIndex) -> np.ndarray:
+def frac_mth(start: str | datetime | DatetimeIndex | pd.Series,
+             end: str | datetime | DatetimeIndex | pd.Series) -> np.ndarray:
     return frac_interval(start, end, 'month')
 
 
 @document(_frac_doc)
-def frac_qtr(start: str | datetime | DatetimeIndex,
-             end: str | datetime | DatetimeIndex) -> np.ndarray:
+def frac_qtr(start: str | datetime | DatetimeIndex | pd.Series,
+             end: str | datetime | DatetimeIndex | pd.Series) -> np.ndarray:
     return frac_interval(start, end, 'quarter')
 
 
 @document(_frac_doc)
-def frac_wk(start: str | datetime | DatetimeIndex,
-            end: str | datetime | DatetimeIndex) -> np.ndarray:
+def frac_wk(start: str | datetime | DatetimeIndex | pd.Series,
+            end: str | datetime | DatetimeIndex | pd.Series) -> np.ndarray:
     return frac_interval(start, end, 'week')
 
 
@@ -237,3 +238,96 @@ def _convert_date(x):
         if not isinstance(x, DatetimeIndex):
             x = pd.to_datetime(x)
     return x
+
+
+_add_doc = """
+# Add time periods of varying lengths to a vector of dates
+
+Given a vector of dates and an integer vector, add years (`add_yr()`), 
+quarters (`add_qtr()`), months, (`add_mth()`), or weeks (`add_wk()`).
+
+## Parameters
+
+`dates`: str | datetime | DatetimeIndex | pd.Series
+    Dates
+`x`
+`end`: str or datetime or DatetimeIndex
+    End dates
+`dur_length`: str
+    Duration length. Only applies to `frac_interval()`. Must be 'year', 
+    'quarter', 'month', or 'week'
+
+## Returns 
+
+Vector of floats
+"""
+
+
+@document(_add_doc)
+def add_interval(dates: str | datetime | DatetimeIndex | pd.Series,
+                 x: pd.Series | np.ndarray,
+                 dur_length: str) -> np.ndarray:
+
+    arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
+
+    dates = pd.Series(_convert_date(dates))
+    if isinstance(x, pd.Series):
+        x = x.values
+    if isinstance(x, list):
+        x = np.array(x)
+
+    y = dates.dt.year.values
+    m = dates.dt.month.values
+    d = dates.dt.day.values
+
+    if dur_length == 'year':
+        y += x
+    elif dur_length == 'month':
+        y += (m - 1 + x) // 12
+        m = (m + x) % 12
+        m = np.where(m == 0, 12, m)
+    elif dur_length == 'quarter':
+        q = (m - 1) // 3 + 1
+        y += (q - 1 + x) // 4
+        m = (m + x * 3) % 12
+        m = np.where(m == 0, 12, m)
+    else:
+        return (dates + np.timedelta64(7, 'D') * x).values
+
+    max_days = pd.to_datetime(pd.DataFrame({
+        'year': y,
+        'month': m,
+        'day': 1
+    })).dt.days_in_month.values
+
+    res = pd.to_datetime(pd.DataFrame({
+        'year': y,
+        'month': m,
+        'day': np.minimum(d, max_days)
+    }))
+
+    return res.values
+
+
+@document(_add_doc)
+def add_yr(dates: str | datetime | DatetimeIndex | pd.Series,
+           x: pd.Series | np.ndarray) -> np.ndarray:
+    return add_interval(dates, x, 'year')
+
+
+@document(_add_doc)
+def add_qtr(dates: str | datetime | DatetimeIndex | pd.Series,
+            x: pd.Series | np.ndarray) -> np.ndarray:
+    return add_interval(dates, x, 'quarter')
+
+
+@document(_add_doc)
+def add_mth(dates: str | datetime | DatetimeIndex | pd.Series,
+            x: pd.Series | np.ndarray) -> np.ndarray:
+    return add_interval(dates, x, 'month')
+
+
+@document(_add_doc)
+def add_wk(dates: str | datetime | DatetimeIndex | pd.Series,
+           x: pd.Series | np.ndarray) -> np.ndarray:
+    return add_interval(dates, x, 'week')

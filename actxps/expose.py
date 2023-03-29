@@ -11,12 +11,12 @@ from pandas.api.types import is_categorical_dtype
 class ExposedDF():
     """
     # Exposed data frame class
-    
+
     Convert a data frame of census-level records to exposure-level
     records.
 
     ## Parameters
-    
+
     `data`: pd.DataFrame
         A data frame with census-level records
     `end_date`: datetime 
@@ -42,13 +42,13 @@ class ExposedDF():
         Optional default active status code
 
     ## Details
-    
+
     Census-level data refers to a data set wherein there is one row
     per unique policy. Exposure-level data expands census-level data such that
     there is one record per policy per observation period. Observation periods
     could be any meaningful period of time such as a policy year, policy month,
     calendar year, calendar quarter, calendar month, etc.
-    
+
     `target_status` is used in the calculation of exposures. The annual
     exposure method is applied, which allocates a full period of exposure for
     any statuses in `target_status`. For all other statuses, new entrants
@@ -58,12 +58,29 @@ class ExposedDF():
     in the observation period. If the annual exposure method isn't desired,
     `target_status` can be ignored. In this case, partial exposures are
     always applied regardless of status.
-    
+
     `default_status` is used to indicate the default active status that
     should be used when exposure records are created. If `None`, then the
     first status level will be assumed to be the default active status.
+        
+    ## Parameters
     
-    ### Policy period and calendar period variations
+    `data`: pd.DataFrame
+        A data frame with census-level records
+    `end_date`: datetime 
+        Experience study end date
+    `**kwargs`:
+        Additional parameters passed to `ExposedDF.__init__()`    
+
+    ### References
+
+    Atkinson and McGarry (2016). Experience Study Calculations
+
+    https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf
+
+    ## Methods
+
+    ### ExposedDF class construction helpers
 
     The class methods `expose_py()`, `expose_pq()`, `expose_pm()`,
     `expose_pw()`, `expose_cy()`, `expose_cq()`, `expose_cm()`, and
@@ -74,7 +91,7 @@ class ExposedDF():
     For exposures types:
     
     - `p` refers to policy years
-    - `c` refers to calendar years.
+    - `c` refers to calendar years
     
     For exposure periods:
     
@@ -83,30 +100,23 @@ class ExposedDF():
     - `m` = months
     - `w` = weeks
     
-    ### References
-    
-    Atkinson and McGarry (2016). Experience Study Calculations
-    
-    https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf
-
-    ## Methods
-    
-    TODO
+    Each constructor has the same inputs as the `__init__` method except that
+    `expo_length` and `cal_expo` arguments are prepopulated.
 
     ## Properties
-    
+
     `data`: pd.DataFrame
         A data frame with exposure level records. The results include all 
         existing columns in the original input data plus new columns for 
         exposures and observation periods. Observation periods include counters
         for policy exposures, start dates, and end dates. Both start dates and 
         end dates are inclusive bounds. 
-        
+
         For policy year exposures, two observation period columns are returned.
         Columns beginning with (`pol_`) are integer policy periods. Columns
         beginning with (`pol_date_`) are calendar dates representing
         anniversary dates, monthiversary dates, etc.
-        
+
     `end_date`, `start_date`, `target_status`, `cal_expo`, `expo_length`:
         Values passed on class instantiation. See Parameters for definitions.
     """
@@ -240,7 +250,7 @@ class ExposedDF():
         if cal_expo:
             data['first_per'] = data.time == 1
             # necessary to convert to a series to avoid an error when Day() \
-            # is subtracted            
+            # is subtracted
             data['cal_e'] = pd.Series(per_add(data.cal_b, data.time)) - Day(1)
             data['cal_b'] = per_add(data.cal_b, data.time - 1)
 
@@ -276,7 +286,7 @@ class ExposedDF():
             # is subtracted
             data['cal_e'] = pd.Series(per_add(data.issue_date, data.time)) - \
                 Day(1)
-                
+
             # partial exposure calculations
             data['exposure'] = np.where(
                 data.last_per & ~data.status.isin(target_status),
@@ -284,7 +294,7 @@ class ExposedDF():
             # exposure = 0 is possible if exactly 1 period has elapsed.
             # replace these with 1's
             data['exposure'] = np.where(data.exposure == 0, 1, data.exposure)
-            
+
             data = (data.
                     drop(columns={'last_per', 'last_date', 'tot_per', 'rep_n'}).
                     loc[(data.cal_b >= start_date) & (data.cal_b <= end_date)].
@@ -298,7 +308,7 @@ class ExposedDF():
         # convert status to categorical
         data.status = data.status.astype('category')
         data.status = data.status.cat.set_categories(status_levels)
-        
+
         # set up other properties
         self.data = data
         self.end_date = end_date
@@ -307,7 +317,43 @@ class ExposedDF():
         self.cal_expo = cal_expo
         self.expo_length = expo_length
 
-        return self
+        return None
+
+    @classmethod
+    def expose_py(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        return cls(data, end_date, expo_length='year', **kwargs)
+
+    @classmethod
+    def expose_pq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        return cls(data, end_date, expo_length='quarter', **kwargs)
+
+    @classmethod
+    def expose_pm(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        return cls(data, end_date, expo_length='month', **kwargs)
+
+    @classmethod
+    def expose_pw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        return cls(data, end_date, expo_length='week', **kwargs)
+
+    @classmethod
+    def expose_cy(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        return cls(data, end_date, expo_length='year', cal_expo=True,
+                   **kwargs)
+
+    @classmethod
+    def expose_cq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        return cls(data, end_date, expo_length='quarter', cal_expo=True,
+                   **kwargs)
+
+    @classmethod
+    def expose_cm(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        return cls(data, end_date, expo_length='month', cal_expo=True,
+                   **kwargs)
+
+    @classmethod
+    def expose_cw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        return cls(data, end_date, expo_length='week', cal_expo=True,
+                   **kwargs)
 
     @classmethod
     def from_DataFrame():

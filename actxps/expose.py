@@ -11,15 +11,98 @@ from pandas.api.types import is_categorical_dtype
 class ExposedDF():
     """
     # Exposed data frame class
+    
+    Convert a data frame of census-level records to exposure-level
+    records.
 
     ## Parameters
+    
+    `data`: pd.DataFrame
+        A data frame with census-level records
+    `end_date`: datetime 
+        Experience study end date
+    `start_date`: datetime, default = '1900-01-01'
+        Experience study start date
+    `target_status`: str, default = `None`
+        Target status value
+    `cal_expo`: bool, default = `False`
+        Set to `True` for calendar year exposures. Otherwise policy year 
+        exposures are assumed.
+    `expo_length`: str 
+        Exposure period length. Must be 'year', 'quarter', 'month', or 'week'
+    `col_pol_num`: str, default = 'pol_num'
+        Name of the column in `data` containing the policy number
+    `col_status`: str, default = 'status'
+        name of the column in `data` containing the policy status
+    `col_issue_date` str, default = 'issue_date'
+        name of the column in `data` containing the issue date
+    `col_term_date` str, default = 'term_date'
+        name of the column in `data` containing the termination date
+    `default_status`: str, default = `None`
+        Optional default active status code
 
     ## Details
+    
+    Census-level data refers to a data set wherein there is one row
+    per unique policy. Exposure-level data expands census-level data such that
+    there is one record per policy per observation period. Observation periods
+    could be any meaningful period of time such as a policy year, policy month,
+    calendar year, calendar quarter, calendar month, etc.
+    
+    `target_status` is used in the calculation of exposures. The annual
+    exposure method is applied, which allocates a full period of exposure for
+    any statuses in `target_status`. For all other statuses, new entrants
+    and exits are partially exposed based on the time elapsed in the observation
+    period. This method is consistent with the Balducci Hypothesis, which assumes
+    that the probability of termination is proportionate to the time elapsed
+    in the observation period. If the annual exposure method isn't desired,
+    `target_status` can be ignored. In this case, partial exposures are
+    always applied regardless of status.
+    
+    `default_status` is used to indicate the default active status that
+    should be used when exposure records are created. If `None`, then the
+    first status level will be assumed to be the default active status.
+    
+    ### Policy period and calendar period variations
+
+    The class methods `expose_py()`, `expose_pq()`, `expose_pm()`,
+    `expose_pw()`, `expose_cy()`, `expose_cq()`, `expose_cm()`, and
+    `expose_cw()` are convenience functions for specific exposure calculations. 
+    The two characters after the underscore describe the exposure type and 
+    exposure period, respectively.
+    
+    For exposures types:
+    
+    - `p` refers to policy years
+    - `c` refers to calendar years.
+    
+    For exposure periods:
+    
+    - `y` = years
+    - `q` = quarters
+    - `m` = months
+    - `w` = weeks.    
 
     ## Methods
+    
+    TODO
 
     ## Properties
-
+    
+    `data`: pd.DataFrame
+        A data frame with exposure level records. The results include all 
+        existing columns in the original input data plus new columns for 
+        exposures and observation periods. Observation periods include counters
+        for policy exposures, start dates, and end dates. Both start dates and 
+        end dates are inclusive bounds. 
+        
+        For policy year exposures, two observation period columns are returned.
+        Columns beginning with (`pol_`) are integer policy periods. Columns
+        beginning with (`pol_date_`) are calendar dates representing
+        anniversary dates, monthiversary dates, etc.
+        
+    `end_date`, `start_date`, `target_status`, `cal_expo`, `expo_length`:
+        Values passed on class instatiation. See Parameters for definitions.
     """
 
     # helper dictionary for abbreviations
@@ -217,7 +300,6 @@ class ExposedDF():
         self.target_status = target_status
         self.cal_expo = cal_expo
         self.expo_length = expo_length
-        self.trx_types = None
 
         return self
 

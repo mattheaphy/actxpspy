@@ -81,7 +81,13 @@ class ExposedDF():
     - `y` = years
     - `q` = quarters
     - `m` = months
-    - `w` = weeks.    
+    - `w` = weeks
+    
+    ### References
+    
+    Atkinson and McGarry (2016). Experience Study Calculations
+    
+    https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf
 
     ## Methods
     
@@ -102,7 +108,7 @@ class ExposedDF():
         anniversary dates, monthiversary dates, etc.
         
     `end_date`, `start_date`, `target_status`, `cal_expo`, `expo_length`:
-        Values passed on class instatiation. See Parameters for definitions.
+        Values passed on class instantiation. See Parameters for definitions.
     """
 
     # helper dictionary for abbreviations

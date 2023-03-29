@@ -62,9 +62,9 @@ class ExposedDF():
     `default_status` is used to indicate the default active status that
     should be used when exposure records are created. If `None`, then the
     first status level will be assumed to be the default active status.
-        
+
     ## Parameters
-    
+
     `data`: pd.DataFrame
         A data frame with census-level records
     `end_date`: datetime 
@@ -87,19 +87,19 @@ class ExposedDF():
     `expose_cw()` are convenience functions for specific exposure calculations. 
     The two characters after the underscore describe the exposure type and 
     exposure period, respectively.
-    
+
     For exposures types:
-    
+
     - `p` refers to policy years
     - `c` refers to calendar years
-    
+
     For exposure periods:
-    
+
     - `y` = years
     - `q` = quarters
     - `m` = months
     - `w` = weeks
-    
+
     Each constructor has the same inputs as the `__init__` method except that
     `expo_length` and `cal_expo` arguments are prepopulated.
 
@@ -253,6 +253,16 @@ class ExposedDF():
             # is subtracted
             data['cal_e'] = pd.Series(per_add(data.cal_b, data.time)) - Day(1)
             data['cal_b'] = per_add(data.cal_b, data.time - 1)
+            data['cal_days'] = (data.cal_e - data.cal_b).dt.days + 1
+
+            def cal_frac(x):
+                """
+                Faster function per_frac for computing the distance
+                between two calendar dates. Only works for partial periods
+                less than 1 full period.
+                """
+                numer = (x - data.cal_b).dt.days + 1
+                return numer / data.cal_days
 
             # partial exposure calculations
             expo_cond = [
@@ -264,15 +274,15 @@ class ExposedDF():
 
             expo_choice = [
                 1,
-                per_frac(data.first_date - Day(1), data.last_date),
-                1 - per_frac(data.cal_b, data.first_date),
-                per_frac(data.cal_b - Day(1), data.last_date),
+                cal_frac(data.last_date) - cal_frac(data.first_date - Day(1)),
+                1 - cal_frac(data.first_date - Day(1)),
+                cal_frac(data.last_date)
             ]
 
             data['exposure'] = np.select(expo_cond, expo_choice, 1)
 
             data = (data.
-                    drop(columns={'rep_n', 'first_date', 'last_date',
+                    drop(columns={'rep_n', 'first_date', 'last_date', 'cal_days',
                                   'first_per', 'last_per', 'time', 'tot_per'}).
                     rename(columns={
                         'cal_b': rename_col('cal'),

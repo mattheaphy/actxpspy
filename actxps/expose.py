@@ -187,7 +187,7 @@ class ExposedDF():
             "exposure",
             ("cal_" if cal_expo else "pol_") + abbrev,
             'pol_date_' + abbrev if not cal_expo else None,
-            ('cal_' if cal_expo else 'pol_date') + abbrev + '_end'
+            ('cal_' if cal_expo else 'pol_date_') + abbrev + '_end'
         ])
 
         x = x[np.isin(x, data.columns)]

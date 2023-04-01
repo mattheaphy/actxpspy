@@ -2,10 +2,10 @@ import pandas as pd
 from pandas.tseries.offsets import Day
 import numpy as np
 from datetime import datetime
-from actxps.tools import arg_match, document
+from actxps.tools import arg_match
 from actxps.dates import frac_interval, add_interval
 from warnings import warn
-from pandas.api.types import is_categorical_dtype
+from functools import singledispatchmethod
 
 
 class ExposedDF():
@@ -19,16 +19,16 @@ class ExposedDF():
 
     `data`: pd.DataFrame
         A data frame with census-level records
-    `end_date`: datetime 
+    `end_date`: datetime
         Experience study end date
     `start_date`: datetime, default = '1900-01-01'
         Experience study start date
     `target_status`: str, default = `None`
         Target status value
     `cal_expo`: bool, default = `False`
-        Set to `True` for calendar year exposures. Otherwise policy year 
+        Set to `True` for calendar year exposures. Otherwise policy year
         exposures are assumed.
-    `expo_length`: str 
+    `expo_length`: str
         Exposure period length. Must be 'year', 'quarter', 'month', or 'week'
     `col_pol_num`: str, default = 'pol_num'
         Name of the column in `data` containing the policy number
@@ -67,10 +67,10 @@ class ExposedDF():
 
     `data`: pd.DataFrame
         A data frame with census-level records
-    `end_date`: datetime 
+    `end_date`: datetime
         Experience study end date
     `**kwargs`:
-        Additional parameters passed to `ExposedDF.__init__()`    
+        Additional parameters passed to `ExposedDF.__init__()`
 
     ### References
 
@@ -84,8 +84,8 @@ class ExposedDF():
 
     The class methods `expose_py()`, `expose_pq()`, `expose_pm()`,
     `expose_pw()`, `expose_cy()`, `expose_cq()`, `expose_cm()`, and
-    `expose_cw()` are convenience functions for specific exposure calculations. 
-    The two characters after the underscore describe the exposure type and 
+    `expose_cw()` are convenience functions for specific exposure calculations.
+    The two characters after the underscore describe the exposure type and
     exposure period, respectively.
 
     For exposures types:
@@ -106,11 +106,11 @@ class ExposedDF():
     ## Properties
 
     `data`: pd.DataFrame
-        A data frame with exposure level records. The results include all 
-        existing columns in the original input data plus new columns for 
+        A data frame with exposure level records. The results include all
+        existing columns in the original input data plus new columns for
         exposures and observation periods. Observation periods include counters
-        for policy exposures, start dates, and end dates. Both start dates and 
-        end dates are inclusive bounds. 
+        for policy exposures, start dates, and end dates. Both start dates and
+        end dates are inclusive bounds.
 
         For policy year exposures, two observation period columns are returned.
         Columns beginning with (`pol_`) are integer policy periods. Columns
@@ -119,6 +119,14 @@ class ExposedDF():
 
     `end_date`, `start_date`, `target_status`, `cal_expo`, `expo_length`:
         Values passed on class instantiation. See Parameters for definitions.
+
+    `exposure_type`: str
+        A description of the exposure type that combines the `cal_expo` and 
+        `expo_length` properties
+
+    `date_cols`: tuple
+        Names of the start and end date columns in `data` for each exposure 
+        period
     """
 
     # helper dictionary for abbreviations
@@ -129,6 +137,7 @@ class ExposedDF():
         "week": "wk"
     }
 
+    @singledispatchmethod
     def __init__(self,
                  data: pd.DataFrame,
                  end_date: datetime,
@@ -320,14 +329,27 @@ class ExposedDF():
         data.status = data.status.cat.set_categories(status_levels)
 
         # set up other properties
+        self._finalize(data, end_date, start_date, target_status,
+                       cal_expo, expo_length)
+
+        return None
+
+    def _finalize(self,
+                  data, end_date, start_date, target_status,
+                  cal_expo, expo_length):
+        """
+        This internal function finalizes class construction for `ExposedDF`
+        objects.
+        """
         self.data = data
         self.end_date = end_date
         self.start_date = start_date
         self.target_status = target_status
         self.cal_expo = cal_expo
         self.expo_length = expo_length
-
-        return None
+        self.exposure_type = ('calendar' if (cal_expo) else 'policy') + \
+            '_' + expo_length
+        self.date_cols = ExposedDF._make_date_col_names(cal_expo, expo_length)
 
     @classmethod
     def expose_py(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
@@ -366,9 +388,100 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def from_DataFrame():
-        # TODO
-        pass
+    def from_DataFrame(cls,
+                       data: pd.DataFrame,
+                       end_date: datetime,
+                       start_date: datetime = datetime(1900, 1, 1),
+                       target_status: str = None,
+                       cal_expo: bool = False,
+                       expo_length: str = 'year',
+                       col_pol_num: str = "pol_num",
+                       col_status: str = "status",
+                       col_exposure: str = "exposure",
+                       col_pol_per: str = None,
+                       cols_dates: str = None):
+        
+        end_date = pd.to_datetime(end_date)
+        start_date = pd.to_datetime(start_date)
+        target_status = np.atleast_1d(target_status)
+
+        arg_match('expo_length', expo_length,
+                  ["year", "quarter", "month", "week"])
+
+        assert isinstance(data, pd.DataFrame), \
+            '`data` must be a Pandas DataFrame'
+
+        # column name alignment
+        data = data.rename(columns={
+            col_pol_num: 'pol_num',
+            col_status: 'status',
+            col_exposure: 'exposure'
+        })
+
+        # column name alignment - policy exposure periods
+        if not cal_expo:
+            exp_col_pol_per = 'pol_' + ExposedDF.abbr_period[expo_length]
+            if col_pol_per is not None:
+                data = data.rename(column={
+                    col_pol_per: exp_col_pol_per
+                })
+        else:
+            exp_col_pol_per = None
+
+        # column name alignment - period start and end dates
+        exp_cols_dates = ExposedDF._make_date_col_names(cal_expo, expo_length)
+
+        if cols_dates is not None:
+            assert len(cols_dates) == 2, \
+                "`cols_dates` must be a length 2 character vector"
+
+            data = data.rename(column={
+                cols_dates[0]: exp_cols_dates[0],
+                cols_dates[1]: exp_cols_dates[1]
+            })
+
+            # check required columns
+            # pol_num, status, exposure, 2 date cols,
+            # policy period (policy expo only)
+            unmatched = {"pol_num", "status", "exposure", exp_col_pol_per}
+            unmatched.update(exp_cols_dates)
+            unmatched = unmatched.difference(data.columns)
+
+            assert len(unmatched) == 0, \
+                ("The following columns are missing from `data`: "
+                 f"{', '.join(unmatched)}.\nHint: create these columns or use "
+                 "the `col_*` arguments to specify existing columns that "
+                 "should be mapped to these elements.")
+
+        return cls('already_exposed',
+                   data, end_date, start_date, target_status, cal_expo,
+                   expo_length)
+
+    @__init__.register(str)
+    def _special_init(self,
+                      style,
+                      data: pd.DataFrame,
+                      end_date: datetime,
+                      start_date: datetime = datetime(1900, 1, 1),
+                      target_status: str = None,
+                      cal_expo: bool = False,
+                      expo_length: str = 'year'):
+        """
+        Special constructor for the ExposedDF class. This constructor is used
+        by the `.from_DataFrame` class method to create new classes from 
+        DataFrames that already contain exposure records.
+        """
+
+        assert style == "already_exposed"
+
+        self._finalize(data, end_date, start_date, target_status,
+                       cal_expo, expo_length)
+
+    @staticmethod
+    def _make_date_col_names(cal_expo: bool, expo_length: str):
+        abbrev = ExposedDF.abbr_period[expo_length]
+        x = ("cal_" if cal_expo else "pol_date_") + abbrev
+        return x, x + "_end"
 
     def exp_stats(self):
         # TODO

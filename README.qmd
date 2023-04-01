@@ -12,7 +12,32 @@ of actuarial experience studies. Experience studies are used by
 actuaries to explore historical experience across blocks of business and
 to inform assumption setting for projection models.
 
-<!-- TODO update to look like the actxps README -->
+- The `ExposedDF()` class converts census-level records into policy 
+or calendar year exposure records.
+
+## Basic usage
+
+The actxps package includes simulated census data for a theoretical 
+deferred annuity product with an optional guaranteed income rider. 
+The grain of this data is one row *per policy*.
+
+```{python}
+#| label: packages
+import actxps as xp
+
+census_dat = xp.load_census_dat()
+```
+
+Convert census records to exposure records with one row *per policy per year*.
+
+```{python}
+#| label: example
+exposed_data = xp.ExposedDF(census_dat,
+                            end_date="2019-12-31",
+                            target_status="Surrender")
+
+exposed_data.data
+```
 
 <br> **Logo**
 

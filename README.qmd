@@ -26,6 +26,7 @@ The grain of this data is one row *per policy*.
 import actxps as xp
 
 census_dat = xp.load_census_dat()
+print(census_dat)
 ```
 
 Convert census records to exposure records with one row *per policy per year*.
@@ -36,7 +37,7 @@ exposed_data = xp.ExposedDF(census_dat,
                             end_date="2019-12-31",
                             target_status="Surrender")
 
-exposed_data.data
+print(exposed_data.data)
 ```
 
 <br> **Logo**

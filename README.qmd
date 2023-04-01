@@ -37,7 +37,7 @@ exposed_data = xp.ExposedDF(census_dat,
                             end_date="2019-12-31",
                             target_status="Surrender")
 
-print(exposed_data.data)
+exposed_data
 ```
 
 <br> **Logo**

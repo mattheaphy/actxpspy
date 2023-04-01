@@ -23,8 +23,8 @@ class ExposedDF():
         Experience study end date
     `start_date`: datetime, default = '1900-01-01'
         Experience study start date
-    `target_status`: str, default = `None`
-        Target status value
+    `target_status`: str | list | np.ndarray, default = `None`
+        Target status values
     `cal_expo`: bool, default = `False`
         Set to `True` for calendar year exposures. Otherwise policy year
         exposures are assumed.
@@ -142,7 +142,7 @@ class ExposedDF():
                  data: pd.DataFrame,
                  end_date: datetime,
                  start_date: datetime = datetime(1900, 1, 1),
-                 target_status: str = None,
+                 target_status: str | list | np.ndarray = None,
                  cal_expo: bool = False,
                  expo_length: str = 'year',
                  col_pol_num: str = "pol_num",
@@ -400,7 +400,7 @@ class ExposedDF():
                        col_exposure: str = "exposure",
                        col_pol_per: str = None,
                        cols_dates: str = None):
-        
+
         end_date = pd.to_datetime(end_date)
         start_date = pd.to_datetime(start_date)
         target_status = np.atleast_1d(target_status)
@@ -482,6 +482,16 @@ class ExposedDF():
         abbrev = ExposedDF.abbr_period[expo_length]
         x = ("cal_" if cal_expo else "pol_date_") + abbrev
         return x, x + "_end"
+
+    def __repr__(self) -> str:
+        repr = ("Exposure data\n\n" +
+                f"Exposure type: {self.exposure_type}\n" +
+                f"Target status: {', '.join([str(i) for i in self.target_status])}\n" +
+                f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}" +
+                f"\n\nA DataFrame: {self.data.shape[0]} x {self.data.shape[1]}"
+                f'\n{self.data.head(10)}')
+
+        return repr
 
     def exp_stats(self):
         # TODO

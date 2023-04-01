@@ -60,49 +60,39 @@ exposed_data = xp.ExposedDF(census_dat,
                             end_date="2019-12-31",
                             target_status="Surrender")
 
-print(exposed_data.data)
+exposed_data
 ```
 
-            pol_num  status issue_date  inc_guar   qual  age product gender  \
-    0             1  Active 2014-12-17      True  False   56       b      F   
-    1             1  Active 2014-12-17      True  False   56       b      F   
-    2             1  Active 2014-12-17      True  False   56       b      F   
-    3             1  Active 2014-12-17      True  False   56       b      F   
-    4             1  Active 2014-12-17      True  False   56       b      F   
-    ...         ...     ...        ...       ...    ...  ...     ...    ...   
-    141247    20000  Active 2009-04-29      True   True   72       c      M   
-    141248    20000  Active 2009-04-29      True   True   72       c      M   
-    141249    20000  Active 2009-04-29      True   True   72       c      M   
-    141250    20000  Active 2009-04-29      True   True   72       c      M   
-    141251    20000  Active 2009-04-29      True   True   72       c      M   
+    Exposure data
 
-            wd_age  premium term_date  pol_yr pol_date_yr pol_date_yr_end  \
-    0           77    370.0       NaT       1  2014-12-17      2015-12-16   
-    1           77    370.0       NaT       2  2015-12-17      2016-12-16   
-    2           77    370.0       NaT       3  2016-12-17      2017-12-16   
-    3           77    370.0       NaT       4  2017-12-17      2018-12-16   
-    4           77    370.0       NaT       5  2018-12-17      2019-12-16   
-    ...        ...      ...       ...     ...         ...             ...   
-    141247      72   5751.0       NaT       7  2015-04-29      2016-04-28   
-    141248      72   5751.0       NaT       8  2016-04-29      2017-04-28   
-    141249      72   5751.0       NaT       9  2017-04-29      2018-04-28   
-    141250      72   5751.0       NaT      10  2018-04-29      2019-04-28   
-    141251      72   5751.0       NaT      11  2019-04-29      2020-04-28   
+    Exposure type: policy_year
+    Target status: Surrender
+    Study range: 1900-01-01 to 2019-12-31
 
-            exposure  
-    0       1.000000  
-    1       1.000000  
-    2       1.000000  
-    3       1.000000  
-    4       1.000000  
-    ...          ...  
-    141247  1.000000  
-    141248  1.000000  
-    141249  1.000000  
-    141250  1.000000  
-    141251  0.674863  
+    A DataFrame: 141252 x 15
+       pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
+    0        1  Active 2014-12-17      True  False   56       b      F      77   
+    1        1  Active 2014-12-17      True  False   56       b      F      77   
+    2        1  Active 2014-12-17      True  False   56       b      F      77   
+    3        1  Active 2014-12-17      True  False   56       b      F      77   
+    4        1  Active 2014-12-17      True  False   56       b      F      77   
+    5        1  Active 2014-12-17      True  False   56       b      F      77   
+    6        2  Active 2007-09-24     False  False   71       a      F      71   
+    7        2  Active 2007-09-24     False  False   71       a      F      71   
+    8        2  Active 2007-09-24     False  False   71       a      F      71   
+    9        2  Active 2007-09-24     False  False   71       a      F      71   
 
-    [141252 rows x 15 columns]
+       premium term_date  pol_yr pol_date_yr pol_date_yr_end  exposure  
+    0    370.0       NaT       1  2014-12-17      2015-12-16  1.000000  
+    1    370.0       NaT       2  2015-12-17      2016-12-16  1.000000  
+    2    370.0       NaT       3  2016-12-17      2017-12-16  1.000000  
+    3    370.0       NaT       4  2017-12-17      2018-12-16  1.000000  
+    4    370.0       NaT       5  2018-12-17      2019-12-16  1.000000  
+    5    370.0       NaT       6  2019-12-17      2020-12-16  0.040984  
+    6    708.0       NaT       1  2007-09-24      2008-09-23  1.000000  
+    7    708.0       NaT       2  2008-09-24      2009-09-23  1.000000  
+    8    708.0       NaT       3  2009-09-24      2010-09-23  1.000000  
+    9    708.0       NaT       4  2010-09-24      2011-09-23  1.000000  
 
 <br> **Logo**
 

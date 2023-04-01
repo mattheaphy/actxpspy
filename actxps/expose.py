@@ -488,7 +488,7 @@ class ExposedDF():
                 f"Exposure type: {self.exposure_type}\n" +
                 f"Target status: {', '.join([str(i) for i in self.target_status])}\n" +
                 f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}" +
-                f"\n\nA DataFrame: {self.data.shape[0]} x {self.data.shape[1]}"
+                f"\n\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}"
                 f'\n{self.data.head(10)}')
 
         return repr

@@ -187,3 +187,54 @@ class TestRenames():
     def test_warn_conflict_cal_yr_end(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
             ExposedDF.expose_cy(toy_census.assign(cal_yr_end=1), "2020-12-31")
+
+
+expo = ExposedDF(toy_census, "2020-12-31", target_status="Surrender")
+expo2 = expo.data.copy()
+expo3 = expo2.rename(columns={'pol_num': 'pnum'})
+expo4 = expo3.rename(columns={'status': 'stat',
+                              'exposure': 'expo',
+                              'pol_yr': 'py',
+                              'pol_date_yr': 'start',
+                              'pol_date_yr_end': 'end'})
+
+
+class TestFromDataFrame():
+
+    def test_wrong_format(self):
+        with pytest.raises(AssertionError,
+                           match='The following columns are missing'):
+            x = pd.DataFrame({'a': range(3)})
+            ExposedDF.from_DataFrame(x, '2019-12-31')
+
+    def test_bad_expo_length(self):
+        with pytest.raises(ValueError, match='must be one of'):
+            ExposedDF.from_DataFrame(expo2,
+                                     end_date="2022-12-31",
+                                     expo_length="yr")
+
+    def test_from_DataFrame_works(self):
+        assert isinstance(ExposedDF.from_DataFrame(expo2, '2022-12-31'),
+                          ExposedDF)
+
+    def test_bad_colnames(self):
+        with pytest.raises(AssertionError,
+                           match='The following columns are missing'):
+            ExposedDF.from_DataFrame(expo3, '2019-12-31')
+
+    def test_rename_works(self):
+        assert isinstance(
+            ExposedDF.from_DataFrame(expo3, '2019-12-31', col_pol_num='pnum'),
+            ExposedDF)
+
+    def test_rename_works_2(self):
+        assert isinstance(
+            ExposedDF.from_DataFrame(expo4, '2019-12-31', col_pol_num='pnum',
+                                     col_status='stat', col_exposure='expo',
+                                     cols_dates=['start', 'end'],
+                                     col_pol_per='py'),
+            ExposedDF)
+
+    def test_only_dataframe(self):
+        with pytest.raises(AssertionError, match='must be a Pandas DataFrame'):
+            ExposedDF.from_DataFrame(1, '2020-12-31')

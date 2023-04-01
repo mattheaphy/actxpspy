@@ -422,7 +422,7 @@ class ExposedDF():
         if not cal_expo:
             exp_col_pol_per = 'pol_' + ExposedDF.abbr_period[expo_length]
             if col_pol_per is not None:
-                data = data.rename(column={
+                data = data.rename(columns={
                     col_pol_per: exp_col_pol_per
                 })
         else:
@@ -435,23 +435,23 @@ class ExposedDF():
             assert len(cols_dates) == 2, \
                 "`cols_dates` must be a length 2 character vector"
 
-            data = data.rename(column={
+            data = data.rename(columns={
                 cols_dates[0]: exp_cols_dates[0],
                 cols_dates[1]: exp_cols_dates[1]
             })
 
-            # check required columns
-            # pol_num, status, exposure, 2 date cols,
-            # policy period (policy expo only)
-            unmatched = {"pol_num", "status", "exposure", exp_col_pol_per}
-            unmatched.update(exp_cols_dates)
-            unmatched = unmatched.difference(data.columns)
+        # check required columns
+        # pol_num, status, exposure, 2 date cols,
+        # policy period (policy expo only)
+        unmatched = {"pol_num", "status", "exposure", exp_col_pol_per}
+        unmatched.update(exp_cols_dates)
+        unmatched = unmatched.difference(data.columns)
 
-            assert len(unmatched) == 0, \
-                ("The following columns are missing from `data`: "
-                 f"{', '.join(unmatched)}.\nHint: create these columns or use "
-                 "the `col_*` arguments to specify existing columns that "
-                 "should be mapped to these elements.")
+        assert len(unmatched) == 0, \
+            ("The following columns are missing from `data`: "
+                f"{', '.join(unmatched)}.\nHint: create these columns or use "
+                "the `col_*` arguments to specify existing columns that "
+                "should be mapped to these elements.")
 
         return cls('already_exposed',
                    data, end_date, start_date, target_status, cal_expo,

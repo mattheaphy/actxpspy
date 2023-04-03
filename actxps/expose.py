@@ -469,7 +469,7 @@ class ExposedDF():
                       expo_length: str = 'year'):
         """
         Special constructor for the ExposedDF class. This constructor is used
-        by the `.from_DataFrame` class method to create new classes from 
+        by the `from_DataFrame()` class method to create new classes from 
         DataFrames that already contain exposure records.
         """
 

@@ -524,7 +524,7 @@ class ExposedDF():
 
         self.groups = by
         return self
-    
+
     def ungroup(self):
         """
         Remove all grouping variables for summary methods like `.exp_stats()`.
@@ -533,7 +533,7 @@ class ExposedDF():
 
         self
 
-        """        
+        """
         self.groups = None
         return self
 
@@ -544,6 +544,9 @@ class ExposedDF():
                   credibility: bool = False,
                   cred_p: float = 0.95,
                   cred_r: float = 0.05):
+        """
+        TODO
+        """
 
         # set up target statuses. First, attempt to use the statuses that
         # were passed to this method. If none, then use the target_status
@@ -573,101 +576,10 @@ class ExposedDF():
             res['claims'] = res.n_claims
 
         # finish exp stats
-        def _finish_exp_stats(res, expected, credibility,
-                              cred_p, cred_r, wt):
-            # dictionary of summarized values
-            fields = {'n_claims': sum(res.n_claims),
-                      'claims': sum(res.claims),
-                      'exposure': sum(res.exposure)}
-
-            if expected is not None:
-
-                if isinstance(expected, str | int):
-                    expected = [expected]
-
-                ex_mean = {k: np.average(res[k], weights=res.exposure)
-                           for k in expected}
-                fields.update(ex_mean)
-
-            # additional columns for weighted studies
-            if wt is not None:
-                wt_forms = {
-                    'weight': sum(res.weight),
-                    'weight_sq': sum(res.weight_sq),
-                    'weight_n': sum(res.weight_n)}
-                fields.update(wt_forms)
-
-                wt_forms2 = {
-                    'ex_wt': lambda x: x.weight / x.weight_n,
-                    'ex2_wt': lambda x: x.weight_sq / x.weight_n}
-            else:
-                wt_forms2 = {}
-
-            # credibility formulas - varying by weights
-            if credibility:
-                y = (norm.ppf((1 + cred_p) / 2) / cred_r) ** 2
-
-                if wt is None:
-                    cred = {
-                        'credibility':
-                            np.minimum(1, lambda x:
-                                       (x.n_claims / (y * (1 - x.q_obs)))
-                                       ** 0.5)
-                    }
-                else:
-                    cred = {
-                        'credibility': lambda x:
-                            np.minimum(1,
-                                       (x.n_claims / (
-                                        y * ((x.ex2_wt - x.ex_wt ** 2) *
-                                             x.weight_n / (x.weight_n - 1) /
-                                             x.ex_wt ** 2 + 1 - x.q_obs)))
-                                       ** 0.5)
-                    }
-
-            else:
-                cred = {}
-
-            # dictionary of columns that depend on summarized values
-            fields2 = {
-                'q_obs': lambda x: x.claims / x.exposure
-            }
-            fields2.update(wt_forms2)
-            fields2.update(cred)
-
-            # convert results to a data frame
-            res = pd.DataFrame(fields, index=range(1)).assign(**fields2)
-
-            # add A/E's and adjusted q's
-            if expected is not None:
-                for k in expected:
-                    res['ae_' + k] = res.q_obs / res[k]
-
-            if credibility & (expected is not None):
-                for k in expected:
-                    res['adj_' + k] = (res.credibility * res.q_obs +
-                                       (1 - res.credibility) * res[k])
-
-            # rearrange and drop columns
-            if wt is not None:
-                res = res.drop(columns=['ex_wt', 'ex2_wt'])
-
-            cols = (['n_claims', 'claims', 'exposure', 'q_obs'] +
-                    [k for k in expected] +
-                    ['ae_' + k for k in expected] +
-                    (['credibility'] if credibility else None) +
-                    (['adj_' + k for k in expected] if credibility else None) +
-                    (['weight', 'weight_sq', 'weight_n']
-                    if wt is not None else None)
-                    )
-
-            res = res[cols]
-
-            return res
 
         if self.groups is not None:
             res = (res.groupby(self.groups).
-                   apply(_finish_exp_stats,
+                   apply(ExposedDF._finish_exp_stats,
                          expected=expected,
                          credibility=credibility,
                          cred_p=cred_p,
@@ -676,9 +588,102 @@ class ExposedDF():
                    drop(columns=[f'level_{len(self.groups)}']))
 
         else:
-            res = _finish_exp_stats(res,
-                                    expected=expected,
-                                    credibility=credibility,
-                                    cred_p=cred_p,
-                                    cred_r=cred_r, wt=wt)
+            res = ExposedDF._finish_exp_stats(res,
+                                              expected=expected,
+                                              credibility=credibility,
+                                              cred_p=cred_p,
+                                              cred_r=cred_r, wt=wt)
+        return res
+
+    @staticmethod
+    def _finish_exp_stats(res, expected, credibility,
+                          cred_p, cred_r, wt):
+        # dictionary of summarized values
+        fields = {'n_claims': sum(res.n_claims),
+                  'claims': sum(res.claims),
+                  'exposure': sum(res.exposure)}
+
+        if expected is not None:
+
+            if isinstance(expected, str | int):
+                expected = [expected]
+
+            ex_mean = {k: np.average(res[k], weights=res.exposure)
+                       for k in expected}
+            fields.update(ex_mean)
+
+        # additional columns for weighted studies
+        if wt is not None:
+            wt_forms = {
+                'weight': sum(res.weight),
+                'weight_sq': sum(res.weight_sq),
+                'weight_n': sum(res.weight_n)}
+            fields.update(wt_forms)
+
+            wt_forms2 = {
+                'ex_wt': lambda x: x.weight / x.weight_n,
+                'ex2_wt': lambda x: x.weight_sq / x.weight_n}
+        else:
+            wt_forms2 = {}
+
+        # credibility formulas - varying by weights
+        if credibility:
+            y = (norm.ppf((1 + cred_p) / 2) / cred_r) ** 2
+
+            if wt is None:
+                cred = {
+                    'credibility':
+                        np.minimum(1, lambda x:
+                                   (x.n_claims / (y * (1 - x.q_obs)))
+                                   ** 0.5)
+                }
+            else:
+                cred = {
+                    'credibility': lambda x:
+                        np.minimum(1,
+                                   (x.n_claims / (
+                                       y * ((x.ex2_wt - x.ex_wt ** 2) *
+                                            x.weight_n / (x.weight_n - 1) /
+                                            x.ex_wt ** 2 + 1 - x.q_obs)))
+                                   ** 0.5)
+                }
+
+        else:
+            cred = {}
+
+        # dictionary of columns that depend on summarized values
+        fields2 = {
+            'q_obs': lambda x: x.claims / x.exposure
+        }
+        fields2.update(wt_forms2)
+        fields2.update(cred)
+
+        # convert results to a data frame
+        res = pd.DataFrame(fields, index=range(1)).assign(**fields2)
+
+        # add A/E's and adjusted q's
+        if expected is not None:
+            for k in expected:
+                res['ae_' + k] = res.q_obs / res[k]
+
+        if credibility & (expected is not None):
+            for k in expected:
+                res['adj_' + k] = (res.credibility * res.q_obs +
+                                   (1 - res.credibility) * res[k])
+
+        # rearrange and drop columns
+        if wt is not None:
+            res = res.drop(columns=['ex_wt', 'ex2_wt'])
+
+        cols = (['n_claims', 'claims', 'exposure', 'q_obs'] +
+                [k for k in expected] +
+                ['ae_' + k for k in expected] +
+                (['credibility'] if credibility else None) +
+                (['adj_' + k for k in expected] if credibility else None) +
+                (['weight', 'weight_sq', 'weight_n']
+                if wt is not None else None)
+                )
+
+        res = res[cols]
+
         return res

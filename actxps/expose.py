@@ -63,15 +63,6 @@ class ExposedDF():
     should be used when exposure records are created. If `None`, then the
     first status level will be assumed to be the default active status.
 
-    ## Parameters
-
-    `data`: pd.DataFrame
-        A data frame with census-level records
-    `end_date`: datetime
-        Experience study end date
-    `**kwargs`:
-        Additional parameters passed to `ExposedDF.__init__()`
-
     ### References
 
     Atkinson and McGarry (2016). Experience Study Calculations

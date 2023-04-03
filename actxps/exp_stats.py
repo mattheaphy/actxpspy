@@ -58,7 +58,6 @@ class ExpStats():
                             'cred_r': cred_r}
 
         # finish exp stats
-
         if expo.groups is not None:
             res = (res.groupby(expo.groups).
                    apply(self._finish_exp_stats).
@@ -80,7 +79,7 @@ class ExpStats():
         fields = {'n_claims': sum(data.n_claims),
                   'claims': sum(data.claims),
                   'exposure': sum(data.exposure)}
-        
+
         expected = self.expected
         wt = self.wt
         credibility = self.cred_params['credibility']
@@ -171,3 +170,61 @@ class ExpStats():
         data = data[cols]
 
         return data
+
+    def groupby(self, *by):
+        """
+        Set grouping variables for summary methods like `.exp_stats()`.
+
+        ## Parameters
+
+        *`by`: 
+            Column names in `data` that will be used as grouping variables
+
+        ## Details
+
+        This function will not directly apply the `DataFrame.groupby()` method 
+        to the `data` property. Instead, it will set the `groups` property of
+        the `ExpStats` object. The `groups` property is subsequently used to
+        group data within summary methods like `exp_stats()`.
+
+        ## Returns
+
+        self
+
+        """
+
+        by = list(by)
+
+        assert all(pd.Series(by).isin(self.data.columns)), \
+            "All grouping variables passed to `*by` must be in the`.data` property."
+
+        self.groups = by
+        return self
+
+    def ungroup(self):
+        """
+        Remove all grouping variables for summary methods like `.exp_stats()`.
+
+        ## Returns
+
+        self
+
+        """
+        self.groups = None
+        return self
+
+    def summary(self):
+        """
+        TODO
+        """
+
+        if self.groups is not None:
+            res = (self.data.groupby(self.groups).
+                   apply(self._finish_exp_stats).
+                   reset_index().
+                   drop(columns=[f'level_{len(self.groups)}']))
+
+        else:
+            res = self._finish_exp_stats(self.data)
+
+        return res

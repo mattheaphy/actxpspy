@@ -18,7 +18,7 @@ class ExpStats():
                  cred_p: float = 0.95,
                  cred_r: float = 0.05,
                  wt: str = None):
-        
+
         # set up target statuses. First, attempt to use the statuses that
         # were passed. If none, then use the target_status
         # property from the ExposedDF. If that property is None, assume
@@ -47,47 +47,32 @@ class ExpStats():
         else:
             res['claims'] = res.n_claims
 
-        # finish exp stats
-
-        if expo.groups is not None:
-            res = (res.groupby(expo.groups).
-                   apply(ExpStats._finish_exp_stats,
-                         expected=expected,
-                         credibility=credibility,
-                         cred_p=cred_p,
-                         cred_r=cred_r, wt=wt).
-                   reset_index().
-                   drop(columns=[f'level_{len(expo.groups)}']))
-
-        else:
-            res = ExpStats._finish_exp_stats(res,
-                                             expected, 
-                                             credibility,
-                                             cred_p,
-                                             cred_r,
-                                             wt)
-
-
-        self.data = res
         self.groups = expo.groups
         self.target_status = target_status
         self.end_date = expo.end_date
         self.start_date = expo.start_date
         self.expected = expected
         self.wt = wt
-        self.exp_params = {'credibility': credibility,
-                           'cred_p': cred_p,
-                           'cred_r': cred_r}
-        
+        self.cred_params = {'credibility': credibility,
+                            'cred_p': cred_p,
+                            'cred_r': cred_r}
+
+        # finish exp stats
+
+        if expo.groups is not None:
+            res = (res.groupby(expo.groups).
+                   apply(self._finish_exp_stats).
+                   reset_index().
+                   drop(columns=[f'level_{len(expo.groups)}']))
+
+        else:
+            res = self._finish_exp_stats(res)
+
+        self.data = res
+
         return None
 
-    @staticmethod
-    def _finish_exp_stats(data: pd.DataFrame, 
-                          expected: str | list | np.ndarray, 
-                          credibility: bool, 
-                          cred_p: float, 
-                          cred_r: float, 
-                          wt: str):
+    def _finish_exp_stats(self, data: pd.DataFrame):
         """
         Internal method for finalizing experience study summaries.
         """
@@ -95,6 +80,12 @@ class ExpStats():
         fields = {'n_claims': sum(data.n_claims),
                   'claims': sum(data.claims),
                   'exposure': sum(data.exposure)}
+        
+        expected = self.expected
+        wt = self.wt
+        credibility = self.cred_params['credibility']
+        cred_p = self.cred_params['cred_p']
+        cred_r = self.cred_params['cred_r']
 
         if expected is not None:
 

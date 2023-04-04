@@ -486,7 +486,7 @@ class ExposedDF():
         return repr
 
     def groupby(self, *by):
-        """
+        """ 
         Set grouping variables for summary methods like `.exp_stats()`.
 
         ## Parameters
@@ -508,10 +508,13 @@ class ExposedDF():
         """
 
         by = list(by)
-
-        assert all(pd.Series(by).isin(self.data.columns)), \
+        
+        if len(by) == 0:
+            by = None
+        else:
+            assert all(pd.Series(by).isin(self.data.columns)), \
             "All grouping variables passed to `*by` must be in the`.data` property."
-
+            
         self.groups = by
         return self
 

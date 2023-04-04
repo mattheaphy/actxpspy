@@ -21,6 +21,7 @@ class ExpStats():
                  cred_r: float = 0.05,
                  wt: str = None):
 
+        self.data = None
         # set up target statuses. First, attempt to use the statuses that
         # were passed. If none, then use the target_status
         # property from the ExposedDF. If that property is None, assume
@@ -74,7 +75,7 @@ class ExpStats():
         """
 
         # set up properties
-        self.groups = None
+        self.groups = groups
         self.target_status = target_status
         self.end_date = end_date
         self.start_date = start_date
@@ -140,8 +141,8 @@ class ExpStats():
 
             if wt is None:
                 cred = {
-                    'credibility':
-                        np.minimum(1, lambda x:
+                    'credibility': lambda x:
+                        np.minimum(1,
                                    (x.n_claims / (y * (1 - x.q_obs)))
                                    ** 0.5)
                 }
@@ -183,69 +184,41 @@ class ExpStats():
         if wt is not None:
             data = data.drop(columns=['ex_wt', 'ex2_wt'])
 
-        cols = (['n_claims', 'claims', 'exposure', 'q_obs'] +
-                [k for k in expected] +
-                ['ae_' + k for k in expected] +
-                (['credibility'] if credibility else None) +
-                (['adj_' + k for k in expected] if credibility else None) +
-                (['weight', 'weight_sq', 'weight_n']
-                if wt is not None else None)
-                )
+        cols = ['n_claims', 'claims', 'exposure', 'q_obs']
+        if expected is not None:
+            cols.extend([k for k in expected] +
+                        ['ae_' + k for k in expected])
+
+        if credibility:
+            cols.extend(['credibility'])
+            if expected:
+                cols.extend(['adj_' + k for k in expected])
+
+        if wt is not None:
+            cols.extend(['weight', 'weight_sq', 'weight_n'])
 
         data = data[cols]
 
         return data
 
-    def groupby(self, *by):
-        """
-        Set grouping variables for summary methods like `.exp_stats()`.
-
-        ## Parameters
-
-        *`by`: 
-            Column names in `data` that will be used as grouping variables
-
-        ## Details
-
-        This function will not directly apply the `DataFrame.groupby()` method 
-        to the `data` property. Instead, it will set the `groups` property of
-        the `ExpStats` object. The `groups` property is subsequently used to
-        group data within summary methods like `exp_stats()`.
-
-        ## Returns
-
-        self
-
-        """
-
-        by = list(by)
-
-        assert all(pd.Series(by).isin(self.data.columns)), \
-            "All grouping variables passed to `*by` must be in the`.data` property."
-
-        self.groups = by
-        return self
-
-    def ungroup(self):
-        """
-        Remove all grouping variables for summary methods like `.exp_stats()`.
-
-        ## Returns
-
-        self
-
-        """
-        self.groups = None
-        return self
-
-    def summary(self):
+    def summary(self, *by):
         """
         TODO
         """
 
+        by = list(by)
+
+        if len(by) == 0:
+            by = None
+        else:
+            assert all(pd.Series(by).isin(self.data.columns)), \
+                "All grouping variables passed to `*by` must be in the`.data` property."
+
+        self.groups = by
+
         return ExpStats('from_summary', self)
 
-    @__init__.register(str)
+    @ __init__.register(str)
     def _special_init(self,
                       style: str,
                       old_self):
@@ -255,10 +228,29 @@ class ExpStats():
         """
 
         assert style == "from_summary"
-
+        self.data = None
         self._finalize(old_self.data, old_self.groups, old_self.target_status,
                        old_self.end_date, old_self.start_date,
                        old_self.expected, old_self.wt, old_self.cred_params)
 
-    def __repr(self):
-        pass
+    def __repr__(self):
+        repr = "Experience study results\n\n"
+
+        if self.groups is not None:
+            repr += f"Groups: {', '.join([str(i) for i in self.groups])}\n"
+
+        repr += f"Target status: {', '.join([str(i) for i in self.target_status])}\n"
+        f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}\n"
+
+        if self.expected is not None:
+            repr += f"Expected values: {', '.join([str(i) for i in self.expected])}\n"
+
+        if self.wt is not None:
+            repr += f"Weighted by: {self.wt}\n"
+
+        if self.data is not None:
+            repr = (repr +
+                    f"\n\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}" +
+                    f'\n{self.data.head(10)}')
+
+        return repr

@@ -508,13 +508,13 @@ class ExposedDF():
         """
 
         by = list(by)
-        
+
         if len(by) == 0:
             by = None
         else:
             assert all(pd.Series(by).isin(self.data.columns)), \
-            "All grouping variables passed to `*by` must be in the`.data` property."
-            
+                "All grouping variables passed to `*by` must be in the`.data` property."
+
         self.groups = by
         return self
 

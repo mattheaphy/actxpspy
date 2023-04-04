@@ -8,7 +8,86 @@ from actxps.expose import ExposedDF
 
 class ExpStats():
     """
-    TODO
+    # Experience study summary class
+    
+    Create a summary of termination experience for a given target status
+    (an `ExpStats` object).
+    
+    Typically, the `ExpStats` class constructor should not be called directly.
+    The preferred method for creating an `ExpStats` object is to call the 
+    `exp_stats()` method on an `ExposedDF` object.
+    
+    ## Parameters
+    
+    `expo`: ExposedDF
+        An exposed data frame class
+    `target_status`: str | list | np.ndarray, default = None
+        Optional. A single string, list, or array of target status values
+    `expected`: str | list | np.ndarray, default = None
+        Optional. A single string, list, or array of column names in the 
+        `data` property of `expo` with expected values
+    `wt`: str, default = None
+        Optional. Name of the column in the `data` property of `expo` containing
+        weights to use in the calculation of claims, exposures, and
+        partial credibility.        
+    `credibility`: bool, default = False
+        Whether the output should include partial credibility weights and
+        credibility-weighted decrement rates.
+    `cred_p`: float, default = 0.95
+        Confidence level under the Limited Fluctuation credibility method
+    `cred_r`: float, default = 0.05
+        Error tolerance under the Limited Fluctuation credibility method
+    
+    ## Details
+    
+    If `expo` is grouped (see the `ExposedDF.groupby()` method),
+    the returned `ExpStats` object's data will contain one row per group.
+    
+    If nothing is passed to `target_status`, the `target_status` property
+    of `expo` will be used. If that property is `None`,
+    all status values except the first level will be assumed. This will 
+    produce a warning message.
+    
+    ### Expected values
+    
+    The `expected` argument is optional. If provided, this argument must
+    be a string, list, or array with values corresponding to columns in 
+    `expo.data` containing expected experience. More than one expected basis 
+    can be provided.
+    
+    ### Credibility
+    
+    If `credibility` is set to `True`, the output will contain a
+    `credibility` column equal to the partial credibility estimate under
+    the Limited Fluctuation credibility method (also known as Classical
+    Credibility) assuming a binomial distribution of claims.
+    
+    ## Methods
+    
+    `summary()`
+        Calling `summary()` will re-summarize the data while retaining any
+        grouping variables passed to the `*by` argument. This will return a new
+        `ExpStats` object.
+    
+    ## Properties
+    
+    `data`: pd.DataFrame
+        A data frame containing experience study summary results that includes
+        columns for any grouping variables, claims, exposures, and observed 
+        decrement rates (`q_obs`). If any values are passed to `expected`, 
+        additional columns will be added for expected decrements and 
+        actual-to-expected ratios. If `credibility` is set to `True`, additional
+        columns are added for partial credibility and credibility-weighted 
+        decrement rates (assuming values are passed to `expected`).
+    
+    `target_status`, `groups`, `start_date`, `end_date`, `expected`, `wt`, 
+    `cred_params`
+        Metadata about the experience study inferred from the `ExposedDF` 
+        object (`expo`) or passed directly to `ExpStats`.
+    
+    ### References
+    
+    Herzog, Thomas (1999). Introduction to Credibility Theory
     """
 
     @singledispatchmethod
@@ -16,10 +95,10 @@ class ExpStats():
                  expo: ExposedDF,
                  target_status: str | list | np.ndarray = None,
                  expected: str | list | np.ndarray = None,
+                 wt: str = None,
                  credibility: bool = False,
                  cred_p: float = 0.95,
-                 cred_r: float = 0.05,
-                 wt: str = None):
+                 cred_r: float = 0.05):
 
         self.data = None
         # set up target statuses. First, attempt to use the statuses that
@@ -203,7 +282,21 @@ class ExpStats():
 
     def summary(self, *by):
         """
-        TODO
+        # Re-summarize termination experience data
+        
+        Re-summarize the data while retaining any grouping variables passed to
+        the `*by` argument.
+        
+        ## Parameters
+        
+        *`by`: 
+            Column names in `data` that will be used as grouping variables in 
+            the re-summarized object. Passing nothing is acceptable and will
+            produce a 1-row experience summary.
+        
+        ## Returns
+        
+        A new `ExpStats` object.
         """
 
         by = list(by)

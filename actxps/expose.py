@@ -538,8 +538,68 @@ class ExposedDF():
                   cred_p: float = 0.95,
                   cred_r: float = 0.05):
         """
-        TODO
+        # Summarize experience study records
+        
+        Create a summary of termination experience for a given target status
+        (an `ExpStats` object).
+        
+        ## Parameters
+        
+        `target_status`: str | list | np.ndarray, default = None
+            Optional. A single string, list, or array of target status values
+        `expected`: str | list | np.ndarray, default = None
+            Optional. A single string, list, or array of column names in the 
+            `data` property with expected values
+        `wt`: str, default = None
+            Optional. Name of the column in the `data` property containing
+            weights to use in the calculation of claims, exposures, and
+            partial credibility.
+        `credibility`: bool, default = False
+            Whether the output should include partial credibility weights and
+            credibility-weighted decrement rates.
+        `cred_p`: float, default = 0.95
+            Confidence level under the Limited Fluctuation credibility method
+        `cred_r`: float, default = 0.05
+            Error tolerance under the Limited Fluctuation credibility method
+        
+        ## Details
+        
+        If the `ExposedDF` object is grouped (see the `groupby()` method), the
+        returned `ExpStats` object's data will contain one row per group.
+        
+        If nothing is passed to `target_status`, the `target_status` property
+        of the `ExposedDF` object will be used. If that property is `None`,
+        all status values except the first level will be assumed. This will 
+        produce a warning message.
+        
+        ### Expected values
+        
+        The `expected` argument is optional. If provided, this argument must
+        be a string, list, or array with values corresponding to columns in 
+        the `data` property containing expected experience. More than one 
+        expected basis can be provided.
+        
+        ### Credibility
+        
+        If `credibility` is set to `True`, the output will contain a
+        `credibility` column equal to the partial credibility estimate under
+        the Limited Fluctuation credibility method (also known as Classical
+        Credibility) assuming a binomial distribution of claims.
+        
+        ## Returns
+        
+        An `ExpStats` object with a `data` property that includes columns for
+        any grouping variables, claims, exposures, and observed decrement rates
+        (`q_obs`). If any values are passed to `expected`, additional columns 
+        will be added for expected decrements and actual-to-expected ratios. If
+        `credibility` is set to `True`, additional columns are added for partial
+        credibility and credibility-weighted decrement rates (assuming values 
+        are passed to `expected`).
+        
+        ### References
+        
+        Herzog, Thomas (1999). Introduction to Credibility Theory
         """
         from actxps.exp_stats import ExpStats
-        return ExpStats(self, target_status, expected,
-                        credibility, cred_p, cred_r, wt)
+        return ExpStats(self, target_status, expected, wt,
+                        credibility, cred_p, cred_r)

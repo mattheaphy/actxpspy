@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import norm
 from warnings import warn
+from functools import singledispatchmethod
 from actxps.expose import ExposedDF
 
 
@@ -10,6 +11,7 @@ class ExpStats():
     TODO
     """
 
+    @singledispatchmethod
     def __init__(self,
                  expo: ExposedDF,
                  target_status: str | list | np.ndarray = None,
@@ -30,7 +32,7 @@ class ExpStats():
             warn(f"No target status was provided. {', '.join(target_status)} "
                  "was assumed.")
 
-        res = expo.data.assign(
+        data = expo.data.assign(
             n_claims=expo.data.status.isin(target_status)
         )
 
@@ -38,42 +40,65 @@ class ExpStats():
         if wt is not None:
 
             assert isinstance(wt, str), "`wt` must have type `str`"
-            res = res.rename(columns={wt: 'weight'})
-            res['claims'] = res.n_claims * res.weight
-            res['exposure'] = res.exposure * res.weight
-            res['weight_sq'] = res.weight ** 2
-            res['weight_n'] = 1
+            data = data.rename(columns={wt: 'weight'})
+            data['claims'] = data.n_claims * data.weight
+            data['exposure'] = data.exposure * data.weight
+            data['weight_sq'] = data.weight ** 2
+            data['weight_n'] = 1
 
         else:
-            res['claims'] = res.n_claims
+            data['claims'] = data.n_claims
 
-        self.groups = expo.groups
+        cred_params = {'credibility': credibility,
+                       'cred_p': cred_p,
+                       'cred_r': cred_r}
+
+        # set up properties and summarize data
+        self._finalize(data, expo.groups, target_status,
+                       expo.end_date, expo.start_date,
+                       expected, wt, cred_params)
+
+        return None
+
+    def _finalize(self,
+                  data: pd.DataFrame,
+                  groups,
+                  target_status,
+                  end_date,
+                  start_date,
+                  expected,
+                  wt,
+                  cred_params):
+        """
+        Internal method for finalizing experience study summary objects
+        """
+
+        # set up properties
+        self.groups = None
         self.target_status = target_status
-        self.end_date = expo.end_date
-        self.start_date = expo.start_date
+        self.end_date = end_date
+        self.start_date = start_date
         self.expected = expected
         self.wt = wt
-        self.cred_params = {'credibility': credibility,
-                            'cred_p': cred_p,
-                            'cred_r': cred_r}
+        self.cred_params = cred_params
 
         # finish exp stats
-        if expo.groups is not None:
-            res = (res.groupby(expo.groups).
-                   apply(self._finish_exp_stats).
+        if groups is not None:
+            res = (data.groupby(groups).
+                   apply(self._calc).
                    reset_index().
-                   drop(columns=[f'level_{len(expo.groups)}']))
+                   drop(columns=[f'level_{len(groups)}']))
 
         else:
-            res = self._finish_exp_stats(res)
+            res = self._calc(data)
 
         self.data = res
 
         return None
 
-    def _finish_exp_stats(self, data: pd.DataFrame):
+    def _calc(self, data: pd.DataFrame):
         """
-        Internal method for finalizing experience study summaries.
+        Support function for summarizing data for one group
         """
         # dictionary of summarized values
         fields = {'n_claims': sum(data.n_claims),
@@ -218,13 +243,22 @@ class ExpStats():
         TODO
         """
 
-        if self.groups is not None:
-            res = (self.data.groupby(self.groups).
-                   apply(self._finish_exp_stats).
-                   reset_index().
-                   drop(columns=[f'level_{len(self.groups)}']))
+        return ExpStats('from_summary', self)
 
-        else:
-            res = self._finish_exp_stats(self.data)
+    @__init__.register(str)
+    def _special_init(self,
+                      style: str,
+                      old_self):
+        """
+        Special constructor for the ExpStats class. This constructor is used
+        by the `summary()` class method to create new summarized instances.
+        """
 
-        return res
+        assert style == "from_summary"
+
+        self._finalize(old_self.data, old_self.groups, old_self.target_status,
+                       old_self.end_date, old_self.start_date,
+                       old_self.expected, old_self.wt, old_self.cred_params)
+
+    def __repr(self):
+        pass

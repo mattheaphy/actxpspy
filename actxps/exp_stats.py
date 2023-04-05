@@ -4,32 +4,41 @@ from scipy.stats import norm
 from warnings import warn
 from functools import singledispatchmethod
 from actxps.expose import ExposedDF
+from actxps.tools import arg_match
+from plotnine import (
+    ggplot,
+    geom_point,
+    geom_line,
+    geom_col,
+    aes,
+    facet_wrap,
+    scale_y_continuous)
 
 
 class ExpStats():
     """
     # Experience study summary class
-    
+
     Create a summary of termination experience for a given target status
     (an `ExpStats` object).
-    
+
     Typically, the `ExpStats` class constructor should not be called directly.
-    The preferred method for creating an `ExpStats` object is to call the 
+    The preferred method for creating an `ExpStats` object is to call the
     `exp_stats()` method on an `ExposedDF` object.
-    
+
     ## Parameters
-    
+
     `expo`: ExposedDF
         An exposed data frame class
     `target_status`: str | list | np.ndarray, default = None
         Optional. A single string, list, or array of target status values
     `expected`: str | list | np.ndarray, default = None
-        Optional. A single string, list, or array of column names in the 
+        Optional. A single string, list, or array of column names in the
         `data` property of `expo` with expected values
     `wt`: str, default = None
         Optional. Name of the column in the `data` property of `expo` containing
         weights to use in the calculation of claims, exposures, and
-        partial credibility.        
+        partial credibility.
     `credibility`: bool, default = False
         Whether the output should include partial credibility weights and
         credibility-weighted decrement rates.
@@ -37,56 +46,56 @@ class ExpStats():
         Confidence level under the Limited Fluctuation credibility method
     `cred_r`: float, default = 0.05
         Error tolerance under the Limited Fluctuation credibility method
-    
+
     ## Details
-    
+
     If `expo` is grouped (see the `ExposedDF.groupby()` method),
     the returned `ExpStats` object's data will contain one row per group.
-    
+
     If nothing is passed to `target_status`, the `target_status` property
     of `expo` will be used. If that property is `None`,
-    all status values except the first level will be assumed. This will 
+    all status values except the first level will be assumed. This will
     produce a warning message.
-    
+
     ### Expected values
-    
+
     The `expected` argument is optional. If provided, this argument must
-    be a string, list, or array with values corresponding to columns in 
-    `expo.data` containing expected experience. More than one expected basis 
+    be a string, list, or array with values corresponding to columns in
+    `expo.data` containing expected experience. More than one expected basis
     can be provided.
-    
+
     ### Credibility
-    
+
     If `credibility` is set to `True`, the output will contain a
     `credibility` column equal to the partial credibility estimate under
     the Limited Fluctuation credibility method (also known as Classical
     Credibility) assuming a binomial distribution of claims.
-    
+
     ## Methods
-    
+
     `summary()`
         Calling `summary()` will re-summarize the data while retaining any
         grouping variables passed to the `*by` argument. This will return a new
         `ExpStats` object.
-    
+
     ## Properties
-    
+
     `data`: pd.DataFrame
         A data frame containing experience study summary results that includes
-        columns for any grouping variables, claims, exposures, and observed 
-        decrement rates (`q_obs`). If any values are passed to `expected`, 
-        additional columns will be added for expected decrements and 
+        columns for any grouping variables, claims, exposures, and observed
+        decrement rates (`q_obs`). If any values are passed to `expected`,
+        additional columns will be added for expected decrements and
         actual-to-expected ratios. If `credibility` is set to `True`, additional
-        columns are added for partial credibility and credibility-weighted 
+        columns are added for partial credibility and credibility-weighted
         decrement rates (assuming values are passed to `expected`).
-    
-    `target_status`, `groups`, `start_date`, `end_date`, `expected`, `wt`, 
+
+    `target_status`, `groups`, `start_date`, `end_date`, `expected`, `wt`,
     `cred_params`
-        Metadata about the experience study inferred from the `ExposedDF` 
+        Metadata about the experience study inferred from the `ExposedDF`
         object (`expo`) or passed directly to `ExpStats`.
-    
+
     ### References
-    
+
     Herzog, Thomas (1999). Introduction to Credibility Theory
     """
 
@@ -283,19 +292,19 @@ class ExpStats():
     def summary(self, *by):
         """
         # Re-summarize termination experience data
-        
+
         Re-summarize the data while retaining any grouping variables passed to
         the `*by` argument.
-        
+
         ## Parameters
-        
-        *`by`: 
-            Column names in `data` that will be used as grouping variables in 
+
+        *`by`:
+            Column names in `data` that will be used as grouping variables in
             the re-summarized object. Passing nothing is acceptable and will
             produce a 1-row experience summary.
-        
+
         ## Returns
-        
+
         A new `ExpStats` object.
         """
 
@@ -347,3 +356,102 @@ class ExpStats():
                     f'\n{self.data.head(10)}')
 
         return repr
+
+    def plot(self,
+             x: str = None,
+             y: str = "q_obs",
+             color: str = None,
+             facets: list = None,
+             mapping: aes = None,
+             scales: str = "fixed",
+             geoms: str = "lines",
+             y_labels: callable = lambda l: [f"{v * 100:.1f}%" for v in l]):
+        """
+        # Plot experience study results
+
+        ## Parameters
+
+        `x`: str
+            A column name in `data` to use as the `x` variable. If `None`,
+            `x` will default to the first grouping variable. If there are no
+            grouping variables, `x` will be set to "All".
+        `y`: str
+            A column name in `data` to use as the `y` variable. If `None`, 
+            `y` will default to the observed termination rate ("q_obs").
+        `color`: str
+            A column name in `data` to use as the `color` and `fill` variables.
+            If `None`, `y` will default to the second grouping variable. If 
+            there are less than two grouping variables, the plot will not use 
+            a color aesthetic.
+        `facets`: list
+            Faceting variables in `data` passed to `plotnine.facet_wrap()`. If 
+            `None`, grouping variables 3+ will be used (assuming there are more
+            than two grouping variables).
+        `mapping`: aes
+            Aesthetic mapping added to `plotnine.ggplot()`. NOTE: If `mapping` 
+            is supplied, the `x`, `y`, and `color` arguments will be ignored.
+        `scales`: str
+            The `scales` argument passed to `plotnine.facet_wrap()`.
+        `geoms`: str, must be "lines" (default) or "bars"
+            Type of geometry. If "lines" is passed, the plot will display lines
+            and points. If "bars", the plot will display bars.
+        `y_labels`: callable 
+            Label function passed to `plotnine.scale_y_continuous()`.
+
+        ## Details 
+
+        If no aesthetic map is supplied, the plot will use the first
+        grouping variable in the `groups` property on the x axis and `q_obs` on
+        the y axis. In addition, the second grouping variable in `groups` will 
+        be used for color and fill.
+
+        If no faceting variables are supplied, the plot will use grouping
+        variables 3 and up as facets. These variables are passed into
+        `plotnine.facet_wrap()`.
+        """
+
+        data = self.data.copy()
+
+        groups = self.groups
+        if groups is None:
+            groups = ["All"]
+            data["All"] = ""
+
+        def auto_aes(var, default, if_none):
+            if (var is None):
+                if len(groups) < default:
+                    return if_none
+                else:
+                    return groups[default - 1]
+            else:
+                return var
+
+        arg_match("geoms", geoms, ["lines", "bars"])
+
+        # set up aesthetics
+        if mapping is None:
+            x = auto_aes(x, 1, "All")
+            color = auto_aes(color, 2, None)
+            if color is None:
+                mapping = aes(x, y)
+            else:
+                mapping = aes(x, y,
+                              color=color, fill=color, group=color)
+
+        if facets is None:
+            facets = groups[2:]
+            if len(facets) == 0:
+                facets = None
+
+        p = (ggplot(data, mapping) +
+             scale_y_continuous(labels=y_labels))
+
+        if geoms == "lines":
+            p = p + geom_point() + geom_line()
+        else:
+            p = p + geom_col(position="dodge")
+
+        if facets is None:
+            return p
+        else:
+            return p + facet_wrap(facets, scales=scales)

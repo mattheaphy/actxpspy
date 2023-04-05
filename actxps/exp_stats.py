@@ -168,7 +168,7 @@ class ExpStats():
         self.end_date = end_date
         self.start_date = start_date
         if isinstance(expected, str | int):
-                expected = [expected]
+            expected = [expected]
         self.expected = expected
         self.wt = wt
         self.cred_params = cred_params

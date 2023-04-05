@@ -167,6 +167,8 @@ class ExpStats():
         self.target_status = target_status
         self.end_date = end_date
         self.start_date = start_date
+        if isinstance(expected, str | int):
+                expected = [expected]
         self.expected = expected
         self.wt = wt
         self.cred_params = cred_params
@@ -201,9 +203,6 @@ class ExpStats():
         cred_r = self.cred_params['cred_r']
 
         if expected is not None:
-
-            if isinstance(expected, str | int):
-                expected = [expected]
 
             ex_mean = {k: np.average(data[k], weights=data.exposure)
                        for k in expected}

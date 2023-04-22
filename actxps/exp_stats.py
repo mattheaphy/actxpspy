@@ -462,7 +462,7 @@ class ExpStats():
         else:
             return p + facet_wrap(facets, scales=scales)
 
-    def table(self, 
+    def table(self,
               fontsize: int = 100,
               decimals: int = 1,
               colorful: bool = True,
@@ -471,27 +471,27 @@ class ExpStats():
               rename_cols: dict = None):
         """
         # Tabular experience study summary
-        
+
         Convert experience study results to a presentation-friendly format.
 
         ## Parameters
-        
+
         `fontsize`: int, default = 100
             Font size percentage multiplier
-        
+
         `decimals`: int, default = 1
             Number of decimals to display for percentages
-        
+
         `colorful`: bool, default = `True`
             If `TRUE`, color will be added to the the observed decrement rate
             and actual-to-expected columns.
-        
+
         `color_q_obs`: str or colormap, default = 'GnBu'
             Matplotlib colormap used for the observed decrement rate.
-        
+
         `color_ae_`: str or colormap, default = 'RdBu_r'
             Matplotlib colormap used for actual-to-expected rates.
-        
+
         `rename_cols`: dict
             An optional list consisting of key-value pairs. This can be used to
             relabel columns on the output table. This parameter is useful 
@@ -500,12 +500,12 @@ class ExpStats():
             See `pandas.DataFrame.drop()` for more information.
 
         ## Details
-        
+
         Further customizations can be added using Pandas Styler functions. See 
         `pandas.DataFrame.style` for more information.
 
         ## Returns
-        
+
         A formatted HTML table of the Pandas styler class.
         """
 

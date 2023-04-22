@@ -13,6 +13,7 @@ from plotnine import (
     aes,
     facet_wrap,
     scale_y_continuous)
+from matplotlib.colors import Colormap
 
 
 class ExpStats():
@@ -77,6 +78,12 @@ class ExpStats():
         Calling `summary()` will re-summarize the data while retaining any
         grouping variables passed to the `*by` argument. This will return a new
         `ExpStats` object.
+
+    `plot()`
+        TODO
+
+    `table()`
+        TODO
 
     ## Properties
 
@@ -454,3 +461,149 @@ class ExpStats():
             return p
         else:
             return p + facet_wrap(facets, scales=scales)
+
+    def table(self, 
+              fontsize: int = 100,
+              decimals: int = 1,
+              colorful: bool = True,
+              color_q_obs: str | Colormap = "GnBu",
+              color_ae_: str | Colormap = "RdBu_r",
+              rename_cols: dict = None):
+        """
+        # Tabular experience study summary
+        
+        Convert experience study results to a presentation-friendly format.
+
+        ## Parameters
+        
+        `fontsize`: int, default = 100
+            Font size percentage multiplier
+        
+        `decimals`: int, default = 1
+            Number of decimals to display for percentages
+        
+        `colorful`: bool, default = `True`
+            If `TRUE`, color will be added to the the observed decrement rate
+            and actual-to-expected columns.
+        
+        `color_q_obs`: str or colormap, default = 'GnBu'
+            Matplotlib colormap used for the observed decrement rate.
+        
+        `color_ae_`: str or colormap, default = 'RdBu_r'
+            Matplotlib colormap used for actual-to-expected rates.
+        
+        `rename_cols`: dict
+            An optional list consisting of key-value pairs. This can be used to
+            relabel columns on the output table. This parameter is useful 
+            for renaming grouping variables that will appear under their 
+            original variable names if left unchanged. 
+            See `pandas.DataFrame.drop()` for more information.
+
+        ## Details
+        
+        Further customizations can be added using Pandas Styler functions. See 
+        `pandas.DataFrame.style` for more information.
+
+        ## Returns
+        
+        A formatted HTML table of the Pandas styler class.
+        """
+
+        # set up properties
+        data = self.data.copy()
+        expected = self.expected
+        if expected is None:
+            expected = [None]
+        target_status = self.target_status
+        wt = self.wt
+        cred = self.cred_params['credibility']
+        start_date = self.start_date.strftime('%Y-%m-%d')
+        end_date = self.end_date.strftime('%Y-%m-%d')
+
+        # display column names
+        q_obs = '<em>q<sup>obs</sup></em>'
+        claims = 'Claims'
+        exposure = 'Exposures'
+        credibility = '<em>Z<sup>cred</sup></em>'
+
+        # rename and drop unnecessary columns
+        if rename_cols is None:
+            rename_cols = {}
+
+        rename_cols.update({'q_obs': q_obs,
+                            'claims': claims,
+                            'exposure': exposure,
+                            'credibility': credibility})
+
+        data = (data.
+                drop(columns=data.columns[data.columns.str.startswith('weight')]).
+                rename(columns=rename_cols)
+                )
+
+        if expected == [None]:
+            l1 = ['' for x in data.columns]
+            l2 = data.columns
+        else:
+            l1 = data.columns.str.extract(
+                f"^.*({'|'.join(expected)})$").fillna('')[0]
+            l2 = data.columns.str.replace(
+                f"{'|'.join(expected)}$", "", regex=True)
+        l2 = np.where(l2 == '', '<em>q<sup>exp</sup></em>', l2)
+        l2 = np.where(l2 == 'ae_', '<em>A/E</em>', l2)
+        l2 = np.where(l2 == 'adj_', '<em>q<sup>adj</sup></em>', l2)
+
+        # set up spanners by creating a multi-index and relocating columns
+        data.columns = pd.MultiIndex.from_arrays([l1, l2])
+
+        if expected != [None]:
+            data = data[[''] + expected]
+        if cred:
+            z = data.pop(('', credibility))
+            data[('', credibility)] = z
+
+        # identify percentage and A/E columns for formatting
+        pct_cols = [(x, y) for x, y in zip(l1, l2) if y.startswith('<em>')]
+        ae_cols = [(x, y) for x, y in zip(l1, l2) if y.startswith('<em>A/E')]
+
+        if wt is not None:
+            data = data.rename(columns={'n_claims': '# Claims'})
+        else:
+            data = data.drop(columns=('', 'n_claims'))
+
+        # apply all styling except colors
+        tab = (
+            data.
+            style.
+            format('{:,.0f}', subset=[("", claims), ("", exposure)]).
+            format('{:.' + str(decimals) + '%}', subset=pct_cols).
+            set_table_styles([{'selector': 'th',
+                               'props': [('font-weight', 'bold'),
+                                         ('font-size', str(fontsize) + '%')]},
+                              {'selector': 'tr',
+                             'props': [('font-size', str(fontsize) + '%')]},
+                              {'selector': 'caption',
+                               'props': f'font-size: {fontsize}%;'},
+                              {'selector': 'th.col_heading',
+                               'props': 'text-align: center;'},
+                              {'selector': 'th.col_heading.level0',
+                               'props': 'font-size: 1.1em;'}]).
+            set_caption('<h1>Experience Study Results</h1>' +
+                        f"Target status{'es' if len(target_status) > 1 else ''}: " +
+                        f"{', '.join(target_status)}<br>" +
+                        f"Study range: {start_date} to "
+                        f"{end_date}" +
+                        (f"<br>Results weighted by {wt}" if wt is not None else "")).
+            hide(axis='index')
+        )
+
+        # apply colors
+        if colorful:
+            tab = (
+                tab.
+                # TODO lookup matplotlib cmap values
+                background_gradient(subset=[("", q_obs)], cmap=color_q_obs).
+                # TODO lookup matplotlib cmap values
+                background_gradient(subset=ae_cols, cmap=color_ae_)
+            )
+
+        return tab

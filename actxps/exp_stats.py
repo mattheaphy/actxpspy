@@ -80,10 +80,10 @@ class ExpStats():
         `ExpStats` object.
 
     `plot()`
-        TODO
+        Produce an experience summary plot.
 
     `table()`
-        TODO
+        Produce an experience summary table.
 
     ## Properties
 
@@ -600,9 +600,7 @@ class ExpStats():
         if colorful:
             tab = (
                 tab.
-                # TODO lookup matplotlib cmap values
                 background_gradient(subset=[("", q_obs)], cmap=color_q_obs).
-                # TODO lookup matplotlib cmap values
                 background_gradient(subset=ae_cols, cmap=color_ae_)
             )
 

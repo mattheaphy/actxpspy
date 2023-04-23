@@ -675,7 +675,7 @@ class ExposedDF():
         date_lookup = self.data.copy()[['pol_num'] + date_cols]
 
         # column renames
-        trx_data = trx_data.rename({
+        trx_data = trx_data.rename(columns={
             col_pol_num: 'pol_num',
             col_trx_date: 'trx_date',
             col_trx_type: 'trx_type',

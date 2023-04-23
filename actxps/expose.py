@@ -465,7 +465,8 @@ class ExposedDF():
         DataFrames that already contain exposure records.
         """
 
-        assert style == "already_exposed"
+        assert style == "already_exposed", \
+            "`style` must be 'already exposed'"
 
         self._finalize(data, end_date, start_date, target_status,
                        cal_expo, expo_length)
@@ -666,7 +667,8 @@ class ExposedDF():
         types found in `trx_data.`
         """
 
-        assert isinstance(trx_data, pd.DataFrame)
+        assert isinstance(trx_data, pd.DataFrame), \
+            "`data` must be a DataFrame"
         date_cols = list(self.date_cols)
 
         # select a minimum subset of columns
@@ -688,7 +690,7 @@ class ExposedDF():
         if len(conflict_trx_types) > 0:
             raise ValueError("`trx_data` contains transaction types that " +
                              "have already been attached to `.data`: " +
-                             {', '.join(conflict_trx_types)} +
+                             ', '.join(conflict_trx_types) +
                              ". \nUpdate `trx_data` with unique transaction " +
                              "types.")
 

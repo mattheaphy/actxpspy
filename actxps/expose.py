@@ -93,6 +93,24 @@ class ExposedDF():
 
     Each constructor has the same inputs as the `__init__` method except that
     `expo_length` and `cal_expo` arguments are prepopulated.
+    
+    ### `groupby()` and `ungroup()`
+    
+    Add or remove grouping variables for summary methods like `exp_stats()`
+    and 'trx_stats()`.
+    
+    ### `exp_stats()`
+    
+    Summarize experience study results and return an `ExpStats` object.
+    
+    ### `add_transactions()`
+    
+    Attach a data frame of transactions to the `.data` property. Once 
+    transactions are added, the summary method `trx_stats()` can be used.
+    
+    ### `trx_stats()`
+    
+    Summarize transactions results and return a `TrxStats` object.
 
     ## Properties
 
@@ -118,6 +136,10 @@ class ExposedDF():
     `date_cols`: tuple
         Names of the start and end date columns in `data` for each exposure
         period
+        
+    `trx_types`: list
+        List of transaction types that have been attached to `data` using 
+        the `add_transactions()` method.
     """
 
     # helper dictionary for abbreviations
@@ -388,11 +410,14 @@ class ExposedDF():
                        target_status: str = None,
                        cal_expo: bool = False,
                        expo_length: str = 'year',
+                       trx_types: list = [],
                        col_pol_num: str = "pol_num",
                        col_status: str = "status",
                        col_exposure: str = "exposure",
                        col_pol_per: str = None,
-                       cols_dates: str = None):
+                       cols_dates: str = None,
+                       col_trx_n_ = "trx_n_",
+                       col_trx_amt_ = "trx_amt_"):
 
         end_date = pd.to_datetime(end_date)
         start_date = pd.to_datetime(start_date)
@@ -466,7 +491,7 @@ class ExposedDF():
         """
 
         assert style == "already_exposed", \
-            "`style` must be 'already exposed'"
+            "`style` must be 'already_exposed'"
 
         self._finalize(data, end_date, start_date, target_status,
                        cal_expo, expo_length)
@@ -493,7 +518,8 @@ class ExposedDF():
 
     def groupby(self, *by):
         """
-        Set grouping variables for summary methods like `.exp_stats()`.
+        Set grouping variables for summary methods like `exp_stats()` and
+        `trx_stats()`.
 
         ## Parameters
 
@@ -526,7 +552,8 @@ class ExposedDF():
 
     def ungroup(self):
         """
-        Remove all grouping variables for summary methods like `.exp_stats()`.
+        Remove all grouping variables for summary methods like `exp_stats()`
+        and `trx_stats()`.
 
         ## Returns
 

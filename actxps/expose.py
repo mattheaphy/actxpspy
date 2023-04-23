@@ -112,11 +112,11 @@ class ExposedDF():
         Values passed on class instantiation. See Parameters for definitions.
 
     `exposure_type`: str
-        A description of the exposure type that combines the `cal_expo` and 
+        A description of the exposure type that combines the `cal_expo` and
         `expo_length` properties
 
     `date_cols`: tuple
-        Names of the start and end date columns in `data` for each exposure 
+        Names of the start and end date columns in `data` for each exposure
         period
     """
 
@@ -342,6 +342,7 @@ class ExposedDF():
         self.exposure_type = ('calendar' if (cal_expo) else 'policy') + \
             '_' + expo_length
         self.date_cols = ExposedDF._make_date_col_names(cal_expo, expo_length)
+        self.trx_types = []
 
     @classmethod
     def expose_py(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
@@ -460,7 +461,7 @@ class ExposedDF():
                       expo_length: str = 'year'):
         """
         Special constructor for the ExposedDF class. This constructor is used
-        by the `from_DataFrame()` class method to create new classes from 
+        by the `from_DataFrame()` class method to create new classes from
         DataFrames that already contain exposure records.
         """
 
@@ -486,17 +487,17 @@ class ExposedDF():
         return repr
 
     def groupby(self, *by):
-        """ 
+        """
         Set grouping variables for summary methods like `.exp_stats()`.
 
         ## Parameters
 
-        *`by`: 
+        *`by`:
             Column names in `data` that will be used as grouping variables
 
         ## Details
 
-        This function will not directly apply the `DataFrame.groupby()` method 
+        This function will not directly apply the `DataFrame.groupby()` method
         to the `data` property. Instead, it will set the `groups` property of
         the `ExposedDF` object. The `groups` property is subsequently used to
         group data within summary methods like `exp_stats()`.
@@ -539,16 +540,16 @@ class ExposedDF():
                   cred_r: float = 0.05):
         """
         # Summarize experience study records
-        
+
         Create a summary of termination experience for a given target status
         (an `ExpStats` object).
-        
+
         ## Parameters
-        
+
         `target_status`: str | list | np.ndarray, default = None
             Optional. A single string, list, or array of target status values
         `expected`: str | list | np.ndarray, default = None
-            Optional. A single string, list, or array of column names in the 
+            Optional. A single string, list, or array of column names in the
             `data` property with expected values
         `wt`: str, default = None
             Optional. Name of the column in the `data` property containing
@@ -561,45 +562,167 @@ class ExposedDF():
             Confidence level under the Limited Fluctuation credibility method
         `cred_r`: float, default = 0.05
             Error tolerance under the Limited Fluctuation credibility method
-        
+
         ## Details
-        
+
         If the `ExposedDF` object is grouped (see the `groupby()` method), the
         returned `ExpStats` object's data will contain one row per group.
-        
+
         If nothing is passed to `target_status`, the `target_status` property
         of the `ExposedDF` object will be used. If that property is `None`,
-        all status values except the first level will be assumed. This will 
+        all status values except the first level will be assumed. This will
         produce a warning message.
-        
+
         ### Expected values
-        
+
         The `expected` argument is optional. If provided, this argument must
-        be a string, list, or array with values corresponding to columns in 
-        the `data` property containing expected experience. More than one 
+        be a string, list, or array with values corresponding to columns in
+        the `data` property containing expected experience. More than one
         expected basis can be provided.
-        
+
         ### Credibility
-        
+
         If `credibility` is set to `True`, the output will contain a
         `credibility` column equal to the partial credibility estimate under
         the Limited Fluctuation credibility method (also known as Classical
         Credibility) assuming a binomial distribution of claims.
-        
+
         ## Returns
-        
+
         An `ExpStats` object with a `data` property that includes columns for
         any grouping variables, claims, exposures, and observed decrement rates
-        (`q_obs`). If any values are passed to `expected`, additional columns 
+        (`q_obs`). If any values are passed to `expected`, additional columns
         will be added for expected decrements and actual-to-expected ratios. If
         `credibility` is set to `True`, additional columns are added for partial
-        credibility and credibility-weighted decrement rates (assuming values 
+        credibility and credibility-weighted decrement rates (assuming values
         are passed to `expected`).
-        
+
         ### References
-        
+
         Herzog, Thomas (1999). Introduction to Credibility Theory
         """
         from actxps.exp_stats import ExpStats
         return ExpStats(self, target_status, expected, wt,
                         credibility, cred_p, cred_r)
+
+    def add_transactions(self,
+                         trx_data: pd.DataFrame,
+                         col_pol_num: str = "pol_num",
+                         col_trx_date: str = "trx_date",
+                         col_trx_type: str = "trx_type",
+                         col_trx_amt: str = "trx_amt"):
+        """
+        Add transactions to an experience study
+
+        ## Parameters
+
+        `trx_data`: pd.DataFrame
+            A data frame containing transactions details. This data frame must
+            have columns for policy numbers, transaction dates, transaction
+            types, and transaction amounts.
+        `col_pol_num`: str, default = 'pol_num'
+            Name of the column in `trx_data` containing the policy number
+        `col_trx_date`: str, default = 'trx_date'
+            Name of the column in `trx_data` containing the transaction date
+        `col_trx_type`:str, default = 'trx_type'
+            Name of the column in `trx_data` containing the transaction type
+        `col_trx_amt`: str, default = 'trx_amt'
+            Name of the column in `trx_data` containing the transaction amount
+
+        ## Details
+
+        This function attaches transactions to an `ExposedDF` object. 
+        Transactions are grouped and summarized such that the number of rows in
+        the data does not change. Two columns are added to the output
+        for each transaction type. These columns have names of the pattern
+        `trx_n_{*}` (transaction counts) and `trx_amt_{*}` 
+        (transaction_amounts).
+
+        Transactions are associated with the data object by matching
+        transactions dates with exposure dates ranges found in the `ExposedDF`.
+
+        ## Examples
+
+        ```
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census_dat, "2019-12-31", 
+                                      target_status = "Surrender")
+        add_transactions(expo, withdrawals)
+        ```
+
+        ## Returns 
+
+        self
+
+        Two new columns are added to the `data` property containing transaction
+        counts and amounts for each transaction type found in `trx_data`. The
+        `trx_types` property will be updated to include the new transaction 
+        types found in `trx_data.`
+        """
+
+        assert isinstance(trx_data, pd.DataFrame)
+        date_cols = list(self.date_cols)
+
+        # select a minimum subset of columns
+        date_lookup = self.data.copy()[['pol_num'] + date_cols]
+
+        # column renames
+        trx_data = trx_data.rename({
+            col_pol_num: 'pol_num',
+            col_trx_date: 'trx_date',
+            col_trx_type: 'trx_type',
+            col_trx_amt: 'trx_amt'
+        })
+
+        # check for conflicting transaction types
+        new_trx_types = pd.unique(trx_data.trx_type)
+        existing_trx_types = self.trx_types
+        conflict_trx_types = np.intersect1d(new_trx_types,
+                                            existing_trx_types)
+        if len(conflict_trx_types) > 0:
+            raise ValueError("`trx_data` contains transaction types that " +
+                             "have already been attached to `.data`: " +
+                             {', '.join(conflict_trx_types, collapse=', ')} +
+                             ". \nUpdate `trx_data` with unique transaction " +
+                             "types.")
+
+        # add dates to transaction data
+        trx_data = (trx_data.
+                    merge(date_lookup, how='inner', on='pol_num').
+                    query(f"(trx_date >= {date_cols[0]}) & " +
+                          f"(trx_date <= {date_cols[1]})"))
+
+        # pivot / summarize to match the grain of exposure data
+        trx_data['trx_n'] = 1
+
+        trx_data = (trx_data.
+                    pivot_table(values=['trx_n', 'trx_amt'],
+                                index=['pol_num', date_cols[0]],
+                                columns='trx_type',
+                                aggfunc='sum',
+                                observed=True,
+                                fill_value=0).
+                    reset_index())
+
+        # flatten column index
+        cols = trx_data.columns.to_flat_index()
+        cols = ['_'.join(x) if x[1] != '' else x[0] for x in cols]
+        trx_data.columns = cols
+
+        # add new transaction types
+        self.trx_types = self.trx_types + list(new_trx_types)
+
+        # update exposed_df structure to document transaction types
+        self.data = (self.data.
+                     merge(trx_data,
+                           on=['pol_num', date_cols[0]],
+                           how='left'))
+
+        # replace missing values
+        trx_cols = [x for x in self.data.columns if x.startswith('trx_')]
+        self.data.loc[:, trx_cols] = \
+            self.data.loc[:, trx_cols].apply(lambda x: x.fillna(0))
+
+        return self

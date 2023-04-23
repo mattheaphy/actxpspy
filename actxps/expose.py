@@ -688,7 +688,7 @@ class ExposedDF():
         if len(conflict_trx_types) > 0:
             raise ValueError("`trx_data` contains transaction types that " +
                              "have already been attached to `.data`: " +
-                             {', '.join(conflict_trx_types, collapse=', ')} +
+                             {', '.join(conflict_trx_types)} +
                              ". \nUpdate `trx_data` with unique transaction " +
                              "types.")
 

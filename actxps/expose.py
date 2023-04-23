@@ -6,6 +6,7 @@ from actxps.tools import arg_match
 from actxps.dates import frac_interval, add_interval
 from warnings import warn
 from functools import singledispatchmethod
+from itertools import product
 
 
 class ExposedDF():
@@ -93,23 +94,26 @@ class ExposedDF():
 
     Each constructor has the same inputs as the `__init__` method except that
     `expo_length` and `cal_expo` arguments are prepopulated.
-    
+
+    The class method `from_DataFrame` can be used to convert a data frame that
+    already has exposure-level records into an `ExposedDF` object.
+
     ### `groupby()` and `ungroup()`
-    
+
     Add or remove grouping variables for summary methods like `exp_stats()`
     and 'trx_stats()`.
-    
+
     ### `exp_stats()`
-    
+
     Summarize experience study results and return an `ExpStats` object.
-    
+
     ### `add_transactions()`
-    
+
     Attach a data frame of transactions to the `.data` property. Once 
     transactions are added, the summary method `trx_stats()` can be used.
-    
+
     ### `trx_stats()`
-    
+
     Summarize transactions results and return a `TrxStats` object.
 
     ## Properties
@@ -136,7 +140,7 @@ class ExposedDF():
     `date_cols`: tuple
         Names of the start and end date columns in `data` for each exposure
         period
-        
+
     `trx_types`: list
         List of transaction types that have been attached to `data` using 
         the `add_transactions()` method.
@@ -349,7 +353,7 @@ class ExposedDF():
 
     def _finalize(self,
                   data, end_date, start_date, target_status,
-                  cal_expo, expo_length):
+                  cal_expo, expo_length, trx_types=None):
         """
         This internal function finalizes class construction for `ExposedDF`
         objects.
@@ -364,7 +368,10 @@ class ExposedDF():
         self.exposure_type = ('calendar' if (cal_expo) else 'policy') + \
             '_' + expo_length
         self.date_cols = ExposedDF._make_date_col_names(cal_expo, expo_length)
-        self.trx_types = []
+        if trx_types is None:
+            self.trx_types = []
+        else:
+            self.trx_types = trx_types
 
     @classmethod
     def expose_py(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
@@ -410,14 +417,74 @@ class ExposedDF():
                        target_status: str = None,
                        cal_expo: bool = False,
                        expo_length: str = 'year',
-                       trx_types: list = [],
+                       trx_types: list = None,
                        col_pol_num: str = "pol_num",
                        col_status: str = "status",
                        col_exposure: str = "exposure",
                        col_pol_per: str = None,
                        cols_dates: str = None,
-                       col_trx_n_ = "trx_n_",
-                       col_trx_amt_ = "trx_amt_"):
+                       col_trx_n_: str = "trx_n_",
+                       col_trx_amt_: str = "trx_amt_"):
+        """
+        # Coerce a data frame to an `ExposedDF` object
+
+        ## Parameters
+
+        `data`: pd.DataFrame
+            A data frame with exposure-level records
+        `end_date`: datetime
+            Experience study end date
+        `start_date`: datetime, default = '1900-01-01'
+            Experience study start date
+        `target_status`: str | list | np.ndarray, default = `None`
+            Target status values
+        `cal_expo`: bool, default = `False`
+            Set to `True` for calendar year exposures. Otherwise policy year
+            exposures are assumed.
+        `expo_length`: str, default = 'year'
+            Exposure period length. Must be 'year', 'quarter', 'month', or 
+            'week'
+        `trx_types`: list
+            Optional list containing unique transaction types that have been 
+            attached to `data`. For each value in `trx_types`, `from_DataFrame` 
+            requires that columns exist in `data` named `trx_n_{*}` and 
+            `trx_amt_{*}` containing transaction counts and amounts,
+            respectively. The prefixes "trx_n_" and "trx_amt_" can be overridden
+            using the `col_trx_n_` and `col_trx_amt_` arguments.
+        `col_pol_num`: str, default = 'pol_num'
+            Name of the column in `data` containing the policy number
+        `col_status`: str, default = 'status'
+            name of the column in `data` containing the policy status
+        `col_exposure`: str, default = 'exposure'
+            Name of the column in `data` containing exposures.
+        `col_pol_per`: str, default = None
+            Name of the column in `data` containing policy exposure periods.
+            Only necessary if `cal_expo` is `False`. The assumed default is
+            either "pol_yr", "pol_qtr", "pol_mth", or "pol_wk" depending on
+            the value of `expo_length`.
+        `col_dates`: str, default = None
+            Names of the columns in `data` containing exposure start and end 
+            dates. Both date ranges are assumed to be exclusive. The assumed
+            default is of the form *A*_*B*. *A* is "cal" if `cal_expo` is `True`
+            or "pol" otherwise. *B* is either "yr", "qtr", "mth",  or "wk"
+            depending on the value of `expo_length`.
+        `col_trx_n_`: str, default = "trx_n_"
+            Prefix to use for columns containing transaction counts.
+        `col_trx_amt_`: str, default = "trx_amt_"
+            Prefix to use for columns containing transaction amounts.
+
+        ## Details
+
+        The input data frame must have columns for policy numbers, statuses, 
+        exposures, policy periods (for policy exposures only), and exposure 
+        start / end dates. Optionally, if `data` has transaction counts and 
+        amounts by type, these can be specified without calling 
+        `add_transactions()`.
+
+        ## Returns:
+
+        An `ExposedDF` object.
+        """
 
         end_date = pd.to_datetime(end_date)
         start_date = pd.to_datetime(start_date)
@@ -458,10 +525,25 @@ class ExposedDF():
                 cols_dates[1]: exp_cols_dates[1]
             })
 
-        # check required columns
-        # pol_num, status, exposure, 2 date cols,
-        # policy period (policy expo only)
+        # minimum required columns - pol_num, status, exposure,
+        #  policy period (policy expo only)
         unmatched = {"pol_num", "status", "exposure", exp_col_pol_per}
+
+        # check transaction types
+        if trx_types != None:
+
+            def trx_renamer(x):
+                return x.replace(col_trx_n_, 'trx_n_').\
+                    replace(col_trx_amt_, 'col_trx_amt_')
+
+            data.columns = [trx_renamer(x) for x in data.columns]
+
+            trx_types = np.unique(trx_types).tolist()
+            exp_cols_trx = [x + y for x, y in product(["trx_n_", "trx_amt_"],
+                                                      trx_types)]
+            unmatched.update(exp_cols_trx)
+
+        # check required columns
         unmatched.update(exp_cols_dates)
         unmatched = unmatched.difference(data.columns)
 
@@ -473,7 +555,7 @@ class ExposedDF():
 
         return cls('already_exposed',
                    data, end_date, start_date, target_status, cal_expo,
-                   expo_length)
+                   expo_length, trx_types)
 
     @__init__.register(str)
     def _special_init(self,
@@ -483,7 +565,8 @@ class ExposedDF():
                       start_date: datetime = datetime(1900, 1, 1),
                       target_status: str = None,
                       cal_expo: bool = False,
-                      expo_length: str = 'year'):
+                      expo_length: str = 'year',
+                      trx_types: list = None):
         """
         Special constructor for the ExposedDF class. This constructor is used
         by the `from_DataFrame()` class method to create new classes from
@@ -494,7 +577,7 @@ class ExposedDF():
             "`style` must be 'already_exposed'"
 
         self._finalize(data, end_date, start_date, target_status,
-                       cal_expo, expo_length)
+                       cal_expo, expo_length, trx_types)
 
     @staticmethod
     def _make_date_col_names(cal_expo: bool, expo_length: str):

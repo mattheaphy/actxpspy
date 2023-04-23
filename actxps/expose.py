@@ -480,9 +480,13 @@ class ExposedDF():
         repr = ("Exposure data\n\n" +
                 f"Exposure type: {self.exposure_type}\n" +
                 f"Target status: {', '.join([str(i) for i in self.target_status])}\n" +
-                f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}" +
-                f"\n\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}"
-                f'\n{self.data.head(10)}')
+                f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}\n")
+
+        if self.trx_types != []:
+            repr += f"Transaction types: {', '.join(self.trx_types)}\n"
+
+        repr += (f"\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}"
+                 f'\n{self.data.head(10)}')
 
         return repr
 
@@ -631,11 +635,11 @@ class ExposedDF():
 
         ## Details
 
-        This function attaches transactions to an `ExposedDF` object. 
+        This function attaches transactions to an `ExposedDF` object.
         Transactions are grouped and summarized such that the number of rows in
         the data does not change. Two columns are added to the output
         for each transaction type. These columns have names of the pattern
-        `trx_n_{*}` (transaction counts) and `trx_amt_{*}` 
+        `trx_n_{*}` (transaction counts) and `trx_amt_{*}`
         (transaction_amounts).
 
         Transactions are associated with the data object by matching
@@ -647,18 +651,18 @@ class ExposedDF():
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
-        expo = xp.ExposedDF.expose_py(census_dat, "2019-12-31", 
+        expo = xp.ExposedDF.expose_py(census_dat, "2019-12-31",
                                       target_status = "Surrender")
         add_transactions(expo, withdrawals)
         ```
 
-        ## Returns 
+        ## Returns
 
         self
 
         Two new columns are added to the `data` property containing transaction
         counts and amounts for each transaction type found in `trx_data`. The
-        `trx_types` property will be updated to include the new transaction 
+        `trx_types` property will be updated to include the new transaction
         types found in `trx_data.`
         """
 

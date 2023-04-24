@@ -109,7 +109,7 @@ class ExposedDF():
 
     ### `add_transactions()`
 
-    Attach a data frame of transactions to the `.data` property. Once 
+    Attach a data frame of transactions to the `data` property. Once 
     transactions are added, the summary method `trx_stats()` can be used.
 
     ### `trx_stats()`
@@ -628,7 +628,7 @@ class ExposedDF():
             by = None
         else:
             assert all(pd.Series(by).isin(self.data.columns)), \
-                "All grouping variables passed to `*by` must be in the`.data` property."
+                "All grouping variables passed to `*by` must be in the `data` property."
 
         self.groups = by
         return self
@@ -799,7 +799,7 @@ class ExposedDF():
                                             existing_trx_types)
         if len(conflict_trx_types) > 0:
             raise ValueError("`trx_data` contains transaction types that " +
-                             "have already been attached to `.data`: " +
+                             "have already been attached to `data`: " +
                              ', '.join(conflict_trx_types) +
                              ". \nUpdate `trx_data` with unique transaction " +
                              "types.")
@@ -852,8 +852,8 @@ class ExposedDF():
         """
         # Summarize transactions and utilization rates
 
-        Create a summary data frame of transaction counts, amounts, and
-        utilization rates.
+        Create a summary of transaction counts, amounts, and utilization rates
+        (a `TrxStats` object).
 
         ## Parameters
 
@@ -866,7 +866,7 @@ class ExposedDF():
             use as denominators in the calculation of utilization rates or
             actual-to-expected ratios.
         `combine_trx`: bool, default = False
-            If False (default), the results will contain output rows for each 
+            If `False` (default), the results will contain output rows for each 
             transaction type. If `True`, the results will contains aggregated
             results across all transaction types.
         `col_exposure`: str, default = 'exposure'
@@ -885,7 +885,7 @@ class ExposedDF():
         `trx_types` property of the `ExposedDF` object. In addition, 
         `trx_stats()` expects to see columns named `trx_n_{*}`
         (for transaction counts) and `trx_amt_{*}` for (transaction amounts) 
-        for each transaction type. To ensure `.data` is in the appropriate 
+        for each transaction type. To ensure `data` is in the appropriate 
         format, use the class method `ExposedDF.from_DataFrame()` to convert 
         an existing data frame with transactions or use `add_transactions()` 
         to attach transactions to an existing `ExposedDF` object.
@@ -905,7 +905,7 @@ class ExposedDF():
 
         ### Default removal of partial exposures
 
-        As a default, partial exposures are removed from `.data` before 
+        As a default, partial exposures are removed from `data` before 
         summarizing results. This is done to avoid complexity associated with a 
         lopsided skew in the timing of transactions. For example, if
         transactions can occur on a monthly basis or annually at the beginning 

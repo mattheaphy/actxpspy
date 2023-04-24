@@ -238,3 +238,42 @@ class TestFromDataFrame():
     def test_only_dataframe(self):
         with pytest.raises(AssertionError, match='must be a Pandas DataFrame'):
             ExposedDF.from_DataFrame(1, '2020-12-31')
+
+
+expo6 = expo2.copy()
+expo6['trx_n_A'] = 1
+expo6['trx_amt_A'] = 2
+expo6['trx_n_B'] = 3
+expo6['trx_amt_B'] = 4
+expo7 = expo6.copy().rename(columns={
+    'trx_n_A': 'n_A',
+    'trx_n_B': 'n_B',
+    'trx_amt_A': 'amt_A',
+    'trx_amt_B': 'amt_B'
+})
+
+
+class TestFromDataFrameTrx():
+
+    def test_from_df_w_trx_works(self):
+        assert \
+            isinstance(ExposedDF.from_DataFrame(expo6, "2022-12-31",
+                                                trx_types=['A', 'B']),
+                       ExposedDF)
+
+    def test_from_df_w_bad_trx(self):
+        with pytest.raises(AssertionError, match='The following columns are missing'):
+            ExposedDF.from_DataFrame(expo6,
+                                     "2022-12-31", trx_types=['A', 'C'])
+
+    def test_from_df_w_trx_no_rename(self):
+        with pytest.raises(AssertionError, match='The following columns are missing'):
+            ExposedDF.from_DataFrame(expo7,
+                                     "2022-12-31", trx_types=['A', 'B'])
+
+    def test_from_df_w_trx_and_rename(self):
+        assert \
+            isinstance(ExposedDF.from_DataFrame(expo7,
+                                                "2022-12-31", trx_types=['A', 'B'],
+                                                col_trx_amt_='amt_', col_trx_n_='n_'),
+                       ExposedDF)

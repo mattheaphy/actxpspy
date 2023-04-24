@@ -417,7 +417,7 @@ class ExposedDF():
                        target_status: str = None,
                        cal_expo: bool = False,
                        expo_length: str = 'year',
-                       trx_types: list = None,
+                       trx_types: list | str = None,
                        col_pol_num: str = "pol_num",
                        col_status: str = "status",
                        col_exposure: str = "exposure",
@@ -444,7 +444,7 @@ class ExposedDF():
         `expo_length`: str, default = 'year'
             Exposure period length. Must be 'year', 'quarter', 'month', or 
             'week'
-        `trx_types`: list
+        `trx_types`: list or str
             Optional list containing unique transaction types that have been 
             attached to `data`. For each value in `trx_types`, `from_DataFrame` 
             requires that columns exist in `data` named `trx_n_{*}` and 
@@ -614,7 +614,7 @@ class ExposedDF():
         This function will not directly apply the `DataFrame.groupby()` method
         to the `data` property. Instead, it will set the `groups` property of
         the `ExposedDF` object. The `groups` property is subsequently used to
-        group data within summary methods like `exp_stats()`.
+        group data within summary methods like `exp_stats()` and `trx_stats()`.
 
         ## Returns
 
@@ -762,9 +762,9 @@ class ExposedDF():
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
-        expo = xp.ExposedDF.expose_py(census_dat, "2019-12-31",
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
                                       target_status = "Surrender")
-        add_transactions(expo, withdrawals)
+        expo.add_transactions(withdrawals)
         ```
 
         ## Returns
@@ -842,3 +842,121 @@ class ExposedDF():
             self.data.loc[:, trx_cols].apply(lambda x: x.fillna(0))
 
         return self
+
+    def trx_stats(self,
+                  trx_types: list | str = None,
+                  percent_of: list | str = None,
+                  combine_trx: bool = False,
+                  col_exposure: str = 'exposure',
+                  full_exposures_only: bool = True):
+        """
+        # Summarize transactions and utilization rates
+
+        Create a summary data frame of transaction counts, amounts, and
+        utilization rates.
+
+        ## Parameters
+
+        `trx_types`: list or str, default = None
+            A list of transaction types to include in the output. If `None` is
+            provided, all available transaction types in the `trx_types` 
+            property will be used.
+        `percent_of`: list or str, default = None
+            A optional list containing column names in the `data` property to
+            use as denominators in the calculation of utilization rates or
+            actual-to-expected ratios.
+        `combine_trx`: bool, default = False
+            If False (default), the results will contain output rows for each 
+            transaction type. If `True`, the results will contains aggregated
+            results across all transaction types.
+        `col_exposure`: str, default = 'exposure'
+            Name of the column in the `data` property containing exposures
+        `full_exposures_only`: bool, default = True
+            If `True` (default), partially exposed records will be ignored 
+            in the results.
+
+        ## Details
+
+        If the `ExposedDF` object is grouped (see the `groupby()` method), the
+        returned `TrxStats` object's data will contain one row per group.
+
+        Any number of transaction types can be passed to the `trx_types` 
+        argument, however each transaction type **must** appear in the 
+        `trx_types` property of the `ExposedDF` object. In addition, 
+        `trx_stats()` expects to see columns named `trx_n_{*}`
+        (for transaction counts) and `trx_amt_{*}` for (transaction amounts) 
+        for each transaction type. To ensure `.data` is in the appropriate 
+        format, use the class method `ExposedDF.from_DataFrame()` to convert 
+        an existing data frame with transactions or use `add_transactions()` 
+        to attach transactions to an existing `ExposedDF` object.
+
+        ### "Percentage of" calculations
+
+        The `percent_of` argument is optional. If provided, this argument must
+        be list with values corresponding to columns in the `data` property
+        containing values to use as denominators in the calculation of 
+        utilization rates or actual-to-expected ratios. Example usage:
+
+        - In a study of partial withdrawal transactions, if `percent_of` refers
+        to account values, observed withdrawal rates can be determined.
+        - In a study of recurring claims, if `percent_of` refers to a column
+        containing a maximum benefit amount, utilization rates can be 
+        determined.
+
+        ### Default removal of partial exposures
+
+        As a default, partial exposures are removed from `.data` before 
+        summarizing results. This is done to avoid complexity associated with a 
+        lopsided skew in the timing of transactions. For example, if
+        transactions can occur on a monthly basis or annually at the beginning 
+        of each policy year, partial exposures may not be appropriate. If a
+        policy had an exposure of 0.5 years and was taking withdrawals annually 
+        at the beginning of the year, an argument could be made that the 
+        exposure should instead be 1 complete year. If the same policy was 
+        expected to take withdrawals 9 months into the year, it's not clear if
+        the exposure should be 0.5 years or 0.5 / 0.75 years. To override this 
+        treatment, set `full_exposures_only` to `False`.
+        
+        ## Examples
+        
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status = "Surrender")
+        expo.add_transactions(withdrawals)
+        
+        expo.groupby('inc_guar').trx_stats(percent_of = "premium")
+        expo.groupby('inc_guar').trx_stats(percent_of = "premium",
+                                           combine_trx = True)
+
+        ## Returns
+        
+        A `TrxStats` object with a `data` property that includes columns for
+        any grouping variables and transaction types, plus the following:
+        
+        - `trx_n`: the number of unique transactions.
+        - `trx_amt`: total transaction amount
+        - `trx_flag`: the number of observation periods with non-zero 
+        transaction amounts.
+        - `exposure`: total exposures
+        - `avg_trx`: mean transaction amount (`trx_amt / trx_flag`)
+        - `avg_all`: mean transaction amount over all records 
+        (`trx_amt / exposure`)
+        - `trx_freq`: transaction frequency when a transaction occurs 
+        (`trx_n / trx_flag`)
+        - `trx_utilization`: transaction utilization per observation period 
+        (`trx_flag / exposure`)
+        
+        If `percent_of` is provided, the results will also include:
+        
+        - The sum of any columns passed to `percent_of` with non-zero
+        transactions. These columns include the suffix `_w_trx`.
+        - The sum of any columns passed to `percent_of`
+        - `pct_of_{*}_w_trx`: total transactions as a percentage of column
+        `{*}_w_trx`
+        - `pct_of_{*}_all`: total transactions as a percentage of column `{*}`
+        """
+        from actxps.trx_stats import TrxStats
+        return TrxStats(self, trx_types, percent_of, combine_trx,
+                        col_exposure, full_exposures_only)

@@ -534,7 +534,7 @@ class ExposedDF():
 
             def trx_renamer(x):
                 return x.replace(col_trx_n_, 'trx_n_').\
-                    replace(col_trx_amt_, 'col_trx_amt_')
+                    replace(col_trx_amt_, 'trx_amt_')
 
             data.columns = [trx_renamer(x) for x in data.columns]
 

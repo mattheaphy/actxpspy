@@ -187,12 +187,14 @@ class TrxStats():
                 pivot(index=['index'] + id_vars + ['trx_type'],
                       values='value', columns='kind').
                 reset_index().
-                drop(columns='index'))
+                drop(columns='index').
+                rename(columns={'n': 'trx_n',
+                                'amt': 'trx_amt'}))
         data.columns.name = None
         # fill in missing values
-        data.n = data.n.fillna(0)
-        data.amt = data.amt.fillna(0)
-        data['trx_flag'] = data.n.abs() > 0
+        data.trx_n = data.trx_n.fillna(0)
+        data.trx_amt = data.trx_amt.fillna(0)
+        data['trx_flag'] = data.trx_n.abs() > 0
 
         for x in percent_of:
             data[x + '_w_trx'] = data[x] * data.trx_flag
@@ -243,9 +245,9 @@ class TrxStats():
                 return x / y
 
         # dictionary of summarized values
-        fields = {'trx_n': sum(data.n),
+        fields = {'trx_n': sum(data.trx_n),
                   'trx_flag': sum(data.trx_flag),
-                  'trx_amt': sum(data.amt),
+                  'trx_amt': sum(data.trx_amt),
                   'exposure': sum(data.exposure)}
         
         fields['avg_trx'] = div(fields['trx_amt'], fields['trx_flag'])
@@ -266,7 +268,48 @@ class TrxStats():
         return data
 
     def summary(self, *by):
-        pass
+        """
+        # Re-summarize transaction experience data
+
+        Re-summarize the data while retaining any grouping variables passed to
+        the `*by` argument.
+
+        ## Parameters
+
+        *`by`:
+            Column names in `data` that will be used as grouping variables in
+            the re-summarized object. Passing nothing is acceptable and will
+            produce a 1-row experience summary.
+            
+        ## Examples
+        
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status = "Surrender")
+        expo.add_transactions(withdrawals)
+
+        trx_res = expo.groupby('inc_guar', 'pol_yr').\
+            trx_stats(percent_of = "premium")
+        trx_res.summary()
+        trx_res.summary('inc_guar')
+
+        ## Returns
+
+        A new `TrxStats` object.
+        """
+
+        by = list(by)
+
+        if len(by) > 0:
+            assert all(pd.Series(by).isin(self.data.columns)), \
+                "All grouping variables passed to `*by` must be in the`.data` property."
+
+        self.groups = by
+
+        return TrxStats('from_summary', self)
+
 
     @ __init__.register(str)
     def _special_init(self,
@@ -277,7 +320,10 @@ class TrxStats():
         by the `summary()` class method to create new summarized instances.
         """
         assert style == "from_summary"
-        pass
+        self.data = None
+        self._finalize(old_self.data, old_self.groups, old_self.percent_of,
+                       old_self.groups, old_self.start_date, old_self.end_date)
+
 
     # def __repr__(self):
     #     pass

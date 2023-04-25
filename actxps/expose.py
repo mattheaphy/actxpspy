@@ -916,25 +916,25 @@ class ExposedDF():
         expected to take withdrawals 9 months into the year, it's not clear if
         the exposure should be 0.5 years or 0.5 / 0.75 years. To override this 
         treatment, set `full_exposures_only` to `False`.
-        
+
         ## Examples
-        
+
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
         expo = xp.ExposedDF.expose_py(census, "2019-12-31",
                                       target_status = "Surrender")
         expo.add_transactions(withdrawals)
-        
+
         expo.groupby('inc_guar').trx_stats(percent_of = "premium")
         expo.groupby('inc_guar').trx_stats(percent_of = "premium",
                                            combine_trx = True)
 
         ## Returns
-        
+
         A `TrxStats` object with a `data` property that includes columns for
         any grouping variables and transaction types, plus the following:
-        
+
         - `trx_n`: the number of unique transactions.
         - `trx_amt`: total transaction amount
         - `trx_flag`: the number of observation periods with non-zero 
@@ -947,9 +947,9 @@ class ExposedDF():
         (`trx_n / trx_flag`)
         - `trx_utilization`: transaction utilization per observation period 
         (`trx_flag / exposure`)
-        
+
         If `percent_of` is provided, the results will also include:
-        
+
         - The sum of any columns passed to `percent_of` with non-zero
         transactions. These columns include the suffix `_w_trx`.
         - The sum of any columns passed to `percent_of`

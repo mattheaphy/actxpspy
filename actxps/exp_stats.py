@@ -347,7 +347,7 @@ class ExpStats():
             repr += f"Groups: {', '.join([str(i) for i in self.groups])}\n"
 
         repr += f"Target status: {', '.join([str(i) for i in self.target_status])}\n"
-        f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}\n"
+        repr += f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}\n"
 
         if self.expected is not None:
             repr += f"Expected values: {', '.join([str(i) for i in self.expected])}\n"

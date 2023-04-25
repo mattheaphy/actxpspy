@@ -128,6 +128,8 @@ class TrxStats():
                  combine_trx: bool = False,
                  col_exposure: str = 'exposure',
                  full_exposures_only: bool = True):
+        
+        self.data = None
 
         assert len(expo.trx_types) > 0, \
             ("No transactions have been attached. Add transaction data using "
@@ -214,7 +216,7 @@ class TrxStats():
         """
 
         # set up properties
-        self.groups = groups,
+        self.groups = groups
         self.trx_types = trx_types
         self.start_date = start_date
         self.percent_of = percent_of
@@ -321,12 +323,28 @@ class TrxStats():
         """
         assert style == "from_summary"
         self.data = None
-        self._finalize(old_self.data, old_self.groups, old_self.percent_of,
+        self._finalize(old_self.data, old_self.trx_types, old_self.percent_of,
                        old_self.groups, old_self.start_date, old_self.end_date)
 
+    def __repr__(self):
+        repr = "Transaction study results\n\n"
 
-    # def __repr__(self):
-    #     pass
+        if len(self.groups) > 0:
+            repr += f"Groups: {', '.join([str(i) for i in self.groups])}\n"
+
+        repr += f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}\n"
+
+        repr += f"Transaction types: {', '.join([str(i) for i in self.trx_types])}\n"
+
+        if len(self.percent_of) > 0:
+            repr += f"Transactions as % of: {', '.join([str(i) for i in self.percent_of])}\n"
+
+        if self.data is not None:
+            repr = (repr +
+                    f"\n\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}" +
+                    f'\n{self.data.head(10)}')
+            
+        return repr
 
     def plot(self):
         pass

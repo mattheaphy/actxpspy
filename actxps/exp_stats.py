@@ -210,7 +210,6 @@ class ExpStats():
         cred_r = self.cred_params['cred_r']
 
         if expected is not None:
-
             ex_mean = {k: np.average(data[k], weights=data.exposure)
                        for k in expected}
             fields.update(ex_mean)

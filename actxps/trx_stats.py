@@ -263,7 +263,7 @@ class TrxStats():
             fields[x] = sum(data[x])
             fields[xw] = sum(data[xw])
             fields[f"pct_of_{x}_all"] = div(fields['trx_amt'], fields[x])
-            fields[f"pct_of_{xw}_all"] = div(fields['trx_amt'], fields[xw])
+            fields[f"pct_of_{xw}"] = div(fields['trx_amt'], fields[xw])
 
         # convert dataults to a data frame
         data = pd.DataFrame(fields, index=range(1))

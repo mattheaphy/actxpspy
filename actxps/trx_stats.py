@@ -138,6 +138,7 @@ class TrxStats():
         if trx_types is None:
             trx_types = expo.trx_types
         else:
+            trx_types = np.atleast_1d(trx_types).tolist()
             unmatched = set(trx_types).difference(set(expo.trx_types))
             assert len(unmatched) == 0, \
                 ("The following transactions do not exist in `expo`: " +

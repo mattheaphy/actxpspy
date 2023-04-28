@@ -352,7 +352,7 @@ class TrxStats():
              x: str = None,
              y: str = "trx_util",
              color: str = None,
-             facets: list = None,
+             facets: list | str = None,
              mapping: aes = None,
              scales: str = "fixed",
              geoms: str = "lines",
@@ -374,7 +374,7 @@ class TrxStats():
             If `None`, `y` will default to the second grouping variable. If 
             there are less than two grouping variables, the plot will not use 
             a color aesthetic.
-        `facets`: list
+        `facets`: list or str
             Faceting variables in `data` passed to `plotnine.facet_wrap()`. If 
             `None`, grouping variables 3+ will be used (assuming there are more
             than two grouping variables).
@@ -403,7 +403,7 @@ class TrxStats():
 
         if facets is None:
             facets = self.groups[2:]
-        facets = ['trx_type'] + facets
+        facets = ['trx_type'] + np.atleast_1d(facets).tolist()
 
         return _plot_experience(self, x, y, color, mapping, scales,
                                 geoms, y_labels, facets)

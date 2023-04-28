@@ -359,7 +359,7 @@ class ExpStats():
              x: str = None,
              y: str = "q_obs",
              color: str = None,
-             facets: list = None,
+             facets: list | str = None,
              mapping: aes = None,
              scales: str = "fixed",
              geoms: str = "lines",
@@ -381,7 +381,7 @@ class ExpStats():
             If `None`, `y` will default to the second grouping variable. If 
             there are less than two grouping variables, the plot will not use 
             a color aesthetic.
-        `facets`: list
+        `facets`: list or str
             Faceting variables in `data` passed to `plotnine.facet_wrap()`. If 
             `None`, grouping variables 3+ will be used (assuming there are more
             than two grouping variables).

@@ -4,16 +4,9 @@ from scipy.stats import norm
 from warnings import warn
 from functools import singledispatchmethod
 from actxps.expose import ExposedDF
-from actxps.tools import arg_match
-from plotnine import (
-    ggplot,
-    geom_point,
-    geom_line,
-    geom_col,
-    aes,
-    facet_wrap,
-    scale_y_continuous)
+from actxps.tools import _plot_experience
 from matplotlib.colors import Colormap
+from plotnine import aes
 
 
 class ExpStats():
@@ -415,51 +408,8 @@ class ExpStats():
         `plotnine.facet_wrap()`.
         """
 
-        data = self.data.copy()
-
-        groups = self.groups
-        if groups is None:
-            groups = ["All"]
-            data["All"] = ""
-
-        def auto_aes(var, default, if_none):
-            if (var is None):
-                if len(groups) < default:
-                    return if_none
-                else:
-                    return groups[default - 1]
-            else:
-                return var
-
-        arg_match("geoms", geoms, ["lines", "bars"])
-
-        # set up aesthetics
-        if mapping is None:
-            x = auto_aes(x, 1, "All")
-            color = auto_aes(color, 2, None)
-            if color is None:
-                mapping = aes(x, y)
-            else:
-                mapping = aes(x, y,
-                              color=color, fill=color, group=color)
-
-        if facets is None:
-            facets = groups[2:]
-            if len(facets) == 0:
-                facets = None
-
-        p = (ggplot(data, mapping) +
-             scale_y_continuous(labels=y_labels))
-
-        if geoms == "lines":
-            p = p + geom_point() + geom_line()
-        else:
-            p = p + geom_col(position="dodge")
-
-        if facets is None:
-            return p
-        else:
-            return p + facet_wrap(facets, scales=scales)
+        return _plot_experience(self, x, y, color, mapping, scales,
+                                geoms, y_labels, facets)
 
     def table(self,
               fontsize: int = 100,

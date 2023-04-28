@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from functools import singledispatchmethod
 from actxps.expose import ExposedDF
+from actxps.tools import _plot_experience
+from plotnine import aes
 
 
 class TrxStats():
@@ -128,7 +130,7 @@ class TrxStats():
                  combine_trx: bool = False,
                  col_exposure: str = 'exposure',
                  full_exposures_only: bool = True):
-        
+
         self.data = None
 
         assert len(expo.trx_types) > 0, \
@@ -252,7 +254,7 @@ class TrxStats():
                   'trx_flag': sum(data.trx_flag),
                   'trx_amt': sum(data.trx_amt),
                   'exposure': sum(data.exposure)}
-        
+
         fields['avg_trx'] = div(fields['trx_amt'], fields['trx_flag'])
         fields['avg_all'] = div(fields['trx_amt'], fields['exposure'])
         fields['trx_freq'] = div(fields['trx_n'], fields['trx_flag'])
@@ -283,9 +285,9 @@ class TrxStats():
             Column names in `data` that will be used as grouping variables in
             the re-summarized object. Passing nothing is acceptable and will
             produce a 1-row experience summary.
-            
+
         ## Examples
-        
+
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
@@ -312,7 +314,6 @@ class TrxStats():
         self.groups = by
 
         return TrxStats('from_summary', self)
-
 
     @ __init__.register(str)
     def _special_init(self,
@@ -344,11 +345,68 @@ class TrxStats():
             repr = (repr +
                     f"\n\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}" +
                     f'\n{self.data.head(10)}')
-            
+
         return repr
 
-    def plot(self):
-        pass
+    def plot(self,
+             x: str = None,
+             y: str = "trx_util",
+             color: str = None,
+             facets: list = None,
+             mapping: aes = None,
+             scales: str = "fixed",
+             geoms: str = "lines",
+             y_labels: callable = lambda l: [f"{v * 100:.1f}%" for v in l]):
+        """
+        # Plot transaction study results
+
+        ## Parameters
+
+        `x`: str
+            A column name in `data` to use as the `x` variable. If `None`,
+            `x` will default to the first grouping variable. If there are no
+            grouping variables, `x` will be set to "All".
+        `y`: str
+            A column name in `data` to use as the `y` variable. If `None`, 
+            `y` will default to the observed utilization rate ("q_obs").
+        `color`: str
+            A column name in `data` to use as the `color` and `fill` variables.
+            If `None`, `y` will default to the second grouping variable. If 
+            there are less than two grouping variables, the plot will not use 
+            a color aesthetic.
+        `facets`: list
+            Faceting variables in `data` passed to `plotnine.facet_wrap()`. If 
+            `None`, grouping variables 3+ will be used (assuming there are more
+            than two grouping variables).
+        `mapping`: aes
+            Aesthetic mapping added to `plotnine.ggplot()`. NOTE: If `mapping` 
+            is supplied, the `x`, `y`, and `color` arguments will be ignored.
+        `scales`: str
+            The `scales` argument passed to `plotnine.facet_wrap()`.
+        `geoms`: str, must be "lines" (default) or "bars"
+            Type of geometry. If "lines" is passed, the plot will display lines
+            and points. If "bars", the plot will display bars.
+        `y_labels`: callable 
+            Label function passed to `plotnine.scale_y_continuous()`.
+
+        ## Details 
+
+        If no aesthetic map is supplied, the plot will use the first grouping
+        variable in the `groups` property on the x axis and `trx_util` on
+        the y axis. In addition, the second grouping variable in `groups` will 
+        be used for color and fill.
+
+        If no faceting variables are supplied, the plot will use grouping
+        variables 3 and up as facets. These variables are passed into
+        `plotnine.facet_wrap()`.
+        """
+
+        if facets is None:
+            facets = self.groups[2:]
+        facets = ['trx_type'] + facets
+
+        return _plot_experience(self, x, y, color, mapping, scales,
+                                geoms, y_labels, facets)
 
     def table(self):
         pass

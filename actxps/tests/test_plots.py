@@ -66,8 +66,8 @@ class TestPlotOverrides():
 
     def test_aes_override_2(self):
         p = exp_res4.plot(mapping=aes(x="pol_yr",
-                                        y="ae_q_exp",
-                                        fill="product"),
+                                      y="ae_q_exp",
+                                      fill="product"),
                           facets='inc_guar',
                           scales="free_y",
                           geoms="bars",

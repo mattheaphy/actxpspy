@@ -40,7 +40,7 @@ import actxps as xp
 import numpy as np
 
 census_dat = xp.load_census_dat()
-census_dat
+print(census_dat)
 ```
 
 Convert census records to exposure records with one row *per policy per year*.
@@ -116,11 +116,18 @@ colors = ["#eb15e4", "#7515eb"]
 ```
 
 ```{python}
-#| label: table
+#| label: table1
+#| eval: false
 
 exp_res.table()
 ```
 
+```{python}
+#| label: table2
+#| echo: false
+
+print(exp_res.table().to_html())
+```
 
 <br> **Logo**
 

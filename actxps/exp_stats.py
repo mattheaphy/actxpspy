@@ -432,7 +432,7 @@ class ExpStats():
             Number of decimals to display for percentages
 
         `colorful`: bool, default = `True`
-            If `TRUE`, color will be added to the the observed decrement rate
+            If `True`, color will be added to the the observed decrement rate
             and actual-to-expected columns.
 
         `color_q_obs`: str or colormap, default = 'GnBu'
@@ -442,11 +442,10 @@ class ExpStats():
             Matplotlib colormap used for actual-to-expected rates.
 
         `rename_cols`: dict
-            An optional list consisting of key-value pairs. This can be used to
-            relabel columns on the output table. This parameter is useful 
-            for renaming grouping variables that will appear under their 
-            original variable names if left unchanged. 
-            See `pandas.DataFrame.drop()` for more information.
+            An optional dictionaryof key-value pairs where keys are column names
+            and values are labels that will appear on the output table. This
+            parameter is useful for renaming grouping variables that will 
+            appear under their original variable names if left unchanged.
 
         ## Details
 
@@ -460,6 +459,8 @@ class ExpStats():
 
         # set up properties
         data = self.data.copy()
+        if self.groups is not None:
+            data = data.set_index(self.groups)
         expected = self.expected
         if expected is None:
             expected = [None]
@@ -541,9 +542,13 @@ class ExpStats():
                         f"{', '.join(target_status)}<br>" +
                         f"Study range: {start_date} to "
                         f"{end_date}" +
-                        (f"<br>Results weighted by {wt}" if wt is not None else "")).
-            hide(axis='index')
+                        (f"<br>Results weighted by {wt}" if wt is not None else ""))
         )
+        
+        if self.groups is None:
+            tab = tab.hide(axis='index')
+        else:
+            tab.columns.names = [None, None]
 
         # apply colors
         if colorful:

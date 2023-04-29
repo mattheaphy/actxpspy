@@ -117,7 +117,6 @@ colors = ["#eb15e4", "#7515eb"]
 
 ```{python}
 #| label: table1
-#| eval: false
 
 exp_res.table()
 ```

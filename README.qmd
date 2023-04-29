@@ -106,12 +106,11 @@ from plotnine import ggplot, scale_color_manual, labs
 from plotnine.themes import theme_light
 
 colors = ["#eb15e4", "#7515eb"]
-# theme_set(theme_light())
 
 (exp_res.plot() +
   scale_color_manual(values = colors) + 
-  labs(title = "Observed Surrender Rates by Policy Year and Income Guarantee Presence"))
-
+  labs(title = "Observed Surrender Rates by Policy Year and Income Guarantee Presence") + 
+  theme_light())
 
 ```
 

@@ -122,13 +122,6 @@ colors = ["#eb15e4", "#7515eb"]
 exp_res.table()
 ```
 
-```{python}
-#| label: table2
-#| echo: false
-
-print(exp_res.table().to_html())
-```
-
 <br> **Logo**
 
 <a href="https://www.freepik.com/free-vector/shine-old-wooden-chest-realistic-composition-transparent-background-with-vintage-coffer-sparkling-particles_7497397.htm#query=treasure&position=7&from_view=search&track=sph">Image

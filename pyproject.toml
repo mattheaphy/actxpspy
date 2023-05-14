@@ -25,6 +25,8 @@ dependencies = [
     "scipy",
     "matplotlib"
 ]
+[project.optional-dependencies]
+["shiny"]
 
 [tool.setuptools.packages]
 find = {}

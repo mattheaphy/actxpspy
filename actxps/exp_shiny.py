@@ -472,9 +472,7 @@ def _exp_shiny(obj,
             else:
 
                 facets = list(input.facetVar())
-                if input.study_type() == "trx":
-                    facets.append("trx_type")
-
+                
                 p = new_rxp.plot(mapping=mapping,
                                  geoms=input.plotGeom(),
                                  y_labels=y_labels,

@@ -436,12 +436,12 @@ def _exp_shiny(obj,
             if (input.study_type() == "trx") & (input.yVar() in yVar_exp2()):
                 return None
 
-            dat = rxp().data
+            new_rxp = deepcopy(rxp())
 
             if input.xVar() != "None":
                 x = input.xVar()
             else:
-                dat["All"] = ""
+                new_rxp.data["All"] = ""
                 x = "All"
 
             y = input.yVar()
@@ -467,19 +467,19 @@ def _exp_shiny(obj,
                 def y_labels(l): return [f"{v * 100:.1f}%" for v in l]
 
             if len(input.facetVar()) == 0:
-                p = rxp().plot(mapping=mapping, geoms=input.plotGeom(),
-                               y_labels=y_labels)
+                p = new_rxp.plot(mapping=mapping, geoms=input.plotGeom(),
+                                 y_labels=y_labels)
             else:
 
                 facets = list(input.facetVar())
                 if input.study_type() == "trx":
                     facets.append("trx_type")
 
-                p = rxp().plot(mapping=mapping,
-                               geoms=input.plotGeom(),
-                               y_labels=y_labels,
-                               facets=facets,
-                               scales="free_y" if input.plotFreeY() else "fixed")
+                p = new_rxp.plot(mapping=mapping,
+                                 geoms=input.plotGeom(),
+                                 y_labels=y_labels,
+                                 facets=facets,
+                                 scales="free_y" if input.plotFreeY() else "fixed")
 
             if input.plotSmooth():
                 p = p + geom_smooth(method="loess")
@@ -496,7 +496,9 @@ def _exp_shiny(obj,
         @output
         @render.table
         def xpTable():
-            return rxp().table()
+            return (rxp().
+                    table().
+                    set_table_attributes('class="dataframe table shiny-table w-auto"'))
 
         # filter information
         @output

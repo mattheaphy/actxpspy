@@ -120,8 +120,6 @@ colors = ["#eb15e4", "#7515eb"]
 exp_res.table()
 ```
 
-<center><img src="man/figures/exp_gt.png" width="55%" height="55%" /></center>
-
 Launch a shiny app to interactively explore experience data.
 
 ```{python}

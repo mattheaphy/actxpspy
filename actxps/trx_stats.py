@@ -549,8 +549,11 @@ class TrxStats():
                               {'selector': 'th.col_heading',
                                'props': 'text-align: center;'},
                               {'selector': 'th.col_heading.level0',
-                               'props': 'font-size: 1.1em;'}]).
-            set_caption('<h1>Tranasction Study Results</h1>' +
+                               'props': 'font-size: 1.1em;'},
+                              {'selector': 'caption',
+                               'props': 'caption-side: top;'
+                               }]).
+            set_caption('<h1>Transaction Study Results</h1>' +
                         f"Transaction type{'s' if len(trx_types) > 1 else ''}: " +
                         f"{', '.join(trx_types)}<br>" +
                         f"Study range: {start_date} to "

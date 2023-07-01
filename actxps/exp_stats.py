@@ -536,7 +536,10 @@ class ExpStats():
                               {'selector': 'th.col_heading',
                                'props': 'text-align: center;'},
                               {'selector': 'th.col_heading.level0',
-                               'props': 'font-size: 1.1em;'}]).
+                               'props': 'font-size: 1.1em;'},
+                              {'selector': 'caption',
+                               'props': 'caption-side: top;'
+                               }]).
             set_caption('<h1>Experience Study Results</h1>' +
                         f"Target status{'es' if len(target_status) > 1 else ''}: " +
                         f"{', '.join(target_status)}<br>" +
@@ -544,7 +547,7 @@ class ExpStats():
                         f"{end_date}" +
                         (f"<br>Results weighted by {wt}" if wt is not None else ""))
         )
-        
+
         if self.groups is None:
             tab = tab.hide(axis='index')
         else:

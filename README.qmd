@@ -120,6 +120,17 @@ colors = ["#eb15e4", "#7515eb"]
 exp_res.table()
 ```
 
+Launch a shiny app to interactively explore experience data.
+
+```{python}
+#| label: shiny
+#| eval: false
+exposed_data.exp_shiny(expected=['expected_1', 'expected_2'])
+```
+
+<img src="doc/images/exp_shiny.png" width="100%" />
+
+
 <br> **Logo**
 
 <a href="https://www.freepik.com/free-vector/shine-old-wooden-chest-realistic-composition-transparent-background-with-vintage-coffer-sparkling-particles_7497397.htm#query=treasure&position=7&from_view=search&track=sph">Image

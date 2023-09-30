@@ -21,7 +21,6 @@ dependencies = [
     "pandas",
     "plotnine",
     "joblib",
-    "shiny",
     "scipy",
     "matplotlib"
 ]
@@ -38,6 +37,6 @@ include-package-data = true
 actxps = ["data/*"]
 
 [project.urls]
-"Homepage" = "https://github.com/mattheaphy/actxpspy"
+"Repository" = "https://github.com/mattheaphy/actxpspy"
 "Bug Tracker" = "https://github.com/mattheaphy/actxpspy/issues"
 # "Documentation" = #TODO

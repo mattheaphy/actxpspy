@@ -175,7 +175,7 @@ class ExpStats():
 
         # finish exp stats
         if groups is not None:
-            res = (data.groupby(groups).
+            res = (data.groupby(groups, observed=True).
                    apply(self._calc).
                    reset_index().
                    drop(columns=[f'level_{len(groups)}']))

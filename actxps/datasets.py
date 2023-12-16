@@ -1,4 +1,4 @@
-import pkg_resources
+from importlib import resources
 import pandas as pd
 from actxps.tools import document
 from joblib import load
@@ -21,7 +21,7 @@ def load_toy_census() -> pd.DataFrame:
     - `term_date` = termination date
 
     """
-    stream = pkg_resources.resource_stream(__name__, 'data/toy_census.csv')
+    stream = resources.files('actxps').joinpath('data/toy_census.csv')
     return pd.read_csv(stream,
                        index_col=0,
                        dtype={'pol_num': int,
@@ -79,19 +79,19 @@ A data frame with 3 columns:
 
 @document(_sim_doc)
 def load_census_dat() -> pd.DataFrame:
-    stream = pkg_resources.resource_stream(__name__, 'data/census_dat')
+    stream = resources.files('actxps').joinpath('data/census_dat')
     return load(stream)
 
 
 @document(_sim_doc)
 def load_withdrawals() -> pd.DataFrame:
-    stream = pkg_resources.resource_stream(__name__, 'data/withdrawals')
+    stream = resources.files('actxps').joinpath('data/withdrawals')
     return load(stream)
 
 
 @document(_sim_doc)
 def load_account_vals() -> pd.DataFrame:
-    stream = pkg_resources.resource_stream(__name__, 'data/account_vals')
+    stream = resources.files('actxps').joinpath('data/account_vals')
     return load(stream)
 
 
@@ -130,7 +130,7 @@ A data frame with 242 rows and 3 columns:
 
 @document(_mort_doc)
 def load_qx_iamb():
-    stream = pkg_resources.resource_stream(__name__, 'data/qx_iamb.csv')
+    stream = resources.files('actxps').joinpath('data/qx_iamb.csv')
     return pd.read_csv(stream, index_col=0,
                        dtype={'age': int,
                               'qx': float,
@@ -139,7 +139,7 @@ def load_qx_iamb():
 
 @document(_mort_doc)
 def load_scale_g2():
-    stream = pkg_resources.resource_stream(__name__, 'data/scaleG2.csv')
+    stream = resources.files('actxps').joinpath('data/scaleG2.csv')
     return pd.read_csv(stream, index_col=0,
                        dtype={'age': int,
                               'mi': float,

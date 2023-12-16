@@ -227,7 +227,7 @@ class TrxStats():
         self.end_date = end_date
 
         # finish trx stats
-        res = (data.groupby(groups + ['trx_type']).
+        res = (data.groupby(groups + ['trx_type'], observed=True).
                apply(self._calc).
                reset_index().
                drop(columns=[f'level_{len(groups) + 1}']))

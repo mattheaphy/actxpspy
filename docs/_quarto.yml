@@ -1,0 +1,33 @@
+project:
+  type: website
+
+website:
+  navbar:
+    background: primary
+    search: true
+    left:
+      - text: "Home"
+        file: index.qmd
+
+format:
+  html:
+    theme: zephyr
+    toc: true
+
+# tell quarto to read the generated sidebar
+metadata-files:
+  - _sidebar.yml
+
+
+quartodoc:
+  # the name used to import the package you want to create reference docs for
+  package: actxps
+
+  # write sidebar data to this file
+  sidebar: _sidebar.yml
+
+  sections:
+    - title: Exposures
+      desc: Convert census records to exposure records
+      contents:
+        - ExposedDF

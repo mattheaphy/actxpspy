@@ -26,13 +26,13 @@ jobs:
       - name: Test with pytest
         run: poetry run pytest tests/ --cov=actxps --cov-report=xml
 
-      - name: Use Codecov to track coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage.xml   # coverage report
+      # - name: Use Codecov to track coverage
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     files: ./coverage.xml   # coverage report
 
-      - name: Build documentation
-        run: poetry run make html --directory docs/
+      # - name: Build documentation
+      #   run: poetry run make html --directory docs/
 
   # cd:
   #   # Only run this job if the "ci" job passes

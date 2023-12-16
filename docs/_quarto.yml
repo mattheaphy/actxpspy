@@ -2,12 +2,37 @@ project:
   type: website
 
 website:
+  title: actxps
   navbar:
     background: primary
     search: true
     left:
-      - text: "Home"
-        file: index.qmd
+      - text: "Get started"
+        file: articles/actxps.qmd
+      - text: "Articles"
+        menu:
+        - text: "Exposure calculations"
+          file: articles/exposures.qmd
+        - text: "Experience summaries"
+          file: articles/exp_summary.qmd
+        - text: "Transaction studies"
+          file: articles/transactions.qmd
+        - text: "Data visualizations"
+          file: articles/visualizations.qmd
+        - text: "Other functions"
+          file: articles/misc.qmd
+      - href: changelog.qmd
+        text: Changelog
+    right:
+      - icon: github
+        href: https://github.com/mattheaphy/actxpspy
+      - icon: r-circle-fill
+        menu:
+        - text: "R version of actxps"
+        - href: https://github.com/mattheaphy/actxps
+          text: Source code
+        - href: https://mattheaphy.github.io/actxps
+          text: Package documentation
 
 format:
   html:
@@ -27,7 +52,7 @@ quartodoc:
   sidebar: _sidebar.yml
 
   sections:
-    - title: Exposures
-      desc: Convert census records to exposure records
+    - title: "Exposures"
+      desc: "Convert census records to exposure records"
       contents:
-        - ExposedDF
+        - expose

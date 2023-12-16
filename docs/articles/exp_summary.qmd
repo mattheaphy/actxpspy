@@ -1,0 +1,10 @@
+---
+title: "Experience summaries"
+---
+
+After experience data has been prepared for analysis, the next step is to summarize results. The actxps package's workhorse function for summarizing termination experience is `exp_stats()`. This function returns an `exp_df` object, which is a type of data frame containing additional attributes about the experience study.
+
+
+```{python}
+#TODO
+```

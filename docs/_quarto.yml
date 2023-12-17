@@ -9,6 +9,8 @@ website:
     left:
       - text: "Get started"
         file: articles/actxps.qmd
+      - text: "Reference"
+        file: reference/index.qmd
       - text: "Articles"
         menu:
         - text: "Exposure calculations"
@@ -52,7 +54,7 @@ quartodoc:
   sidebar: _sidebar.yml
 
   sections:
-    - title: "Exposures"
+    - title: "Exposure calculations"
       desc: "Convert census records to exposure records"
       contents:
         - expose

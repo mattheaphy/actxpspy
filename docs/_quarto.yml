@@ -54,7 +54,47 @@ quartodoc:
   sidebar: _sidebar.yml
 
   sections:
+
     - title: "Exposure calculations"
-      desc: "Convert census records to exposure records"
+      desc: "Create exposure records from census records"
+      package: actxps.expose
       contents:
-        - expose
+        - ExposedDF
+        - ExposedDF.from_DataFrame
+
+    - title: "Termination study summary objects"
+      desc: "Create termination study summaries and reports"
+      package: actxps.exp_stats
+      contents:
+        - package: actxps.expose.ExposedDF
+          name: exp_stats
+        - ExpStats
+
+    - title: "Sample data sets"
+      desc: "Data sets for testing the functionality of actxps"
+
+    - subtitle: Toy census data
+      package: actxps.datasets
+      contents:
+        - load_toy_census
+
+    - subtitle: Simulated annuity data
+      package: actxps.datasets
+      contents:
+        - kind: page
+          flatten: true
+          path: sim_data
+          contents:
+            - load_census_dat
+            - load_withdrawals
+            - load_account_vals 
+
+    - subtitle: 2012 Individual Annuity Mortality Table and Projection Scale G2
+      package: actxps.datasets
+      contents:
+        - kind: page
+          flatten: true
+          path: qx_iamb
+          contents:
+            - load_qx_iamb
+            - load_scale_g2

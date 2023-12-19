@@ -73,12 +73,12 @@ quartodoc:
     - title: "Sample data sets"
       desc: "Data sets for testing the functionality of actxps"
 
-    - subtitle: Toy census data
+    - subtitle: "Toy census data"
       package: actxps.datasets
       contents:
         - load_toy_census
 
-    - subtitle: Simulated annuity data
+    - subtitle: "Simulated annuity data"
       package: actxps.datasets
       contents:
         - kind: page
@@ -89,7 +89,7 @@ quartodoc:
             - load_withdrawals
             - load_account_vals 
 
-    - subtitle: 2012 Individual Annuity Mortality Table and Projection Scale G2
+    - subtitle: "2012 Individual Annuity Mortality Table and Projection Scale G2"
       package: actxps.datasets
       contents:
         - kind: page
@@ -98,3 +98,45 @@ quartodoc:
           contents:
             - load_qx_iamb
             - load_scale_g2
+
+    - title: "Date functions"
+      desc: "Support functions used for various date calculations"
+
+    - subtitle: "Policy duration functions"
+      package: actxps.dates
+      contents:
+        - kind: page
+          flatten: true
+          path: pol_durations
+          contents: 
+            - pol_interval
+            - pol_yr
+            - pol_qtr
+            - pol_mth
+            - pol_wk
+
+    - subtitle: "Fractional duration functions"
+      package: actxps.dates
+      contents:
+        - kind: page
+          flatten: true
+          path: frac_durations
+          contents: 
+            - frac_interval
+            - frac_yr
+            - frac_qtr
+            - frac_mth
+            - frac_wk
+
+    - subtitle: "Add durations to a vector of dates"
+      package: actxps.dates
+      contents:
+        - kind: page
+          flatten: true
+          path: add_durations
+          contents: 
+            - add_interval
+            - add_yr
+            - add_qtr
+            - add_mth
+            - add_wk

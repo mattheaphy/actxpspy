@@ -11,7 +11,7 @@ from plotnine import aes
 
 class ExpStats():
     """
-    # Experience study summary class
+    Experience study summary class
 
     Create a summary of termination experience for a given target status
     (an `ExpStats` object).
@@ -20,66 +20,30 @@ class ExpStats():
     The preferred method for creating an `ExpStats` object is to call the
     `exp_stats()` method on an `ExposedDF` object.
 
-    ## Parameters
+    Parameters
+    ----------
 
-    `expo`: ExposedDF
+    expo : ExposedDF
         An exposed data frame class
-    `target_status`: str | list | np.ndarray, default = None
-        Optional. A single string, list, or array of target status values
-    `expected`: str | list | np.ndarray, default = None
-        Optional. A single string, list, or array of column names in the
-        `data` property of `expo` with expected values
-    `wt`: str, default = None
-        Optional. Name of the column in the `data` property of `expo` containing
+    target_status : str | list | np.ndarray, default=None
+        A single string, list, or array of target status values
+    expected : str | list | np.ndarray, default=None
+         single string, list, or array of column names in the `data` property of
+         `expo` with expected values
+    wt : str, default=None
+        Name of the column in the `data` property of `expo` containing
         weights to use in the calculation of claims, exposures, and
         partial credibility.
-    `credibility`: bool, default = False
+    credibility : bool, default=False
         Whether the output should include partial credibility weights and
         credibility-weighted decrement rates.
-    `cred_p`: float, default = 0.95
+    cred_p : float, default=0.95
         Confidence level under the Limited Fluctuation credibility method
-    `cred_r`: float, default = 0.05
+    cred_r : float, default=0.05
         Error tolerance under the Limited Fluctuation credibility method
 
-    ## Details
-
-    If `expo` is grouped (see the `ExposedDF.groupby()` method),
-    the returned `ExpStats` object's data will contain one row per group.
-
-    If nothing is passed to `target_status`, the `target_status` property
-    of `expo` will be used. If that property is `None`,
-    all status values except the first level will be assumed. This will
-    produce a warning message.
-
-    ### Expected values
-
-    The `expected` argument is optional. If provided, this argument must
-    be a string, list, or array with values corresponding to columns in
-    `expo.data` containing expected experience. More than one expected basis
-    can be provided.
-
-    ### Credibility
-
-    If `credibility` is set to `True`, the output will contain a
-    `credibility` column equal to the partial credibility estimate under
-    the Limited Fluctuation credibility method (also known as Classical
-    Credibility) assuming a binomial distribution of claims.
-
-    ## Methods
-
-    `summary()`
-        Calling `summary()` will re-summarize the data while retaining any
-        grouping variables passed to the `*by` argument. This will return a new
-        `ExpStats` object.
-
-    `plot()`
-        Produce an experience summary plot.
-
-    `table()`
-        Produce an experience summary table.
-
-    ## Properties
-
+    Attributes
+    ----------
     `data`: pd.DataFrame
         A data frame containing experience study summary results that includes
         columns for any grouping variables, claims, exposures, and observed
@@ -94,8 +58,33 @@ class ExpStats():
         Metadata about the experience study inferred from the `ExposedDF`
         object (`expo`) or passed directly to `ExpStats`.
 
-    ### References
 
+    Notes
+    ----------
+    If `expo` is grouped (see the `ExposedDF.groupby()` method),
+    the returned `ExpStats` object's data will contain one row per group.
+
+    If nothing is passed to `target_status`, the `target_status` property
+    of `expo` will be used. If that property is `None`, all status values except
+    the first level will be assumed. This will produce a warning message.
+
+    **Expected values**
+
+    The `expected` argument is optional. If provided, this argument must
+    be a string, list, or array with values corresponding to columns in
+    `expo.data` containing expected experience. More than one expected basis
+    can be provided.
+
+    **Credibility**
+
+    If `credibility` is set to `True`, the output will contain a
+    `credibility` column equal to the partial credibility estimate under
+    the Limited Fluctuation credibility method (also known as Classical
+    Credibility) assuming a binomial distribution of claims.
+
+
+    See Also
+    ----------
     Herzog, Thomas (1999). Introduction to Credibility Theory
     """
 
@@ -289,21 +278,22 @@ class ExpStats():
 
     def summary(self, *by):
         """
-        # Re-summarize termination experience data
+        Re-summarize termination experience data
 
         Re-summarize the data while retaining any grouping variables passed to
         the `*by` argument.
 
-        ## Parameters
+        Parameters
+        ----------
+        *by : tuple, optional
+            Quoted column names in `data` that will be used as grouping 
+            variables in the re-summarized object. Passing nothing is acceptable
+            and will produce a 1-row experience summary.
 
-        *`by`:
-            Column names in `data` that will be used as grouping variables in
-            the re-summarized object. Passing nothing is acceptable and will
-            produce a 1-row experience summary.
-
-        ## Returns
-
-        A new `ExpStats` object.
+        Returns
+        ----------
+        ExpStats
+            A new `ExpStats` object with rows for all the unique groups in `*by`
         """
 
         by = list(by)
@@ -365,39 +355,38 @@ class ExpStats():
              geoms: str = "lines",
              y_labels: callable = lambda l: [f"{v * 100:.1f}%" for v in l]):
         """
-        # Plot experience study results
+        Plot experience study results
 
-        ## Parameters
-
-        `x`: str
+        Parameters
+        ----------
+        x : str, default=None
             A column name in `data` to use as the `x` variable. If `None`,
             `x` will default to the first grouping variable. If there are no
             grouping variables, `x` will be set to "All".
-        `y`: str
-            A column name in `data` to use as the `y` variable. If `None`, 
-            `y` will default to the observed termination rate ("q_obs").
-        `color`: str
+        y : str, default='q_obs'
+            A column name in `data` to use as the `y` variable.
+        color : str, default=None
             A column name in `data` to use as the `color` and `fill` variables.
             If `None`, `y` will default to the second grouping variable. If 
             there are less than two grouping variables, the plot will not use 
             a color aesthetic.
-        `facets`: list or str
+        facets : list or str, default=None
             Faceting variables in `data` passed to `plotnine.facet_wrap()`. If 
             `None`, grouping variables 3+ will be used (assuming there are more
             than two grouping variables).
-        `mapping`: aes
+        mapping : aes, default=None
             Aesthetic mapping added to `plotnine.ggplot()`. NOTE: If `mapping` 
             is supplied, the `x`, `y`, and `color` arguments will be ignored.
-        `scales`: str
+        scales : str, default='fixed'
             The `scales` argument passed to `plotnine.facet_wrap()`.
-        `geoms`: str, must be "lines" (default) or "bars"
+        geoms : {'lines', 'bars'}
             Type of geometry. If "lines" is passed, the plot will display lines
             and points. If "bars", the plot will display bars.
-        `y_labels`: callable 
+        y_labels : callable, default=lambda l: [f"{v * 100:.1f}%" for v in l]
             Label function passed to `plotnine.scale_y_continuous()`.
 
-        ## Details 
-
+        Notes
+        ----------
         If no aesthetic map is supplied, the plot will use the first
         grouping variable in the `groups` property on the x axis and `q_obs` on
         the y axis. In addition, the second grouping variable in `groups` will 
@@ -419,42 +408,43 @@ class ExpStats():
               color_ae_: str | Colormap = "RdBu_r",
               rename_cols: dict = None):
         """
-        # Tabular experience study summary
+        Tabular experience study summary
 
         Convert experience study results to a presentation-friendly format.
 
-        ## Parameters
-
-        `fontsize`: int, default = 100
+        Parameters
+        ----------
+        fontsize : int, default=100
             Font size percentage multiplier
 
-        `decimals`: int, default = 1
+        decimals : int, default=1
             Number of decimals to display for percentages
 
-        `colorful`: bool, default = `True`
+        colorful : bool, default=True
             If `True`, color will be added to the the observed decrement rate
             and actual-to-expected columns.
 
-        `color_q_obs`: str or colormap, default = 'GnBu'
+        color_q_obs : str or colormap, default='GnBu'
             Matplotlib colormap used for the observed decrement rate.
 
-        `color_ae_`: str or colormap, default = 'RdBu_r'
+        color_ae_ : str or colormap, default='RdBu_r'
             Matplotlib colormap used for actual-to-expected rates.
 
-        `rename_cols`: dict
-            An optional dictionaryof key-value pairs where keys are column names
+        rename_cols : dict, default=None
+            A dictionary of key-value pairs where keys are column names
             and values are labels that will appear on the output table. This
             parameter is useful for renaming grouping variables that will 
             appear under their original variable names if left unchanged.
 
-        ## Details
-
+        Notes
+        ----------
         Further customizations can be added using Pandas Styler functions. See 
-        `pandas.DataFrame.style` for more information.
+        `pd.DataFrame.style` for more information.
 
-        ## Returns
-
-        A formatted HTML table of the Pandas styler class.
+        Returns
+        ----------
+        pd.io.formats.style.Styler
+            A formatted HTML table of the Pandas styler class
         """
 
         # set up properties

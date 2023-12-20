@@ -62,12 +62,12 @@ quartodoc:
         - ExposedDF
         - ExposedDF.from_DataFrame
 
-    - title: "Termination study summary objects"
+    - title: "Termination study summary"
       desc: "Create termination study summaries and reports"
       package: actxps.exp_stats
       contents:
-        - package: actxps.expose.ExposedDF
-          name: exp_stats
+        - package: actxps.expose
+          name: ExposedDF.exp_stats
         - ExpStats
 
     - title: "Sample data sets"

@@ -287,8 +287,8 @@ class TrxStats():
             the re-summarized object. Passing nothing is acceptable and will
             produce a 1-row experience summary.
 
-        ## Examples
-
+        Examples
+        ```{python}
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
@@ -300,6 +300,7 @@ class TrxStats():
             trx_stats(percent_of = "premium")
         trx_res.summary()
         trx_res.summary('inc_guar')
+        ```
 
         ## Returns
 

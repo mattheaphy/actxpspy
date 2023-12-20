@@ -753,7 +753,7 @@ class ExposedDF():
 
         Examples
         ----------
-        ```
+        ```{python}
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
@@ -905,6 +905,7 @@ class ExposedDF():
 
         Examples
         ----------
+        ```{python}
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
@@ -915,6 +916,7 @@ class ExposedDF():
         expo.groupby('inc_guar').trx_stats(percent_of = "premium")
         expo.groupby('inc_guar').trx_stats(percent_of = "premium",
                                            combine_trx = True)
+        ```
 
         Returns
         ----------
@@ -1054,6 +1056,7 @@ class ExposedDF():
 
         Examples 
         ----------
+        ```{python}
         import actxps as xp
         import numpy as np
 
@@ -1072,5 +1075,6 @@ class ExposedDF():
                                     on=["pol_num", "pol_date_yr"])
 
         app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
+        ```
         """
         return _exp_shiny(self, predictors, expected, distinct_max)

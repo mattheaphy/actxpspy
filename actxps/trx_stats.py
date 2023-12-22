@@ -280,7 +280,6 @@ class TrxStats():
 
         trx_res = (expo.groupby('inc_guar', 'pol_yr').
                    trx_stats(percent_of = "premium"))
-        trx_res.summary()
         trx_res.summary('inc_guar')
         ```
 

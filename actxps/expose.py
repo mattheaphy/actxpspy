@@ -45,52 +45,6 @@ class ExposedDF():
         Default active status code
 
 
-    Notes
-    ----------
-    Census-level data refers to a data set wherein there is one row
-    per unique policy. Exposure-level data expands census-level data such that
-    there is one record per policy per observation period. Observation periods
-    could be any meaningful period of time such as a policy year, policy month,
-    calendar year, calendar quarter, calendar month, etc.
-
-    `target_status` is used in the calculation of exposures. The annual
-    exposure method is applied, which allocates a full period of exposure for
-    any statuses in `target_status`. For all other statuses, new entrants
-    and exits are partially exposed based on the time elapsed in the observation
-    period. This method is consistent with the Balducci Hypothesis, which assumes
-    that the probability of termination is proportionate to the time elapsed
-    in the observation period. If the annual exposure method isn't desired,
-    `target_status` can be ignored. In this case, partial exposures are
-    always applied regardless of status.
-
-    `default_status` is used to indicate the default active status that
-    should be used when exposure records are created. If `None`, then the
-    first status level will be assumed to be the default active status.
-    
-    **Alternative class constructors**
-    
-    - `expose_py()`, `expose_pq()`, `expose_pm()`, `expose_pw()`, `expose_cy()`, 
-        `expose_cq()`, `expose_cm()`, `expose_cw()`
-        
-        Convenience constructor functions for specific exposure calculations.
-        The two characters after the underscore describe the exposure type and
-        exposure period, respectively.
-        For exposures types
-        `p` refers to policy years
-        `c` refers to calendar years
-        For exposure periods
-        `y` = years
-        `q` = quarters
-        `m` = months
-        `w` = weeks
-        Each constructor has the same inputs as the `__init__` method except 
-        that `expo_length` and `cal_expo` arguments are prepopulated.
-        
-    - `from_DataFrame()`
-        Convert a data frame that already has exposure-level records into an 
-        `ExposedDF` object.    
-
-
     Attributes
     ----------
     data : pd.DataFrame
@@ -115,6 +69,53 @@ class ExposedDF():
     trx_types: list
         List of transaction types that have been attached to `data` using 
         the `add_transactions()` method.
+
+
+    Notes
+    ----------
+    Census-level data refers to a data set wherein there is one row
+    per unique policy. Exposure-level data expands census-level data such that
+    there is one record per policy per observation period. Observation periods
+    could be any meaningful period of time such as a policy year, policy month,
+    calendar year, calendar quarter, calendar month, etc.
+
+    `target_status` is used in the calculation of exposures. The annual
+    exposure method is applied, which allocates a full period of exposure for
+    any statuses in `target_status`. For all other statuses, new entrants
+    and exits are partially exposed based on the time elapsed in the observation
+    period. This method is consistent with the Balducci Hypothesis, which assumes
+    that the probability of termination is proportionate to the time elapsed
+    in the observation period. If the annual exposure method isn't desired,
+    `target_status` can be ignored. In this case, partial exposures are
+    always applied regardless of status.
+
+    `default_status` is used to indicate the default active status that
+    should be used when exposure records are created. If `None`, then the
+    first status level will be assumed to be the default active status.
+
+    **Alternative class constructors**
+
+    - `expose_py()`, `expose_pq()`, `expose_pm()`, `expose_pw()`, `expose_cy()`, 
+        `expose_cq()`, `expose_cm()`, `expose_cw()`
+
+        Convenience constructor functions for specific exposure calculations.
+        The two characters after the underscore describe the exposure type and
+        exposure period, respectively.
+        For exposures types
+        `p` refers to policy years
+        `c` refers to calendar years
+        For exposure periods
+        `y` = years
+        `q` = quarters
+        `m` = months
+        `w` = weeks
+        Each constructor has the same inputs as the `__init__` method except 
+        that `expo_length` and `cal_expo` arguments are prepopulated.
+
+    - `from_DataFrame()`
+        Convert a data frame that already has exposure-level records into an 
+        `ExposedDF` object.    
+
 
     References
     ----------
@@ -361,7 +362,7 @@ class ExposedDF():
     def expose_pq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
         """
         Create an `ExposedDF` with policy quarter exposures
-        """        
+        """
         return cls(data, end_date, expo_length='quarter', **kwargs)
 
     @classmethod
@@ -403,7 +404,6 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    
     def expose_cw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
         """
         Create an `ExposedDF` with calendar week exposures
@@ -429,7 +429,7 @@ class ExposedDF():
                        col_trx_amt_: str = "trx_amt_"):
         """
         Coerce a data frame to an `ExposedDF` object
-        
+
         The input data frame must have columns for policy numbers, statuses, 
         exposures, policy periods (for policy exposures only), and exposure 
         start / end dates. Optionally, if `data` has transaction counts and 

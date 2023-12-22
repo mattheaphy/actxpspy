@@ -42,6 +42,7 @@ class ExpStats():
     cred_r : float, default=0.05
         Error tolerance under the Limited Fluctuation credibility method
 
+
     Attributes
     ----------
     `data`: pd.DataFrame

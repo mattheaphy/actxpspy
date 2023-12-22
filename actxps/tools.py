@@ -13,13 +13,13 @@ def document(docstring: str):
     """
     Decorator function factory for adding docstrings
 
-    ## Parameters
-
-    `docstring`: str
+    Parameters
+    ----------
+    docstring : str
       A docstring to add to a function
 
-    ## Returns
-
+    Returns
+    ----------
     A decorator function that adds a docstring to another function
     """
 
@@ -36,17 +36,17 @@ def arg_match(name: str, x, allowed):
 
     A `ValueError` exception is raised if the argument value `x` is not allowed.
 
-    ## Parameters
-
-    `name`: str
+    Parameters
+    -----------
+    name : str
         Argument name
-    `x`: Any
+    x : Any
         Argument value
-    `allowed`: Any
+    allowed : Any
         A list of allowed argument values
 
-    ## Source
-
+    References
+    -----------
     This function is inspired by the R language's `arg.match()` and 
     `rlang::arg_match()` functions.
     """

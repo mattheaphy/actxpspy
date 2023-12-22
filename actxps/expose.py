@@ -12,39 +12,67 @@ from actxps.exp_shiny import _exp_shiny
 
 class ExposedDF():
     """
-    # Exposed data frame class
+    Exposed data frame class
 
-    Convert a data frame of census-level records to exposure-level
-    records.
+    Convert a data frame of census-level records into an object with 
+    exposure-level records.
 
-    ## Parameters
 
-    `data`: pd.DataFrame
+    Parameters
+    ----------
+    data : pd.DataFrame
         A data frame with census-level records
-    `end_date`: datetime
+    end_date : datetime
         Experience study end date
-    `start_date`: datetime, default = '1900-01-01'
+    start_date : datetime, default='1900-01-01'
         Experience study start date
-    `target_status`: str | list | np.ndarray, default = `None`
+    target_status : str | list | np.ndarray, default=`None`
         Target status values
-    `cal_expo`: bool, default = `False`
+    cal_expo : bool, default=`False`
         Set to `True` for calendar year exposures. Otherwise policy year
         exposures are assumed.
-    `expo_length`: str
-        Exposure period length. Must be 'year', 'quarter', 'month', or 'week'
-    `col_pol_num`: str, default = 'pol_num'
+    expo_length : {'year', 'quarter', 'month', 'week'}
+        Exposure period length
+    col_pol_num : str, default='pol_num'
         Name of the column in `data` containing the policy number
-    `col_status`: str, default = 'status'
+    col_status : str, default='status'
         name of the column in `data` containing the policy status
-    `col_issue_date` str, default = 'issue_date'
+    col_issue_date : str, default='issue_date'
         name of the column in `data` containing the issue date
-    `col_term_date` str, default = 'term_date'
+    col_term_date str, default='term_date'
         name of the column in `data` containing the termination date
-    `default_status`: str, default = `None`
-        Optional default active status code
+    default_status : str, default=`None`
+        Default active status code
 
-    ## Details
 
+    Attributes
+    ----------
+    data : pd.DataFrame
+        A data frame with exposure level records. The results include all
+        existing columns in the original input data plus new columns for
+        exposures and observation periods. Observation periods include counters
+        for policy exposures, start dates, and end dates. Both start dates and
+        end dates are inclusive bounds.
+
+        For policy year exposures, two observation period columns are returned.
+        Columns beginning with (`pol_`) are integer policy periods. Columns
+        beginning with (`pol_date_`) are calendar dates representing
+        anniversary dates, monthiversary dates, etc.
+    end_date, start_date, target_status, cal_expo, expo_length :
+        Values passed on class instantiation. See Parameters for definitions.
+    exposure_type : str
+        A description of the exposure type that combines the `cal_expo` and
+        `expo_length` properties
+    date_cols : tuple
+        Names of the start and end date columns in `data` for each exposure
+        period
+    trx_types: list
+        List of transaction types that have been attached to `data` using 
+        the `add_transactions()` method.
+
+
+    Notes
+    ----------
     Census-level data refers to a data set wherein there is one row
     per unique policy. Exposure-level data expands census-level data such that
     there is one record per policy per observation period. Observation periods
@@ -65,86 +93,35 @@ class ExposedDF():
     should be used when exposure records are created. If `None`, then the
     first status level will be assumed to be the default active status.
 
-    ### References
+    **Alternative class constructors**
 
+    - `expose_py()`, `expose_pq()`, `expose_pm()`, `expose_pw()`, `expose_cy()`, 
+        `expose_cq()`, `expose_cm()`, `expose_cw()`
+
+        Convenience constructor functions for specific exposure calculations.
+        The two characters after the underscore describe the exposure type and
+        exposure period, respectively.
+        For exposures types
+        `p` refers to policy years
+        `c` refers to calendar years
+        For exposure periods
+        `y` = years
+        `q` = quarters
+        `m` = months
+        `w` = weeks
+        Each constructor has the same inputs as the `__init__` method except 
+        that `expo_length` and `cal_expo` arguments are prepopulated.
+
+    - `from_DataFrame()`
+        Convert a data frame that already has exposure-level records into an 
+        `ExposedDF` object.    
+
+
+    References
+    ----------
     Atkinson and McGarry (2016). Experience Study Calculations
 
     https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf
-
-    ## Methods
-
-    ### ExposedDF class construction helpers
-
-    The class methods `expose_py()`, `expose_pq()`, `expose_pm()`,
-    `expose_pw()`, `expose_cy()`, `expose_cq()`, `expose_cm()`, and
-    `expose_cw()` are convenience functions for specific exposure calculations.
-    The two characters after the underscore describe the exposure type and
-    exposure period, respectively.
-
-    For exposures types:
-
-    - `p` refers to policy years
-    - `c` refers to calendar years
-
-    For exposure periods:
-
-    - `y` = years
-    - `q` = quarters
-    - `m` = months
-    - `w` = weeks
-
-    Each constructor has the same inputs as the `__init__` method except that
-    `expo_length` and `cal_expo` arguments are prepopulated.
-
-    The class method `from_DataFrame` can be used to convert a data frame that
-    already has exposure-level records into an `ExposedDF` object.
-
-    ### `groupby()` and `ungroup()`
-
-    Add or remove grouping variables for summary methods like `exp_stats()`
-    and 'trx_stats()`.
-
-    ### `exp_stats()`
-
-    Summarize experience study results and return an `ExpStats` object.
-
-    ### `add_transactions()`
-
-    Attach a data frame of transactions to the `data` property. Once 
-    transactions are added, the summary method `trx_stats()` can be used.
-
-    ### `trx_stats()`
-
-    Summarize transactions results and return a `TrxStats` object.
-
-    ## Properties
-
-    `data`: pd.DataFrame
-        A data frame with exposure level records. The results include all
-        existing columns in the original input data plus new columns for
-        exposures and observation periods. Observation periods include counters
-        for policy exposures, start dates, and end dates. Both start dates and
-        end dates are inclusive bounds.
-
-        For policy year exposures, two observation period columns are returned.
-        Columns beginning with (`pol_`) are integer policy periods. Columns
-        beginning with (`pol_date_`) are calendar dates representing
-        anniversary dates, monthiversary dates, etc.
-
-    `end_date`, `start_date`, `target_status`, `cal_expo`, `expo_length`:
-        Values passed on class instantiation. See Parameters for definitions.
-
-    `exposure_type`: str
-        A description of the exposure type that combines the `cal_expo` and
-        `expo_length` properties
-
-    `date_cols`: tuple
-        Names of the start and end date columns in `data` for each exposure
-        period
-
-    `trx_types`: list
-        List of transaction types that have been attached to `data` using 
-        the `add_transactions()` method.
     """
 
     # helper dictionary for abbreviations
@@ -376,37 +353,61 @@ class ExposedDF():
 
     @classmethod
     def expose_py(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        """
+        Create an `ExposedDF` with policy year exposures
+        """
         return cls(data, end_date, expo_length='year', **kwargs)
 
     @classmethod
     def expose_pq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        """
+        Create an `ExposedDF` with policy quarter exposures
+        """
         return cls(data, end_date, expo_length='quarter', **kwargs)
 
     @classmethod
     def expose_pm(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        """
+        Create an `ExposedDF` with policy month exposures
+        """
         return cls(data, end_date, expo_length='month', **kwargs)
 
     @classmethod
     def expose_pw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        """
+        Create an `ExposedDF` with policy week exposures
+        """
         return cls(data, end_date, expo_length='week', **kwargs)
 
     @classmethod
     def expose_cy(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        """
+        Create an `ExposedDF` with calendar year exposures
+        """
         return cls(data, end_date, expo_length='year', cal_expo=True,
                    **kwargs)
 
     @classmethod
     def expose_cq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        """
+        Create an `ExposedDF` with calendar quarter exposures
+        """
         return cls(data, end_date, expo_length='quarter', cal_expo=True,
                    **kwargs)
 
     @classmethod
     def expose_cm(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        """
+        Create an `ExposedDF` with calendar month exposures
+        """
         return cls(data, end_date, expo_length='month', cal_expo=True,
                    **kwargs)
 
     @classmethod
     def expose_cw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+        """
+        Create an `ExposedDF` with calendar week exposures
+        """
         return cls(data, end_date, expo_length='week', cal_expo=True,
                    **kwargs)
 
@@ -427,54 +428,7 @@ class ExposedDF():
                        col_trx_n_: str = "trx_n_",
                        col_trx_amt_: str = "trx_amt_"):
         """
-        # Coerce a data frame to an `ExposedDF` object
-
-        ## Parameters
-
-        `data`: pd.DataFrame
-            A data frame with exposure-level records
-        `end_date`: datetime
-            Experience study end date
-        `start_date`: datetime, default = '1900-01-01'
-            Experience study start date
-        `target_status`: str | list | np.ndarray, default = `None`
-            Target status values
-        `cal_expo`: bool, default = `False`
-            Set to `True` for calendar year exposures. Otherwise policy year
-            exposures are assumed.
-        `expo_length`: str, default = 'year'
-            Exposure period length. Must be 'year', 'quarter', 'month', or 
-            'week'
-        `trx_types`: list or str
-            Optional list containing unique transaction types that have been 
-            attached to `data`. For each value in `trx_types`, `from_DataFrame` 
-            requires that columns exist in `data` named `trx_n_{*}` and 
-            `trx_amt_{*}` containing transaction counts and amounts,
-            respectively. The prefixes "trx_n_" and "trx_amt_" can be overridden
-            using the `col_trx_n_` and `col_trx_amt_` arguments.
-        `col_pol_num`: str, default = 'pol_num'
-            Name of the column in `data` containing the policy number
-        `col_status`: str, default = 'status'
-            name of the column in `data` containing the policy status
-        `col_exposure`: str, default = 'exposure'
-            Name of the column in `data` containing exposures.
-        `col_pol_per`: str, default = None
-            Name of the column in `data` containing policy exposure periods.
-            Only necessary if `cal_expo` is `False`. The assumed default is
-            either "pol_yr", "pol_qtr", "pol_mth", or "pol_wk" depending on
-            the value of `expo_length`.
-        `col_dates`: str, default = None
-            Names of the columns in `data` containing exposure start and end 
-            dates. Both date ranges are assumed to be exclusive. The assumed
-            default is of the form *A*_*B*. *A* is "cal" if `cal_expo` is `True`
-            or "pol" otherwise. *B* is either "yr", "qtr", "mth",  or "wk"
-            depending on the value of `expo_length`.
-        `col_trx_n_`: str, default = "trx_n_"
-            Prefix to use for columns containing transaction counts.
-        `col_trx_amt_`: str, default = "trx_amt_"
-            Prefix to use for columns containing transaction amounts.
-
-        ## Details
+        Coerce a data frame to an `ExposedDF` object
 
         The input data frame must have columns for policy numbers, statuses, 
         exposures, policy periods (for policy exposures only), and exposure 
@@ -482,9 +436,57 @@ class ExposedDF():
         amounts by type, these can be specified without calling 
         `add_transactions()`.
 
-        ## Returns:
 
-        An `ExposedDF` object.
+        Parameters
+        ----------
+        data : pd.DataFrame
+            A data frame with exposure-level records
+        end_date : datetime
+            Experience study end date
+        start_date : datetime, default='1900-01-01'
+            Experience study start date
+        target_status : str | list | np.ndarray, default=`None`
+            Target status values
+        cal_expo : bool, default=`False`
+            Set to `True` for calendar year exposures. Otherwise policy year
+            exposures are assumed.
+        expo_length : str, default='year'
+            Exposure period length. Must be 'year', 'quarter', 'month', or 
+            'week'
+        trx_types : list | str, optional
+            List containing unique transaction types that have been 
+            attached to `data`. For each value in `trx_types`, `from_DataFrame` 
+            requires that columns exist in `data` named `trx_n_{*}` and 
+            `trx_amt_{*}` containing transaction counts and amounts,
+            respectively. The prefixes "trx_n_" and "trx_amt_" can be overridden
+            using the `col_trx_n_` and `col_trx_amt_` arguments.
+        col_pol_num : str, default='pol_num'
+            Name of the column in `data` containing the policy number
+        col_status : str, default='status'
+            name of the column in `data` containing the policy status
+        col_exposure : str, default='exposure'
+            Name of the column in `data` containing exposures.
+        col_pol_per : str, default=None
+            Name of the column in `data` containing policy exposure periods.
+            Only necessary if `cal_expo` is `False`. The assumed default is
+            either "pol_yr", "pol_qtr", "pol_mth", or "pol_wk" depending on
+            the value of `expo_length`.
+        cols_dates : str, default=None
+            Names of the columns in `data` containing exposure start and end 
+            dates. Both date ranges are assumed to be exclusive. The assumed
+            default is of the form *A*_*B*. *A* is "cal" if `cal_expo` is `True`
+            or "pol" otherwise. *B* is either "yr", "qtr", "mth",  or "wk"
+            depending on the value of `expo_length`.
+        col_trx_n_ : str, default="trx_n_"
+            Prefix to use for columns containing transaction counts.
+        col_trx_amt_ : str, default="trx_amt_"
+            Prefix to use for columns containing transaction amounts.
+
+
+        Returns
+        ----------
+        `ExposedDF`
+            An `ExposedDF` object.
         """
 
         end_date = pd.to_datetime(end_date)
@@ -605,22 +607,17 @@ class ExposedDF():
         Set grouping variables for summary methods like `exp_stats()` and
         `trx_stats()`.
 
-        ## Parameters
-
-        *`by`:
+        Parameters
+        ----------
+        *by:
             Column names in `data` that will be used as grouping variables
 
-        ## Details
-
+        Notes
+        ----------
         This function will not directly apply the `DataFrame.groupby()` method
         to the `data` property. Instead, it will set the `groups` property of
         the `ExposedDF` object. The `groups` property is subsequently used to
         group data within summary methods like `exp_stats()` and `trx_stats()`.
-
-        ## Returns
-
-        self
-
         """
 
         by = list(by)
@@ -638,11 +635,6 @@ class ExposedDF():
         """
         Remove all grouping variables for summary methods like `exp_stats()`
         and `trx_stats()`.
-
-        ## Returns
-
-        self
-
         """
         self.groups = None
         return self
@@ -655,32 +647,32 @@ class ExposedDF():
                   cred_p: float = 0.95,
                   cred_r: float = 0.05):
         """
-        # Summarize experience study records
+        Summarize experience study records
 
         Create a summary of termination experience for a given target status
         (an `ExpStats` object).
 
-        ## Parameters
-
-        `target_status`: str | list | np.ndarray, default = None
-            Optional. A single string, list, or array of target status values
-        `expected`: str | list | np.ndarray, default = None
-            Optional. A single string, list, or array of column names in the
+        Parameters
+        ----------
+        target_status : str | list | np.ndarray, default=None
+            A single string, list, or array of target status values
+        expected: str | list | np.ndarray, default=None
+            A single string, list, or array of column names in the
             `data` property with expected values
-        `wt`: str, default = None
-            Optional. Name of the column in the `data` property containing
+        wt: str, default=None
+            Name of the column in the `data` property containing
             weights to use in the calculation of claims, exposures, and
             partial credibility.
-        `credibility`: bool, default = False
+        credibility : bool, default=False
             Whether the output should include partial credibility weights and
             credibility-weighted decrement rates.
-        `cred_p`: float, default = 0.95
+        cred_p : float, default=0.95
             Confidence level under the Limited Fluctuation credibility method
-        `cred_r`: float, default = 0.05
+        cred_r : float, default=0.05
             Error tolerance under the Limited Fluctuation credibility method
 
-        ## Details
-
+        Notes
+        ----------
         If the `ExposedDF` object is grouped (see the `groupby()` method), the
         returned `ExpStats` object's data will contain one row per group.
 
@@ -689,32 +681,33 @@ class ExposedDF():
         all status values except the first level will be assumed. This will
         produce a warning message.
 
-        ### Expected values
+        **Expected values**
 
         The `expected` argument is optional. If provided, this argument must
         be a string, list, or array with values corresponding to columns in
         the `data` property containing expected experience. More than one
         expected basis can be provided.
 
-        ### Credibility
+        **Credibility**
 
         If `credibility` is set to `True`, the output will contain a
         `credibility` column equal to the partial credibility estimate under
         the Limited Fluctuation credibility method (also known as Classical
         Credibility) assuming a binomial distribution of claims.
 
-        ## Returns
+        Returns
+        ----------
+        `ExpStats`
+            An `ExpStats` object with a `data` property that includes columns for
+            any grouping variables, claims, exposures, and observed decrement rates
+            (`q_obs`). If any values are passed to `expected`, additional columns
+            will be added for expected decrements and actual-to-expected ratios. If
+            `credibility` is set to `True`, additional columns are added for partial
+            credibility and credibility-weighted decrement rates (assuming values
+            are passed to `expected`).
 
-        An `ExpStats` object with a `data` property that includes columns for
-        any grouping variables, claims, exposures, and observed decrement rates
-        (`q_obs`). If any values are passed to `expected`, additional columns
-        will be added for expected decrements and actual-to-expected ratios. If
-        `credibility` is set to `True`, additional columns are added for partial
-        credibility and credibility-weighted decrement rates (assuming values
-        are passed to `expected`).
-
-        ### References
-
+        References
+        ----------
         Herzog, Thomas (1999). Introduction to Credibility Theory
         """
         from actxps.exp_stats import ExpStats
@@ -730,36 +723,37 @@ class ExposedDF():
         """
         Add transactions to an experience study
 
-        ## Parameters
-
-        `trx_data`: pd.DataFrame
+        Parameters
+        ----------
+        trx_data : pd.DataFrame
             A data frame containing transactions details. This data frame must
             have columns for policy numbers, transaction dates, transaction
             types, and transaction amounts.
-        `col_pol_num`: str, default = 'pol_num'
+        col_pol_num : str, default='pol_num'
             Name of the column in `trx_data` containing the policy number
-        `col_trx_date`: str, default = 'trx_date'
+        col_trx_date : str, default='trx_date'
             Name of the column in `trx_data` containing the transaction date
-        `col_trx_type`:str, default = 'trx_type'
+        col_trx_type :str, default='trx_type'
             Name of the column in `trx_data` containing the transaction type
-        `col_trx_amt`: str, default = 'trx_amt'
+        col_trx_amt : str, default='trx_amt'
             Name of the column in `trx_data` containing the transaction amount
 
-        ## Details
-
+        Notes
+        ----------
         This function attaches transactions to an `ExposedDF` object.
         Transactions are grouped and summarized such that the number of rows in
         the data does not change. Two columns are added to the output
         for each transaction type. These columns have names of the pattern
         `trx_n_{*}` (transaction counts) and `trx_amt_{*}`
-        (transaction_amounts).
+        (transaction_amounts). The `trx_types` property is updated to include 
+        the new transaction types found in `trx_data.`
 
         Transactions are associated with the data object by matching
         transactions dates with exposure dates ranges found in the `ExposedDF`.
 
-        ## Examples
-
-        ```
+        Examples
+        ----------
+        ```{python}
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
@@ -767,15 +761,6 @@ class ExposedDF():
                                       target_status = "Surrender")
         expo.add_transactions(withdrawals)
         ```
-
-        ## Returns
-
-        self
-
-        Two new columns are added to the `data` property containing transaction
-        counts and amounts for each transaction type found in `trx_data`. The
-        `trx_types` property will be updated to include the new transaction
-        types found in `trx_data.`
         """
 
         assert isinstance(trx_data, pd.DataFrame), \
@@ -851,33 +836,33 @@ class ExposedDF():
                   col_exposure: str = 'exposure',
                   full_exposures_only: bool = True):
         """
-        # Summarize transactions and utilization rates
+        Summarize transactions and utilization rates
 
         Create a summary of transaction counts, amounts, and utilization rates
         (a `TrxStats` object).
 
-        ## Parameters
-
-        `trx_types`: list or str, default = None
+        Parameters
+        ----------
+        trx_types : list or str, default=None
             A list of transaction types to include in the output. If `None` is
             provided, all available transaction types in the `trx_types` 
             property will be used.
-        `percent_of`: list or str, default = None
-            A optional list containing column names in the `data` property to
+        percent_of : list or str, default=None
+            A list containing column names in the `data` property to
             use as denominators in the calculation of utilization rates or
             actual-to-expected ratios.
-        `combine_trx`: bool, default = False
+        combine_trx : bool, default=False
             If `False` (default), the results will contain output rows for each 
             transaction type. If `True`, the results will contains aggregated
             results across all transaction types.
-        `col_exposure`: str, default = 'exposure'
+        col_exposure: str, default='exposure'
             Name of the column in the `data` property containing exposures
-        `full_exposures_only`: bool, default = True
+        full_exposures_only : bool, default=True
             If `True` (default), partially exposed records will be ignored 
             in the results.
 
-        ## Details
-
+        Notes
+        ----------
         If the `ExposedDF` object is grouped (see the `groupby()` method), the
         returned `TrxStats` object's data will contain one row per group.
 
@@ -891,7 +876,7 @@ class ExposedDF():
         an existing data frame with transactions or use `add_transactions()` 
         to attach transactions to an existing `ExposedDF` object.
 
-        ### "Percentage of" calculations
+        **"Percentage of" calculations**
 
         The `percent_of` argument is optional. If provided, this argument must
         be list with values corresponding to columns in the `data` property
@@ -904,7 +889,7 @@ class ExposedDF():
         containing a maximum benefit amount, utilization rates can be 
         determined.
 
-        ### Default removal of partial exposures
+        **Default removal of partial exposures**
 
         As a default, partial exposures are removed from `data` before 
         summarizing results. This is done to avoid complexity associated with a 
@@ -918,8 +903,9 @@ class ExposedDF():
         the exposure should be 0.5 years or 0.5 / 0.75 years. To override this 
         treatment, set `full_exposures_only` to `False`.
 
-        ## Examples
-
+        Examples
+        ----------
+        ```{python}
         import actxps as xp
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
@@ -930,33 +916,35 @@ class ExposedDF():
         expo.groupby('inc_guar').trx_stats(percent_of = "premium")
         expo.groupby('inc_guar').trx_stats(percent_of = "premium",
                                            combine_trx = True)
+        ```
 
-        ## Returns
+        Returns
+        ----------
+        `TrxStats`
+            A `TrxStats` object with a `data` property that includes columns for
+            any grouping variables and transaction types, plus the following:
 
-        A `TrxStats` object with a `data` property that includes columns for
-        any grouping variables and transaction types, plus the following:
+            - `trx_n`: the number of unique transactions.
+            - `trx_amt`: total transaction amount
+            - `trx_flag`: the number of observation periods with non-zero 
+            transaction amounts.
+            - `exposure`: total exposures
+            - `avg_trx`: mean transaction amount (`trx_amt / trx_flag`)
+            - `avg_all`: mean transaction amount over all records 
+            (`trx_amt / exposure`)
+            - `trx_freq`: transaction frequency when a transaction occurs 
+            (`trx_n / trx_flag`)
+            - `trx_utilization`: transaction utilization per observation period 
+            (`trx_flag / exposure`)
 
-        - `trx_n`: the number of unique transactions.
-        - `trx_amt`: total transaction amount
-        - `trx_flag`: the number of observation periods with non-zero 
-        transaction amounts.
-        - `exposure`: total exposures
-        - `avg_trx`: mean transaction amount (`trx_amt / trx_flag`)
-        - `avg_all`: mean transaction amount over all records 
-        (`trx_amt / exposure`)
-        - `trx_freq`: transaction frequency when a transaction occurs 
-        (`trx_n / trx_flag`)
-        - `trx_utilization`: transaction utilization per observation period 
-        (`trx_flag / exposure`)
+            If `percent_of` is provided, the results will also include:
 
-        If `percent_of` is provided, the results will also include:
-
-        - The sum of any columns passed to `percent_of` with non-zero
-        transactions. These columns include the suffix `_w_trx`.
-        - The sum of any columns passed to `percent_of`
-        - `pct_of_{*}_w_trx`: total transactions as a percentage of column
-        `{*}_w_trx`
-        - `pct_of_{*}_all`: total transactions as a percentage of column `{*}`
+            - The sum of any columns passed to `percent_of` with non-zero
+            transactions. These columns include the suffix `_w_trx`.
+            - The sum of any columns passed to `percent_of`
+            - `pct_of_{*}_w_trx`: total transactions as a percentage of column
+            `{*}_w_trx`
+            - `pct_of_{*}_all`: total transactions as a percentage of column `{*}`
         """
         from actxps.trx_stats import TrxStats
         return TrxStats(self, trx_types, percent_of, combine_trx,
@@ -967,27 +955,27 @@ class ExposedDF():
                   expected=None,
                   distinct_max=25):
         """
-        # Interactively explore experience data
+        Interactively explore experience data
 
         Launch a shiny application to interactively explore drivers of
         experience.
 
-        ## Parameters
-
-        `predictors`: str | list | np.ndarray, default = `None`
+        Parameters
+        ----------
+        predictors : str | list | np.ndarray, default=`None`
             A character vector of independent variables in the `data` property 
             to include in the shiny app.
-        `expected`: str | list | np.ndarray, default = `None`
+        expected : str | list | np.ndarray, default=`None`
             A character vector of expected values in the `data` property to
             include in the shiny app.
-        `distinct_max`: int
+        distinct_max : int
             Maximum number of distinct values allowed for `predictors`
             to be included as "Color" and "Facets" grouping variables. This 
             input prevents the drawing of overly complex plots. Default 
             value = 25.
 
-        ## Details
-
+        Notes
+        ----------
         If transactions have been attached to the `ExposedDF` object, the app
         will contain features for both termination and transaction studies.
         Otherwise, the app will only support termination studies.
@@ -999,16 +987,16 @@ class ExposedDF():
         The `expected` argument is optional. As a default, any column names
         containing the word "expected" are used.
 
-        ## Layout
+        **Layout**
 
-        ### Filters
+        *Filters*
 
         The sidebar contains filtering widgets for all variables passed
         to the `predictors` argument.
 
-        ### Study options
+        *Study options*
 
-        #### Grouping variables
+        Grouping variables
 
         This box includes widgets to select grouping variables for summarizing
         experience. The "x" widget is also used as the x variable in the plot
@@ -1017,13 +1005,12 @@ class ExposedDF():
         the table output, "x", "Color", and "Facets" have no particular meaning 
         beyond the order in which of grouping variables are displayed.
 
-        #### Study type
+        Study type
 
         This box also includes a toggle to switch between termination studies 
         and transaction studies (if available).
 
-        ##### Termination studies
-
+        - Termination studies:
         The expected values checkboxes are used to activate and deactivate
         expected values passed to the `expected` argument. This impacts the
         table output directly and the available "y" variables for the plot. If
@@ -1031,8 +1018,7 @@ class ExposedDF():
         The "Weight by" widget is used to specify which column, if any, 
         contains weights for summarizing experience.
 
-        ##### Transaction studies
-
+        - Transaction studies:
         The transaction types checkboxes are used to activate and deactivate
         transaction types that appear in the plot and table outputs. The
         available transaction types are taken from the `trx_types` property of 
@@ -1042,9 +1028,9 @@ class ExposedDF():
         and impact the table output directly. Lastly, a checkbox exists that 
         allows for all transaction types to be aggregated into a single group.
 
-        ### Output
+        **Output**
 
-        #### Plot Tab
+        *Plot Tab*
 
         This tab includes a plot and various options for customization:
 
@@ -1053,23 +1039,24 @@ class ExposedDF():
         - Add Smoothing?: activate to plot loess curves
         - Free y Scales: activate to enable separate y scales in each plot.
 
-        #### Table
+        *Table*
 
         This tab includes a data table.
 
-        #### Export Data
+        *Export Data*
 
         This tab includes a download button that will save a copy of the 
         summarized experience data.
 
-        ### Filter Information
+        **Filter Information**
 
         This box contains information on the original number of exposure 
         records, the number of records after filters are applied, and the 
         percentage of records retained.
 
-        ## Examples 
-
+        Examples 
+        ----------
+        ```{python}
         import actxps as xp
         import numpy as np
 
@@ -1088,10 +1075,6 @@ class ExposedDF():
                                     on=["pol_num", "pol_date_yr"])
 
         app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
-
-        ## Returns
-
-        No return value. This function is called for the side effect of
-        launching a shiny application.
+        ```
         """
         return _exp_shiny(self, predictors, expected, distinct_max)

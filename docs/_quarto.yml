@@ -1,0 +1,150 @@
+project:
+  type: website
+
+website:
+  title: actxps
+  navbar:
+    background: primary
+    search: true
+    left:
+      - text: "Get started"
+        file: articles/actxps.qmd
+      - text: "Reference"
+        file: reference/index.qmd
+      - text: "Articles"
+        menu:
+        - text: "Exposure calculations"
+          file: articles/exposures.qmd
+        - text: "Experience summaries"
+          file: articles/exp_summary.qmd
+        - text: "Transaction studies"
+          file: articles/transactions.qmd
+        - text: "Data visualizations"
+          file: articles/visualizations.qmd
+        - text: "Other functions"
+          file: articles/misc.qmd
+      - href: changelog.qmd
+        text: Changelog
+    right:
+      - icon: github
+        href: https://github.com/mattheaphy/actxpspy
+      - icon: r-circle-fill
+        menu:
+        - text: "R version of actxps"
+        - href: https://github.com/mattheaphy/actxps
+          text: Source code
+        - href: https://mattheaphy.github.io/actxps
+          text: Package documentation
+
+format:
+  html:
+    theme: zephyr
+    toc: true
+
+# tell quarto to read the generated sidebar
+metadata-files:
+  - _sidebar.yml
+
+
+quartodoc:
+  # the name used to import the package you want to create reference docs for
+  package: actxps
+
+  # write sidebar data to this file
+  sidebar: _sidebar.yml
+
+  sections:
+
+    - title: "Exposure calculations"
+      desc: "Create exposure records from census records"
+      package: actxps.expose
+      contents:
+        - ExposedDF
+        - ExposedDF.from_DataFrame
+
+    - title: "Termination studies"
+      desc: "Create termination study summaries and reports"
+      package: actxps.exp_stats
+      contents:
+        - package: actxps.expose
+          name: ExposedDF.exp_stats
+        - ExpStats
+
+    - title: "Transaction studies"
+      desc: "Add transactions to exposure records, create summaries and reports"
+      package: actxps.trx_stats
+      contents:
+        - package: actxps.expose
+          name: ExposedDF.add_transactions
+        - TrxStats
+
+    - title: "Sample data sets"
+      desc: "Data sets for testing the functionality of actxps"
+
+    - subtitle: "Toy census data"
+      package: actxps.datasets
+      contents:
+        - load_toy_census
+
+    - subtitle: "Simulated annuity data"
+      package: actxps.datasets
+      contents:
+        - kind: page
+          flatten: true
+          path: sim_data
+          contents:
+            - load_census_dat
+            - load_withdrawals
+            - load_account_vals 
+
+    - subtitle: "2012 Individual Annuity Mortality Table and Projection Scale G2"
+      package: actxps.datasets
+      contents:
+        - kind: page
+          flatten: true
+          path: qx_iamb
+          contents:
+            - load_qx_iamb
+            - load_scale_g2
+
+    - title: "Date functions"
+      desc: "Support functions used for various date calculations"
+
+    - subtitle: "Policy duration functions"
+      package: actxps.dates
+      contents:
+        - kind: page
+          flatten: true
+          path: pol_durations
+          contents: 
+            - pol_interval
+            - pol_yr
+            - pol_qtr
+            - pol_mth
+            - pol_wk
+
+    - subtitle: "Fractional duration functions"
+      package: actxps.dates
+      contents:
+        - kind: page
+          flatten: true
+          path: frac_durations
+          contents: 
+            - frac_interval
+            - frac_yr
+            - frac_qtr
+            - frac_mth
+            - frac_wk
+
+    - subtitle: "Add durations to a vector of dates"
+      package: actxps.dates
+      contents:
+        - kind: page
+          flatten: true
+          path: add_durations
+          contents: 
+            - add_interval
+            - add_yr
+            - add_qtr
+            - add_mth
+            - add_wk

@@ -1,0 +1,177 @@
+---
+title: "Getting started with actxps"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+#TODO
+# actxps:::set_actxps_plot_theme()
+```
+
+This article is based on creating a termination study using sample data that 
+comes with the actxps package. For information on transaction studies, see 
+[Transactions](transactions.qmd).
+
+## Simulated data set
+
+The actxps package includes a data frame containing simulated census data for a theoretical deferred annuity product with an optional guaranteed income rider. The grain of this data is one row per policy.
+
+```{python}
+#| label: packages
+#| message: false
+import actxps as xp
+import numpy as np
+
+census_dat = xp.load_census_dat()
+census_dat
+```
+
+The data includes 3 policy statuses: Active, Death, and Surrender.
+
+```{python status-count}
+#| label: status-count
+status_counts = census_dat.value_counts('status')
+status_counts
+```
+
+Let's assume we're interested in calculating the probability of surrender over one policy year. We cannot simply calculate the proportion of policies in a surrendered status as this does not represent an annualized surrender rate.
+
+```{python}
+#| label: naive
+# incorrect
+status_counts / sum(status_counts)
+```
+
+## Creating exposed data
+
+In order to calculate annual surrender rates, we need to break each policy into multiple records. There should be one row per policy per year.
+
+The `ExposedDF()` class is used to perform this transformation.
+
+
+```{python}
+#| label: example
+exposed_data = xp.ExposedDF(census_dat, end_date="2019-12-31",
+                            target_status="Surrender")
+
+exposed_data
+```
+
+`ExposedDF` objects include an exposure data frame in the `data` property and some additional attributes related to the experience study.
+
+Now that the data has been "exposed" by policy year, the observed annual surrender probability can be calculated as:
+
+```{python}
+#| label: term-rate
+(sum(exposed_data.data.status == "Surrender") /
+    sum(exposed_data.data.exposure))
+```
+
+As a default, `ExposedDF()` calculates exposures by policy year. This can also be accomplished with the class method `ExposedDF.expose_py()`. Other implementations of `ExposedDF()` include:
+
+- `ExposedDF.expose_cy` = exposures by calendar year
+- `ExposedDF.expose_cq` = exposures by calendar quarter
+- `ExposedDF.expose_cm` = exposures by calendar month
+- `ExposedDF.expose_cw` = exposures by calendar week
+- `ExposedDF.expose_pq` = exposures by policy quarter
+- `ExposedDF.expose_pm` = exposures by policy month
+- `ExposedDF.expose_pw` = exposures by policy week
+
+See [Exposures](exposures.qmd) for further details on exposure calculations.
+
+## Experience study summary function
+
+The `exp_stats()` method creates a summary of observed experience data. The output of this function is an `ExpStats` object.
+
+```{python stats-1}
+#| label: stats-1
+exposed_data.exp_stats()
+```
+
+See [Experience Summaries](exp_summary.qmd) for further details on exposure calculations.
+
+### Grouped experience data
+
+`ExposedDF` objects contain a `groupby()` method that is used to specify grouping variables for downstream methods like `exp_stats()`. Below, the data is grouped by policy year (`pol_yr`) and an indicator for the presence of a guaranteed income rider (`inc_guar`). After `exp_stats()` is called, the resulting output contains one record for each unique group.
+
+```{python}
+#| label: stats-grouped
+exp_res = (exposed_data.
+    groupby("pol_yr", "inc_guar").
+    exp_stats())
+
+exp_res
+```
+
+### Actual-to-expected rates
+
+To derive actual-to-expected rates, first attach one or more columns of expected termination rates to the exposure data. Then, pass these column names to the `expected` argument of `exp_stats()`.
+
+```{python}
+# | label: stats-ae
+expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
+                                 [.2, .15], np.repeat(0.05, 3)))
+
+# using 2 different expected termination rates
+exposed_data.data['expected_1'] = \
+    expected_table[exposed_data.data.pol_yr - 1]
+exposed_data.data['expected_2'] = \
+    np.where(exposed_data.data.inc_guar, 0.015, 0.03)
+
+exp_res = (exposed_data.
+           groupby("pol_yr", "inc_guar").
+           exp_stats(expected=["expected_1", "expected_2"]))
+
+exp_res
+
+```
+
+### `plot()` and `table()` methods
+
+`ExpStats` objects have `plot()` and `table()` methods that create visualizations and summary tables. See [Data visualizations](visualizations.qmd) for full details on these functions.
+
+```{python}
+#| label: plot
+#| warning: false
+#| message: false
+#| dpi: 3000
+exp_res.plot()
+```
+
+```{python}
+#| eval: false
+# first 10 rows showed for brevity
+exp_res.table()
+```
+
+<center><img src="../man/figures/exp_gt.png" width="55%" height="55%" /></center>
+
+### `summary()`
+
+Calling the `summary()` method on an `ExpStats` object re-summarizes experience results. This also produces an `ExpStats` object.
+
+```{python}
+#| label: summary-1
+exp_res.summary()
+```
+
+If additional variables are passed to `*by`, these variables become groups in the re-summarized `ExpStats` object.
+
+```{python}
+#| label: summary-2
+exp_res.summary('inc_guar')
+```
+
+## Shiny App
+
+`ExposedDF` objects have an `exp_shiny()` method that launches a Shiny app to enable interactive exploration of experience data.
+
+```{python}
+#| label: shiny
+#| eval: false
+exposed_data.exp_shiny()
+```
+
+<img src="../man/figures/exp_shiny.png" width="100%" />

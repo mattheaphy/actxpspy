@@ -4,7 +4,7 @@ format: gfm
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# actxps <a href="https://github.com/mattheaphy/actxpspy/"><img src="doc/images/logo.png" align="right" height="138" /></a>
+# actxps <a href="https://github.com/mattheaphy/actxpspy/"><img src="docs/images/logo.png" align="right" height="138" /></a>
  
 
 The actxps package provides a set of tools to assist with the creation
@@ -128,7 +128,7 @@ Launch a shiny app to interactively explore experience data.
 exposed_data.exp_shiny(expected=['expected_1', 'expected_2'])
 ```
 
-<img src="doc/images/exp_shiny.png" width="100%" />
+<img src="docs/images/exp_shiny.png" width="100%" />
 
 
 <br> **Logo**

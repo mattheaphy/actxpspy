@@ -114,3 +114,23 @@ def _plot_experience(object, x, y, color, mapping, scales,
         return p
     else:
         return p + facet_wrap(facets, scales=scales)
+
+
+def _set_actxps_plot_theme():
+    """
+    Plotting theme for vignettes
+
+    This is an internal function used to set a plotting theme in vignettes
+    and articles.
+    """
+
+    from plotnine import (
+        theme_set,
+        theme_light,
+        theme,
+        element_rect
+    )
+
+    theme_set(theme_light() +
+              theme(strip_background=element_rect(fill="#1367D4"))
+              )

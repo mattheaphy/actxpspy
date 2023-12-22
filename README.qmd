@@ -39,6 +39,13 @@ deferred annuity product with an optional guaranteed income rider.
 The grain of this data is one row *per policy*.
 
 ```{python}
+#| label: setup
+#| include: false
+from actxps.tools import _set_actxps_plot_theme
+_set_actxps_plot_theme()
+```
+
+```{python}
 #| label: packages
 import actxps as xp
 import numpy as np
@@ -97,8 +104,6 @@ exp_res = (exposed_data.
            exp_stats(expected = ["expected_1", "expected_2"]))
 
 exp_res
-
-
 ```
 
 Create visualizations using the `plot()` and `table()` methods.

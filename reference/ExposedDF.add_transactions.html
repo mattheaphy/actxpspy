@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>actxps – frac_durations</title>
+<title>actxps – exposeddf.add_transactions</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,6 +19,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -156,7 +190,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Date functions</li><li class="breadcrumb-item"><a href="../reference/frac_durations.html">Fractional duration functions</a></li><li class="breadcrumb-item"><a href="../reference/frac_durations.html">frac_interval</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/ExposedDF.add_transactions.html">Transaction studies</a></li><li class="breadcrumb-item"><a href="../reference/ExposedDF.add_transactions.html">ExposedDF.add_transactions</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
     </div>
@@ -231,7 +265,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/ExposedDF.add_transactions.html" class="sidebar-item-text sidebar-link">
+  <a href="../reference/ExposedDF.add_transactions.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">ExposedDF.add_transactions</span></a>
   </div>
 </li>
@@ -333,16 +367,16 @@ ul.task-list li input[type="checkbox"] {
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
  <span class="menu-text">Fractional duration functions</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 show">  
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/frac_durations.html" class="sidebar-item-text sidebar-link active">
+  <a href="../reference/frac_durations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">frac_interval</span></a>
   </div>
 </li>
@@ -377,108 +411,42 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#actxps.dates.frac_interval" id="toc-actxps.dates.frac_interval" class="nav-link active" data-scroll-target="#actxps.dates.frac_interval">frac_interval</a>
-  <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.frac_yr" id="toc-actxps.dates.frac_yr" class="nav-link" data-scroll-target="#actxps.dates.frac_yr">frac_yr</a>
-  <ul class="collapse">
-  <li><a href="#parameters-1" id="toc-parameters-1" class="nav-link" data-scroll-target="#parameters-1">Parameters</a></li>
-  <li><a href="#returns-1" id="toc-returns-1" class="nav-link" data-scroll-target="#returns-1">Returns</a></li>
-  <li><a href="#see-also-1" id="toc-see-also-1" class="nav-link" data-scroll-target="#see-also-1">See Also</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.frac_qtr" id="toc-actxps.dates.frac_qtr" class="nav-link" data-scroll-target="#actxps.dates.frac_qtr">frac_qtr</a>
-  <ul class="collapse">
-  <li><a href="#parameters-2" id="toc-parameters-2" class="nav-link" data-scroll-target="#parameters-2">Parameters</a></li>
-  <li><a href="#returns-2" id="toc-returns-2" class="nav-link" data-scroll-target="#returns-2">Returns</a></li>
-  <li><a href="#see-also-2" id="toc-see-also-2" class="nav-link" data-scroll-target="#see-also-2">See Also</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.frac_mth" id="toc-actxps.dates.frac_mth" class="nav-link" data-scroll-target="#actxps.dates.frac_mth">frac_mth</a>
-  <ul class="collapse">
-  <li><a href="#parameters-3" id="toc-parameters-3" class="nav-link" data-scroll-target="#parameters-3">Parameters</a></li>
-  <li><a href="#returns-3" id="toc-returns-3" class="nav-link" data-scroll-target="#returns-3">Returns</a></li>
-  <li><a href="#see-also-3" id="toc-see-also-3" class="nav-link" data-scroll-target="#see-also-3">See Also</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.frac_wk" id="toc-actxps.dates.frac_wk" class="nav-link" data-scroll-target="#actxps.dates.frac_wk">frac_wk</a>
-  <ul class="collapse">
-  <li><a href="#parameters-4" id="toc-parameters-4" class="nav-link" data-scroll-target="#parameters-4">Parameters</a></li>
-  <li><a href="#returns-4" id="toc-returns-4" class="nav-link" data-scroll-target="#returns-4">Returns</a></li>
-  <li><a href="#see-also-4" id="toc-see-also-4" class="nav-link" data-scroll-target="#see-also-4">See Also</a></li>
-  </ul></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link active" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ExposedDF.add_transactions</h1>
+</div>
 
 
-<section id="actxps.dates.frac_interval" class="level1">
-<h1>frac_interval</h1>
-<p><code>dates.frac_interval(start, end, dur_length)</code></p>
-<p>Calculate fractional years, quarters, months, or weeks between two dates</p>
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p><code>expose.ExposedDF.add_transactions(trx_data, col_pol_num='pol_num', col_trx_date='trx_date', col_trx_type='trx_type', col_trx_amt='trx_amt')</code></p>
+<p>Add transactions to an experience study</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 12%">
-<col style="width: 62%">
-<col style="width: 14%">
-<col style="width: 10%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="odd">
-<td><code>dur_length</code></td>
-<td>(year, quarter, month, week)</td>
-<td>Duration length</td>
-<td><code>'year'</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns" class="level2">
-<h2 class="anchored" data-anchor-id="returns">Returns</h2>
-<p>np.ndarray A vector of floats</p>
-</section>
-<section id="see-also" class="level2">
-<h2 class="anchored" data-anchor-id="see-also">See Also</h2>
-<p>frac_yr, frac_qtr, frac_mth, frac_wk</p>
-</section>
-</section>
-<section id="actxps.dates.frac_yr" class="level1">
-<h1>frac_yr</h1>
-<p><code>dates.frac_yr(start, end)</code></p>
-<p>Calculate fractional years between two dates</p>
-<section id="parameters-1" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-1">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
+<col style="width: 7%">
 <col style="width: 11%">
+<col style="width: 74%">
+<col style="width: 6%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -490,168 +458,100 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
+<td><code>trx_data</code></td>
+<td>pandas.pandas.DataFrame</td>
+<td>A data frame containing transactions details. This data frame must have columns for policy numbers, transaction dates, transaction types, and transaction amounts.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
+<td><code>col_pol_num</code></td>
+<td>str</td>
+<td>Name of the column in <code>trx_data</code> containing the policy number</td>
+<td><code>'pol_num'</code></td>
 </tr>
-</tbody>
-</table>
-</section>
-<section id="returns-1" class="level2">
-<h2 class="anchored" data-anchor-id="returns-1">Returns</h2>
-<p>np.ndarray A vector of floats</p>
-</section>
-<section id="see-also-1" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-1">See Also</h2>
-<p>frac_interval</p>
-</section>
-</section>
-<section id="actxps.dates.frac_qtr" class="level1">
-<h1>frac_qtr</h1>
-<p><code>dates.frac_qtr(start, end)</code></p>
-<p>Calculate fractional quarters between two dates</p>
-<section id="parameters-2" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-2">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
 <tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
-<td><em>required</em></td>
+<td><code>col_trx_date</code></td>
+<td>str</td>
+<td>Name of the column in <code>trx_data</code> containing the transaction date</td>
+<td><code>'trx_date'</code></td>
 </tr>
 <tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
+<td><code>col_trx_type</code></td>
+<td>str</td>
+<td>Name of the column in <code>trx_data</code> containing the transaction type</td>
+<td><code>'trx_type'</code></td>
 </tr>
-</tbody>
-</table>
-</section>
-<section id="returns-2" class="level2">
-<h2 class="anchored" data-anchor-id="returns-2">Returns</h2>
-<p>np.ndarray A vector of floats</p>
-</section>
-<section id="see-also-2" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-2">See Also</h2>
-<p>frac_interval</p>
-</section>
-</section>
-<section id="actxps.dates.frac_mth" class="level1">
-<h1>frac_mth</h1>
-<p><code>dates.frac_mth(start, end)</code></p>
-<p>Calculate fractional months between two dates</p>
-<section id="parameters-3" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-3">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
 <tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
+<td><code>col_trx_amt</code></td>
+<td>str</td>
+<td>Name of the column in <code>trx_data</code> containing the transaction amount</td>
+<td><code>'trx_amt'</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns-3" class="level2">
-<h2 class="anchored" data-anchor-id="returns-3">Returns</h2>
-<p>np.ndarray A vector of floats</p>
+<section id="notes" class="level2">
+<h2 class="anchored" data-anchor-id="notes">Notes</h2>
+<p>This function attaches transactions to an <code>ExposedDF</code> object. Transactions are grouped and summarized such that the number of rows in the data does not change. Two columns are added to the output for each transaction type. These columns have names of the pattern <code>trx_n_{*}</code> (transaction counts) and <code>trx_amt_{*}</code> (transaction_amounts). The <code>trx_types</code> property is updated to include the new transaction types found in <code>trx_data.</code></p>
+<p>Transactions are associated with the data object by matching transactions dates with exposure dates ranges found in the <code>ExposedDF</code>.</p>
 </section>
-<section id="see-also-3" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-3">See Also</h2>
-<p>frac_interval</p>
-</section>
-</section>
-<section id="actxps.dates.frac_wk" class="level1">
-<h1>frac_wk</h1>
-<p><code>dates.frac_wk(start, end)</code></p>
-<p>Calculate fractional weeks between two dates</p>
-<section id="parameters-4" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-4">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-4" class="level2">
-<h2 class="anchored" data-anchor-id="returns-4">Returns</h2>
-<p>np.ndarray A vector of floats</p>
-</section>
-<section id="see-also-4" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-4">See Also</h2>
-<p>frac_interval</p>
+<section id="examples" class="level2">
+<h2 class="anchored" data-anchor-id="examples">Examples</h2>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                              target_status <span class="op">=</span> <span class="st">"Surrender"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>Exposure data
+
+Exposure type: policy_year
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+Transaction types: Base, Rider
+
+A DataFrame: 141,252 x 19
+   pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
+0        1  Active 2014-12-17      True  False   56       b      F      77   
+1        1  Active 2014-12-17      True  False   56       b      F      77   
+2        1  Active 2014-12-17      True  False   56       b      F      77   
+3        1  Active 2014-12-17      True  False   56       b      F      77   
+4        1  Active 2014-12-17      True  False   56       b      F      77   
+5        1  Active 2014-12-17      True  False   56       b      F      77   
+6        2  Active 2007-09-24     False  False   71       a      F      71   
+7        2  Active 2007-09-24     False  False   71       a      F      71   
+8        2  Active 2007-09-24     False  False   71       a      F      71   
+9        2  Active 2007-09-24     False  False   71       a      F      71   
+
+   premium term_date  pol_yr pol_date_yr pol_date_yr_end  exposure  \
+0    370.0       NaT       1  2014-12-17      2015-12-16  1.000000   
+1    370.0       NaT       2  2015-12-17      2016-12-16  1.000000   
+2    370.0       NaT       3  2016-12-17      2017-12-16  1.000000   
+3    370.0       NaT       4  2017-12-17      2018-12-16  1.000000   
+4    370.0       NaT       5  2018-12-17      2019-12-16  1.000000   
+5    370.0       NaT       6  2019-12-17      2020-12-16  0.040984   
+6    708.0       NaT       1  2007-09-24      2008-09-23  1.000000   
+7    708.0       NaT       2  2008-09-24      2009-09-23  1.000000   
+8    708.0       NaT       3  2009-09-24      2010-09-23  1.000000   
+9    708.0       NaT       4  2010-09-24      2011-09-23  1.000000   
+
+   trx_amt_Base  trx_amt_Rider  trx_n_Base  trx_n_Rider  
+0           0.0            0.0         0.0          0.0  
+1           0.0            0.0         0.0          0.0  
+2           0.0            0.0         0.0          0.0  
+3           0.0            0.0         0.0          0.0  
+4           0.0            0.0         0.0          0.0  
+5           0.0            0.0         0.0          0.0  
+6          25.0            0.0         1.0          0.0  
+7          12.0            0.0         1.0          0.0  
+8           7.0            0.0         1.0          0.0  
+9          52.0            0.0         1.0          0.0  </code></pre>
+</div>
+</div>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

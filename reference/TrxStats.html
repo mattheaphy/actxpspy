@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>actxps – frac_durations</title>
+<title>actxps – trxstats</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,6 +19,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -156,7 +190,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Date functions</li><li class="breadcrumb-item"><a href="../reference/frac_durations.html">Fractional duration functions</a></li><li class="breadcrumb-item"><a href="../reference/frac_durations.html">frac_interval</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/ExposedDF.add_transactions.html">Transaction studies</a></li><li class="breadcrumb-item"><a href="../reference/TrxStats.html">TrxStats</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
     </div>
@@ -237,7 +271,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/TrxStats.html" class="sidebar-item-text sidebar-link">
+  <a href="../reference/TrxStats.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">TrxStats</span></a>
   </div>
 </li>
@@ -333,16 +367,16 @@ ul.task-list li input[type="checkbox"] {
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
  <span class="menu-text">Fractional duration functions</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 show">  
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/frac_durations.html" class="sidebar-item-text sidebar-link active">
+  <a href="../reference/frac_durations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">frac_interval</span></a>
   </div>
 </li>
@@ -377,35 +411,14 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#actxps.dates.frac_interval" id="toc-actxps.dates.frac_interval" class="nav-link active" data-scroll-target="#actxps.dates.frac_interval">frac_interval</a>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link active" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.frac_yr" id="toc-actxps.dates.frac_yr" class="nav-link" data-scroll-target="#actxps.dates.frac_yr">frac_yr</a>
-  <ul class="collapse">
-  <li><a href="#parameters-1" id="toc-parameters-1" class="nav-link" data-scroll-target="#parameters-1">Parameters</a></li>
-  <li><a href="#returns-1" id="toc-returns-1" class="nav-link" data-scroll-target="#returns-1">Returns</a></li>
-  <li><a href="#see-also-1" id="toc-see-also-1" class="nav-link" data-scroll-target="#see-also-1">See Also</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.frac_qtr" id="toc-actxps.dates.frac_qtr" class="nav-link" data-scroll-target="#actxps.dates.frac_qtr">frac_qtr</a>
-  <ul class="collapse">
-  <li><a href="#parameters-2" id="toc-parameters-2" class="nav-link" data-scroll-target="#parameters-2">Parameters</a></li>
-  <li><a href="#returns-2" id="toc-returns-2" class="nav-link" data-scroll-target="#returns-2">Returns</a></li>
-  <li><a href="#see-also-2" id="toc-see-also-2" class="nav-link" data-scroll-target="#see-also-2">See Also</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.frac_mth" id="toc-actxps.dates.frac_mth" class="nav-link" data-scroll-target="#actxps.dates.frac_mth">frac_mth</a>
-  <ul class="collapse">
-  <li><a href="#parameters-3" id="toc-parameters-3" class="nav-link" data-scroll-target="#parameters-3">Parameters</a></li>
-  <li><a href="#returns-3" id="toc-returns-3" class="nav-link" data-scroll-target="#returns-3">Returns</a></li>
-  <li><a href="#see-also-3" id="toc-see-also-3" class="nav-link" data-scroll-target="#see-also-3">See Also</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.frac_wk" id="toc-actxps.dates.frac_wk" class="nav-link" data-scroll-target="#actxps.dates.frac_wk">frac_wk</a>
-  <ul class="collapse">
-  <li><a href="#parameters-4" id="toc-parameters-4" class="nav-link" data-scroll-target="#parameters-4">Parameters</a></li>
-  <li><a href="#returns-4" id="toc-returns-4" class="nav-link" data-scroll-target="#returns-4">Returns</a></li>
-  <li><a href="#see-also-4" id="toc-see-also-4" class="nav-link" data-scroll-target="#see-also-4">See Also</a></li>
+  <li><a href="#actxps.trx_stats.TrxStats.plot" id="toc-actxps.trx_stats.TrxStats.plot" class="nav-link" data-scroll-target="#actxps.trx_stats.TrxStats.plot">plot</a></li>
+  <li><a href="#actxps.trx_stats.TrxStats.summary" id="toc-actxps.trx_stats.TrxStats.summary" class="nav-link" data-scroll-target="#actxps.trx_stats.TrxStats.summary">summary</a></li>
+  <li><a href="#actxps.trx_stats.TrxStats.table" id="toc-actxps.trx_stats.TrxStats.table" class="nav-link" data-scroll-target="#actxps.trx_stats.TrxStats.table">table</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -413,20 +426,35 @@ ul.task-list li input[type="checkbox"] {
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">TrxStats</h1>
+</div>
 
 
-<section id="actxps.dates.frac_interval" class="level1">
-<h1>frac_interval</h1>
-<p><code>dates.frac_interval(start, end, dur_length)</code></p>
-<p>Calculate fractional years, quarters, months, or weeks between two dates</p>
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p><code>trx_stats.TrxStats(self, expo, trx_types=None, percent_of=None, combine_trx=False, col_exposure='exposure', full_exposures_only=True)</code></p>
+<p>Transactions study summary class</p>
+<p>Create a summary of transaction counts, amounts, and utilization rates (a <code>TrxStats</code> object).</p>
+<p>Typically, the <code>TrxStats</code> class constructor should not be called directly. The preferred method for creating a <code>TrxStats</code> object is to call the <code>trx_stats()</code> method on an <code>ExposedDF</code> object.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 12%">
-<col style="width: 62%">
-<col style="width: 14%">
 <col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 72%">
+<col style="width: 6%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -438,93 +466,117 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
+<td><code>expo</code></td>
+<td>actxps.expose.ExposedDF</td>
+<td>An exposed data frame class</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
+<td><code>trx_types</code></td>
+<td>list or str</td>
+<td>A list of transaction types to include in the output. If <code>None</code> is provided, all available transaction types in the <code>trx_types</code> property of <code>expo</code> will be used.</td>
+<td><code>None</code></td>
 </tr>
 <tr class="odd">
-<td><code>dur_length</code></td>
-<td>(year, quarter, month, week)</td>
-<td>Duration length</td>
-<td><code>'year'</code></td>
+<td><code>percent_of</code></td>
+<td>list | str</td>
+<td>A optional list containing column names in the <code>data</code> property of <code>expo</code> to use as denominators in the calculation of utilization rates or actual-to-expected ratios.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td><code>combine_trx</code></td>
+<td>bool</td>
+<td>If <code>False</code>, the results will contain output rows for each transaction type. If <code>True</code>, the results will contain aggregated experience across all transaction types.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_exposure</code></td>
+<td>str</td>
+<td>Name of the column in the <code>data</code> property of <code>expo</code> containing exposures</td>
+<td><code>'exposure'</code></td>
+</tr>
+<tr class="even">
+<td><code>full_exposures_only</code></td>
+<td>bool</td>
+<td>If <code>True</code> (default), partially exposed records will be ignored in the results.</td>
+<td><code>True</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns" class="level2">
-<h2 class="anchored" data-anchor-id="returns">Returns</h2>
-<p>np.ndarray A vector of floats</p>
-</section>
-<section id="see-also" class="level2">
-<h2 class="anchored" data-anchor-id="see-also">See Also</h2>
-<p>frac_yr, frac_qtr, frac_mth, frac_wk</p>
-</section>
-</section>
-<section id="actxps.dates.frac_yr" class="level1">
-<h1>frac_yr</h1>
-<p><code>dates.frac_yr(start, end)</code></p>
-<p>Calculate fractional years between two dates</p>
-<section id="parameters-1" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-1">Parameters</h2>
+<section id="attributes" class="level2">
+<h2 class="anchored" data-anchor-id="attributes">Attributes</h2>
 <table class="table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
+<col style="width: 0%">
+<col style="width: 2%">
+<col style="width: 96%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
 <th>Type</th>
 <th>Description</th>
-<th>Default</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
+<td>data</td>
+<td>pandas.pandas.DataFrame</td>
+<td>A data framethat includes columns for any grouping variables and transaction types, plus the following: <code>trx_n</code> (the number of unique transactions), <code>trx_amt</code> (total transaction amount), <code>trx_flag</code> (the number of observation periods with non-zero transaction amounts), <code>exposure</code> (total exposures), <code>avg_trx</code> (mean transaction amount {<code>trx_amt / trx_flag</code>}), <code>avg_all</code> (mean transaction amount over all records {<code>trx_amt / exposure</code>}), <code>trx_freq</code> (transaction frequency when a transaction occurs {<code>trx_n / trx_flag</code>}), <code>trx_utilization</code> (transaction utilization per observation period {<code>trx_flag / exposure</code>}). If <code>percent_of</code> is provided, the results will also include the sum of any columns passed to <code>percent_of</code> with non-zero transactions (these columns include the suffix <code>_w_trx</code>. - The sum of any columns passed to <code>percent_of</code>), <code>pct_of_{*}_w_trx</code> (total transactions as a percentage of column <code>{*}_w_trx</code>), <code>pct_of_{*}_all</code> (total transactions as a percentage of column <code>{*}</code>).</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns-1" class="level2">
-<h2 class="anchored" data-anchor-id="returns-1">Returns</h2>
-<p>np.ndarray A vector of floats</p>
+<section id="notes" class="level2">
+<h2 class="anchored" data-anchor-id="notes">Notes</h2>
+<p>If the <code>ExposedDF</code> object is grouped (see the <code>groupby()</code> method), the returned <code>TrxStats</code> object’s data will contain one row per group.</p>
+<p>Any number of transaction types can be passed to the <code>trx_types</code> argument, however each transaction type <strong>must</strong> appear in the <code>trx_types</code> property of the <code>ExposedDF</code> object. In addition, <code>trx_stats()</code> expects to see columns named <code>trx_n_{*}</code> (for transaction counts) and <code>trx_amt_{*}</code> for (transaction amounts) for each transaction type. To ensure <code>.data</code> is in the appropriate format, use the class method <code>ExposedDF.from_DataFrame()</code> to convert an existing data frame with transactions or use <code>add_transactions()</code> to attach transactions to an existing <code>ExposedDF</code> object.</p>
+<p><strong>“Percentage of” calculations</strong></p>
+<p>The <code>percent_of</code> argument is optional. If provided, this argument must be list with values corresponding to columns in the <code>data</code> property of <code>expo</code> containing values to use as denominators in the calculation of utilization rates or actual-to-expected ratios. Example usage:</p>
+<ul>
+<li>In a study of partial withdrawal transactions, if <code>percent_of</code> refers to account values, observed withdrawal rates can be determined.</li>
+<li>In a study of recurring claims, if <code>percent_of</code> refers to a column containing a maximum benefit amount, utilization rates can be determined.</li>
+</ul>
+<p><strong>Default removal of partial exposures</strong></p>
+<p>As a default, partial exposures are removed from <code>data</code> before summarizing results. This is done to avoid complexity associated with a lopsided skew in the timing of transactions. For example, if transactions can occur on a monthly basis or annually at the beginning of each policy year, partial exposures may not be appropriate. If a policy had an exposure of 0.5 years and was taking withdrawals annually at the beginning of the year, an argument could be made that the exposure should instead be 1 complete year. If the same policy was expected to take withdrawals 9 months into the year, it’s not clear if the exposure should be 0.5 years or 0.5 / 0.75 years. To override this treatment, set <code>full_exposures_only</code> to <code>False</code>.</p>
 </section>
-<section id="see-also-1" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-1">See Also</h2>
-<p>frac_interval</p>
-</section>
-</section>
-<section id="actxps.dates.frac_qtr" class="level1">
-<h1>frac_qtr</h1>
-<p><code>dates.frac_qtr(start, end)</code></p>
-<p>Calculate fractional quarters between two dates</p>
-<section id="parameters-2" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-2">Parameters</h2>
+<section id="methods" class="level2">
+<h2 class="anchored" data-anchor-id="methods">Methods</h2>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#actxps.trx_stats.TrxStats.plot">plot</a></td>
+<td>Plot transaction study results</td>
+</tr>
+<tr class="even">
+<td><a href="#actxps.trx_stats.TrxStats.summary">summary</a></td>
+<td>Re-summarize transaction experience data</td>
+</tr>
+<tr class="odd">
+<td><a href="#actxps.trx_stats.TrxStats.table">table</a></td>
+<td>Tabular transaction study summary</td>
+</tr>
+</tbody>
+</table>
+<section id="actxps.trx_stats.TrxStats.plot" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.plot">plot</h3>
+<p><code>trx_stats.TrxStats.plot(x=None, y='trx_util', color=None, facets=None, mapping=None, scales='fixed', geoms='lines', y_labels=lambda : [f'{v * 100}%' for v in l])</code></p>
+<p>Plot transaction study results</p>
+<section id="parameters-1" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-1">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
+<col style="width: 4%">
+<col style="width: 5%">
+<col style="width: 75%">
+<col style="width: 15%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -536,41 +588,75 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
-<td><em>required</em></td>
+<td><code>x</code></td>
+<td>str</td>
+<td>A column name in <code>data</code> to use as the <code>x</code> variable. If <code>None</code>, <code>x</code> will default to the first grouping variable. If there are no grouping variables, <code>x</code> will be set to “All”.</td>
+<td><code>None</code></td>
 </tr>
 <tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
+<td><code>y</code></td>
+<td>str</td>
+<td>A column name in <code>data</code> to use as the <code>y</code> variable.</td>
+<td><code>'trx_util'</code></td>
+</tr>
+<tr class="odd">
+<td><code>color</code></td>
+<td>str</td>
+<td>A column name in <code>data</code> to use as the <code>color</code> and <code>fill</code> variables. If <code>None</code>, <code>y</code> will default to the second grouping variable. If there are less than two grouping variables, the plot will not use a color aesthetic.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td><code>facets</code></td>
+<td>list | str</td>
+<td>Faceting variables in <code>data</code> passed to <code>plotnine.facet_wrap()</code>. If <code>None</code>, grouping variables 3+ will be used (assuming there are more than two grouping variables).</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td><code>mapping</code></td>
+<td>plotnine.aes</td>
+<td>Aesthetic mapping added to <code>plotnine.ggplot()</code>. NOTE: If <code>mapping</code> is supplied, the <code>x</code>, <code>y</code>, and <code>color</code> arguments will be ignored.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td><code>scales</code></td>
+<td>str</td>
+<td>The <code>scales</code> argument passed to <code>plotnine.facet_wrap()</code>.</td>
+<td><code>'fixed'</code></td>
+</tr>
+<tr class="odd">
+<td><code>geoms</code></td>
+<td>(lines, bars)</td>
+<td>Type of geometry. If “lines” is passed, the plot will display lines and points. If “bars”, the plot will display bars.</td>
+<td><code>'lines'</code></td>
+</tr>
+<tr class="even">
+<td><code>y_labels</code></td>
+<td>callable</td>
+<td>Label function passed to <code>plotnine.scale_y_continuous()</code>.</td>
+<td><code>lambda l: [f"{v * 100:.1f}%" for v in l]</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns-2" class="level2">
-<h2 class="anchored" data-anchor-id="returns-2">Returns</h2>
-<p>np.ndarray A vector of floats</p>
-</section>
-<section id="see-also-2" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-2">See Also</h2>
-<p>frac_interval</p>
+<section id="notes-1" class="level4">
+<h4 class="anchored" data-anchor-id="notes-1">Notes</h4>
+<p>If no aesthetic map is supplied, the plot will use the first grouping variable in the <code>groups</code> property on the x axis and <code>trx_util</code> on the y axis. In addition, the second grouping variable in <code>groups</code> will be used for color and fill.</p>
+<p>If no faceting variables are supplied, the plot will use grouping variables 3 and up as facets. These variables are passed into <code>plotnine.facet_wrap()</code>.</p>
 </section>
 </section>
-<section id="actxps.dates.frac_mth" class="level1">
-<h1>frac_mth</h1>
-<p><code>dates.frac_mth(start, end)</code></p>
-<p>Calculate fractional months between two dates</p>
-<section id="parameters-3" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-3">Parameters</h2>
+<section id="actxps.trx_stats.TrxStats.summary" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.summary">summary</h3>
+<p><code>trx_stats.TrxStats.summary(*by)</code></p>
+<p>Re-summarize transaction experience data</p>
+<p>Re-summarize the data while retaining any grouping variables passed to the <code>*by</code> argument.</p>
+<section id="parameters-2" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-2">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 86%">
+<col style="width: 5%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -582,75 +668,169 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
+<td><code>*by</code></td>
+<td></td>
+<td>Column names in <code>data</code> that will be used as grouping variables in the re-summarized object. Passing nothing is acceptable and will produce a 1-row experience summary.</td>
+<td><code>()</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns-3" class="level2">
-<h2 class="anchored" data-anchor-id="returns-3">Returns</h2>
-<p>np.ndarray A vector of floats</p>
-</section>
-<section id="see-also-3" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-3">See Also</h2>
-<p>frac_interval</p>
-</section>
-</section>
-<section id="actxps.dates.frac_wk" class="level1">
-<h1>frac_wk</h1>
-<p><code>dates.frac_wk(start, end)</code></p>
-<p>Calculate fractional weeks between two dates</p>
-<section id="parameters-4" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-4">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>Start dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
-<td>End dates</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-4" class="level2">
-<h2 class="anchored" data-anchor-id="returns-4">Returns</h2>
-<p>np.ndarray A vector of floats</p>
-</section>
-<section id="see-also-4" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-4">See Also</h2>
-<p>frac_interval</p>
+<section id="examples" class="level4">
+<h4 class="anchored" data-anchor-id="examples">Examples</h4>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                              target_status <span class="op">=</span> <span class="st">"Surrender"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'inc_guar'</span>, <span class="st">'pol_yr'</span>).</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>               trx_stats(percent_of <span class="op">=</span> <span class="st">"premium"</span>))</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>trx_res.summary()</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>trx_res.summary(<span class="st">'inc_guar'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>Transaction study results
+
+Groups: inc_guar
+Study range: 1900-01-01 to 2019-12-31
+Transaction types: Base, Rider
+Transactions as % of: premium
 
 
+A DataFrame: 4 x 14
+   inc_guar trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx  \
+0     False     Base  52939.0     24703   952629.0   48938.0  38.563292   
+1     False    Rider      0.0         0        0.0   48938.0        inf   
+2      True     Base   7561.0      3521   141270.0   75235.0  40.122124   
+3      True    Rider  77321.0     35941  2842729.0   75235.0  79.094321   
+
+     avg_all  trx_freq  trx_util      premium  premium_w_trx  \
+0  19.466039  2.143019  0.504782   65442415.0     33915201.0   
+1   0.000000       inf  0.000000   65442415.0            0.0   
+2   1.877716  2.147401  0.046800  100927712.0      4940490.0   
+3  37.784661  2.151331  0.477716  100927712.0     47887716.0   
+
+   pct_of_premium_all  pct_of_premium_w_trx  
+0            0.014557              0.028089  
+1            0.000000                   inf  
+2            0.001400              0.028594  
+3            0.028166              0.059362  </code></pre>
+</div>
+</div>
+</section>
+<section id="returns" class="level4">
+<h4 class="anchored" data-anchor-id="returns">Returns</h4>
+<table class="table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 72%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>actxps.trx_stats.TrxStats</td>
+<td>A new <code>TrxStats</code> object with rows for all the unique groups in <code>*by</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="actxps.trx_stats.TrxStats.table" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.table">table</h3>
+<p><code>trx_stats.TrxStats.table(fontsize=100, decimals=1, colorful=True, color_util='GnBu', color_pct_of='RdBu_r', rename_cols=None)</code></p>
+<p>Tabular transaction study summary</p>
+<p>Convert transaction study results to a presentation-friendly format.</p>
+<section id="parameters-3" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-3">Parameters</h4>
+<table class="table">
+<colgroup>
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 85%">
+<col style="width: 3%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>fontsize</code></td>
+<td>int</td>
+<td>Font size percentage multiplier</td>
+<td><code>100</code></td>
+</tr>
+<tr class="even">
+<td><code>decimals</code></td>
+<td>int</td>
+<td>Number of decimals to display for percentages</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td><code>colorful</code></td>
+<td>bool</td>
+<td>If <code>True</code>, color will be added to the the observed utilization rate and “percentage of” columns.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="even">
+<td><code>color_util</code></td>
+<td>str or colormap</td>
+<td>Matplotlib colormap used for the observed utilization rate.</td>
+<td><code>'GnBu'</code></td>
+</tr>
+<tr class="odd">
+<td><code>color_pct_of</code></td>
+<td>str or colormap</td>
+<td>Matplotlib colormap used for “percentage of” columns.</td>
+<td><code>'RdBu_r'</code></td>
+</tr>
+<tr class="even">
+<td><code>rename_cols</code></td>
+<td>dict</td>
+<td>An optional dictionaryof key-value pairs where keys are column names and values are labels that will appear on the output table. This parameter is useful for renaming grouping variables that will appear under their original variable names if left unchanged.</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="notes-2" class="level4">
+<h4 class="anchored" data-anchor-id="notes-2">Notes</h4>
+<p>Further customizations can be added using Pandas Styler functions. See <code>pandas.DataFrame.style</code> for more information.</p>
+</section>
+<section id="returns-1" class="level4">
+<h4 class="anchored" data-anchor-id="returns-1">Returns</h4>
+<table class="table">
+<colgroup>
+<col style="width: 64%">
+<col style="width: 35%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>pandas.pandas.io.pandas.io.formats.pandas.io.formats.style.pandas.io.formats.style.Styler</td>
+<td>A formatted HTML table of the Pandas styler class</td>
+</tr>
+</tbody>
+</table>
+
+
+</section>
 </section>
 </section>
 

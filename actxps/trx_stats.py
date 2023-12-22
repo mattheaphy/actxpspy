@@ -9,7 +9,7 @@ from matplotlib.colors import Colormap
 
 class TrxStats():
     """
-    # Experience study summary class
+    Transactions study summary class
 
     Create a summary of transaction counts, amounts, and utilization rates
     (a `TrxStats` object).
@@ -18,30 +18,52 @@ class TrxStats():
     The preferred method for creating a `TrxStats` object is to call the
     `trx_stats()` method on an `ExposedDF` object.    
 
-    ## Parameters
-
-    `expo`: ExposedDF
+    Parameters
+    ----------
+    expo : ExposedDF
         An exposed data frame class
-    `trx_types`: list or str, default = None
+    trx_types : list or str, default=None
         A list of transaction types to include in the output. If `None` is
         provided, all available transaction types in the `trx_types` 
         property of `expo` will be used.
-    `percent_of`: list or str, default = None
+    percent_of : list | str, default=None
         A optional list containing column names in the `data` property of `expo`
         to use as denominators in the calculation of utilization rates or
         actual-to-expected ratios.
-    `combine_trx`: bool, default = False
-        If `False` (default), the results will contain output rows for each 
-        transaction type. If `True`, the results will contains aggregated
-        results across all transaction types.
-    `col_exposure`: str, default = 'exposure'
+    combine_trx : bool, default=False
+        If `False`, the results will contain output rows for each 
+        transaction type. If `True`, the results will contain aggregated
+        experience across all transaction types.
+    col_exposure : str, default='exposure'
         Name of the column in the `data` property of `expo` containing exposures
-    `full_exposures_only`: bool, default = True
+    full_exposures_only : bool, default=True
         If `True` (default), partially exposed records will be ignored 
         in the results.
+        
+        
+    Attributes
+    ----------
 
-    ## Details
+    data : pd.DataFrame
+        A data framethat includes columns for any grouping variables and
+        transaction types, plus the following: `trx_n` (the number of unique 
+        transactions), `trx_amt` (total transaction amount), `trx_flag` (the 
+        number of observation periods with non-zero transaction amounts), 
+        `exposure` (total exposures), `avg_trx` (mean transaction amount 
+        {`trx_amt / trx_flag`}), `avg_all` (mean transaction amount over all 
+        records {`trx_amt / exposure`}), `trx_freq` (transaction frequency when 
+        a transaction occurs {`trx_n / trx_flag`}), `trx_utilization` 
+        (transaction utilization per observation period 
+        {`trx_flag / exposure`}). If `percent_of` is provided, the results will 
+        also include the sum of any columns passed to `percent_of` with 
+        non-zero transactions (these columns include the suffix `_w_trx`.
+        - The sum of any columns passed to `percent_of`), `pct_of_{*}_w_trx` 
+        (total transactions as a percentage of column `{*}_w_trx`), 
+        `pct_of_{*}_all` (total transactions as a percentage of column `{*}`).
+        
 
+    Notes
+    ----------
     If the `ExposedDF` object is grouped (see the `groupby()` method), the
     returned `TrxStats` object's data will contain one row per group.
 
@@ -55,7 +77,7 @@ class TrxStats():
     an existing data frame with transactions or use `add_transactions()` 
     to attach transactions to an existing `ExposedDF` object.
 
-    ### "Percentage of" calculations
+    **"Percentage of" calculations**
 
     The `percent_of` argument is optional. If provided, this argument must
     be list with values corresponding to columns in the `data` property of 
@@ -68,7 +90,7 @@ class TrxStats():
     containing a maximum benefit amount, utilization rates can be 
     determined.
 
-    ### Default removal of partial exposures
+    **Default removal of partial exposures**
 
     As a default, partial exposures are removed from `data` before 
     summarizing results. This is done to avoid complexity associated with a 
@@ -81,47 +103,6 @@ class TrxStats():
     expected to take withdrawals 9 months into the year, it's not clear if
     the exposure should be 0.5 years or 0.5 / 0.75 years. To override this 
     treatment, set `full_exposures_only` to `False`.
-
-    ## Methods
-
-    `summary()`
-        Calling `summary()` will re-summarize the data while retaining any
-        grouping variables passed to the `*by` argument. This will return a new
-        `TrxStats` object.
-
-    `plot()`
-        Produce an transaction summary plot.
-
-    `table()`
-        Produce an transaction summary table.
-
-    ## Properties
-
-    `data`: pd.DataFrame
-        A data framethat includes columns for any grouping variables and
-        transaction types, plus the following:
-
-        - `trx_n`: the number of unique transactions.
-        - `trx_amt`: total transaction amount
-        - `trx_flag`: the number of observation periods with non-zero 
-        transaction amounts.
-        - `exposure`: total exposures
-        - `avg_trx`: mean transaction amount (`trx_amt / trx_flag`)
-        - `avg_all`: mean transaction amount over all records 
-        (`trx_amt / exposure`)
-        - `trx_freq`: transaction frequency when a transaction occurs 
-        (`trx_n / trx_flag`)
-        - `trx_utilization`: transaction utilization per observation period 
-        (`trx_flag / exposure`)
-
-        If `percent_of` is provided, the results will also include:
-
-        - The sum of any columns passed to `percent_of` with non-zero
-        transactions. These columns include the suffix `_w_trx`.
-        - The sum of any columns passed to `percent_of`
-        - `pct_of_{*}_w_trx`: total transactions as a percentage of column
-        `{*}_w_trx`
-        - `pct_of_{*}_all`: total transactions as a percentage of column `{*}`
     """
     @singledispatchmethod
     def __init__(self,
@@ -275,19 +256,20 @@ class TrxStats():
 
     def summary(self, *by):
         """
-        # Re-summarize transaction experience data
+        Re-summarize transaction experience data
 
         Re-summarize the data while retaining any grouping variables passed to
         the `*by` argument.
 
-        ## Parameters
-
-        *`by`:
+        Parameters
+        ----------
+        *by :
             Column names in `data` that will be used as grouping variables in
             the re-summarized object. Passing nothing is acceptable and will
             produce a 1-row experience summary.
 
         Examples
+        ----------
         ```{python}
         import actxps as xp
         census = xp.load_census_dat()
@@ -296,15 +278,16 @@ class TrxStats():
                                       target_status = "Surrender")
         expo.add_transactions(withdrawals)
 
-        trx_res = expo.groupby('inc_guar', 'pol_yr').\
-            trx_stats(percent_of = "premium")
+        trx_res = (expo.groupby('inc_guar', 'pol_yr').
+                   trx_stats(percent_of = "premium"))
         trx_res.summary()
         trx_res.summary('inc_guar')
         ```
 
-        ## Returns
-
-        A new `TrxStats` object.
+        Returns
+        ----------
+        TrxStats
+            A new `TrxStats` object with rows for all the unique groups in `*by`
         """
 
         by = list(by)
@@ -360,39 +343,38 @@ class TrxStats():
              geoms: str = "lines",
              y_labels: callable = lambda l: [f"{v * 100:.1f}%" for v in l]):
         """
-        # Plot transaction study results
+        Plot transaction study results
 
-        ## Parameters
-
-        `x`: str
+        Parameters
+        ----------
+        x : str, default=None
             A column name in `data` to use as the `x` variable. If `None`,
             `x` will default to the first grouping variable. If there are no
             grouping variables, `x` will be set to "All".
-        `y`: str
-            A column name in `data` to use as the `y` variable. If `None`, 
-            `y` will default to the observed utilization rate ("q_obs").
-        `color`: str
+        y : str, default='trx_util'
+            A column name in `data` to use as the `y` variable.
+        color : str, default=None
             A column name in `data` to use as the `color` and `fill` variables.
             If `None`, `y` will default to the second grouping variable. If 
             there are less than two grouping variables, the plot will not use 
             a color aesthetic.
-        `facets`: list or str
+        facets : list | str, default=None
             Faceting variables in `data` passed to `plotnine.facet_wrap()`. If 
             `None`, grouping variables 3+ will be used (assuming there are more
             than two grouping variables).
-        `mapping`: aes
+        mapping : aes, default=None
             Aesthetic mapping added to `plotnine.ggplot()`. NOTE: If `mapping` 
             is supplied, the `x`, `y`, and `color` arguments will be ignored.
-        `scales`: str
+        scales : str, default='fixed'
             The `scales` argument passed to `plotnine.facet_wrap()`.
-        `geoms`: str, must be "lines" (default) or "bars"
+        geoms : {'lines', 'bars'}
             Type of geometry. If "lines" is passed, the plot will display lines
             and points. If "bars", the plot will display bars.
-        `y_labels`: callable 
+        y_labels : callable, default=lambda l: [f"{v * 100:.1f}%" for v in l]
             Label function passed to `plotnine.scale_y_continuous()`.
 
-        ## Details 
-
+        Notes
+        ----------
         If no aesthetic map is supplied, the plot will use the first grouping
         variable in the `groups` property on the x axis and `trx_util` on
         the y axis. In addition, the second grouping variable in `groups` will 
@@ -418,42 +400,43 @@ class TrxStats():
               color_pct_of: str | Colormap = "RdBu_r",
               rename_cols: dict = None):
         """
-        # Tabular transaction study summary
+        Tabular transaction study summary
 
         Convert transaction study results to a presentation-friendly format.
 
-        ## Parameters
-
-        `fontsize`: int, default = 100
+        Parameters
+        ----------
+        fontsize : int, default=100
             Font size percentage multiplier
 
-        `decimals`: int, default = 1
+        decimals : int, default=1
             Number of decimals to display for percentages
 
-        `colorful`: bool, default = `True`
+        colorful : bool, default=True
             If `True`, color will be added to the the observed utilization rate
             and "percentage of" columns.
 
-        `color_util`: str or colormap, default = 'GnBu'
+        color_util : str or colormap, default='GnBu'
             Matplotlib colormap used for the observed utilization rate.
 
-        `color_pct_of`: str or colormap, default = 'RdBu_r'
+        color_pct_of : str or colormap, default='RdBu_r'
             Matplotlib colormap used for "percentage of" columns.
 
-        `rename_cols`: dict
+        rename_cols : dict, default=None
             An optional dictionaryof key-value pairs where keys are column names
             and values are labels that will appear on the output table. This
             parameter is useful for renaming grouping variables that will 
             appear under their original variable names if left unchanged.
 
-        ## Details
-
+        Notes
+        ----------
         Further customizations can be added using Pandas Styler functions. See 
         `pandas.DataFrame.style` for more information.
 
-        ## Returns
-
-        A formatted HTML table of the Pandas styler class.
+        Returns
+        ----------
+        pd.io.formats.style.Styler
+            A formatted HTML table of the Pandas styler class
         """
 
         # set up properties

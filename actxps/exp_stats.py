@@ -371,7 +371,7 @@ class ExpStats():
             If `None`, `y` will default to the second grouping variable. If 
             there are less than two grouping variables, the plot will not use 
             a color aesthetic.
-        facets : list or str, default=None
+        facets : list | str, default=None
             Faceting variables in `data` passed to `plotnine.facet_wrap()`. If 
             `None`, grouping variables 3+ will be used (assuming there are more
             than two grouping variables).

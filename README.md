@@ -1,5 +1,5 @@
 # actxps
-<a href="https://github.com/mattheaphy/actxpspy/"><img src="docs/images/logo.png" align="right" height="138" /></a>
+<a href="https://github.com/mattheaphy/actxpspy/"><img src="https://raw.githubusercontent.com/mattheaphy/actxpspy/main/docs/images/logo.png" align="right" height="138" /></a>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -14,8 +14,8 @@ to inform assumption setting for projection models.
   summary objects containing observed termination rates and claims.
   Optionally, expected termination rates, actual-to-expected ratios, and
   limited fluctuation credibility estimates can also be returned.
-- The `add_transactions()` method attaches summarized transactions to an
-  `ExposedDF` object.
+- The `add_transactions()` method of `ExposedDF` attaches summarized
+  transactions to an `ExposedDF` object.
 - The `trx_stats()` method of `ExposedDF` creates `TrxStats` transaction
   summary objects containing transaction counts, amounts, frequencies,
   and utilization. Optionally, transaction amounts can be expressed as a
@@ -23,8 +23,13 @@ to inform assumption setting for projection models.
   actual-to-expected ratios.
 - The `plot()` and `table()` methods of `ExpStats` and `TrxStats` create
   plots and tables for reporting.
+- The `exp_shiny()` method of `ExposedDF` launches a Shiny app that
+  allows for interactive exploration of experience drivers.
 
 ## Basic usage
+
+An expanded version of this demo is available at [Getting started with
+actxps](https://mattheaphy.github.io/actxpspy/articles/actxps.html).
 
 The actxps package includes simulated census data for a theoretical
 deferred annuity product with an optional guaranteed income rider. The
@@ -201,398 +206,28 @@ exp_res
 Create visualizations using the `plot()` and `table()` methods.
 
 ``` python
-from plotnine import ggplot, scale_color_manual, labs
-from plotnine.themes import theme_light
-
-colors = ["#eb15e4", "#7515eb"]
-
-(exp_res.plot() +
-  scale_color_manual(values = colors) + 
-  labs(title = "Observed Surrender Rates by Policy Year and Income Guarantee Presence") + 
-  theme_light())
+print(exp_res.plot())
 ```
 
 <img src="README_files/figure-commonmark/plots-output-1.png"
-id="plots-1" />
-
-    <Figure Size: (640 x 480)>
+id="plots" />
 
 ``` python
+# first 10 rows showed for brevity
 exp_res.table()
 ```
 
-<style type="text/css">
-#T_fa9a6 th {
-  font-weight: bold;
-  font-size: 100%;
-}
-#T_fa9a6 tr {
-  font-size: 100%;
-}
-#T_fa9a6 caption {
-  font-size: 100%;
-}
-#T_fa9a6 th.col_heading {
-  text-align: center;
-}
-#T_fa9a6 th.col_heading.level0 {
-  font-size: 1.1em;
-}
-#T_fa9a6 caption {
-  caption-side: top;
-}
-#T_fa9a6_row0_col2, #T_fa9a6_row11_col2 {
-  background-color: #f5fbee;
-  color: #000000;
-}
-#T_fa9a6_row0_col4 {
-  background-color: #f7f6f6;
-  color: #000000;
-}
-#T_fa9a6_row0_col6, #T_fa9a6_row1_col6, #T_fa9a6_row7_col4 {
-  background-color: #053061;
-  color: #f1f1f1;
-}
-#T_fa9a6_row1_col2 {
-  background-color: #f7fcf0;
-  color: #000000;
-}
-#T_fa9a6_row1_col4 {
-  background-color: #408fc1;
-  color: #f1f1f1;
-}
-#T_fa9a6_row2_col2 {
-  background-color: #f1faeb;
-  color: #000000;
-}
-#T_fa9a6_row2_col4 {
-  background-color: #fddbc7;
-  color: #000000;
-}
-#T_fa9a6_row2_col6, #T_fa9a6_row3_col6, #T_fa9a6_row11_col4 {
-  background-color: #0a3b70;
-  color: #f1f1f1;
-}
-#T_fa9a6_row3_col2 {
-  background-color: #f6fbef;
-  color: #000000;
-}
-#T_fa9a6_row3_col4 {
-  background-color: #4695c4;
-  color: #f1f1f1;
-}
-#T_fa9a6_row4_col2 {
-  background-color: #f3faec;
-  color: #000000;
-}
-#T_fa9a6_row4_col4 {
-  background-color: #84bcd9;
-  color: #000000;
-}
-#T_fa9a6_row4_col6 {
-  background-color: #08366a;
-  color: #f1f1f1;
-}
-#T_fa9a6_row5_col2, #T_fa9a6_row7_col2 {
-  background-color: #f6fcef;
-  color: #000000;
-}
-#T_fa9a6_row5_col4, #T_fa9a6_row18_col6 {
-  background-color: #1b5a9c;
-  color: #f1f1f1;
-}
-#T_fa9a6_row5_col6 {
-  background-color: #09386d;
-  color: #f1f1f1;
-}
-#T_fa9a6_row6_col2, #T_fa9a6_row10_col2, #T_fa9a6_row17_col2 {
-  background-color: #ebf7e5;
-  color: #000000;
-}
-#T_fa9a6_row6_col4 {
-  background-color: #fbe5d8;
-  color: #000000;
-}
-#T_fa9a6_row6_col6, #T_fa9a6_row10_col6 {
-  background-color: #134c87;
-  color: #f1f1f1;
-}
-#T_fa9a6_row7_col6 {
-  background-color: #073467;
-  color: #f1f1f1;
-}
-#T_fa9a6_row8_col2 {
-  background-color: #edf8e7;
-  color: #000000;
-}
-#T_fa9a6_row8_col4 {
-  background-color: #c0dceb;
-  color: #000000;
-}
-#T_fa9a6_row8_col6 {
-  background-color: #114781;
-  color: #f1f1f1;
-}
-#T_fa9a6_row9_col2 {
-  background-color: #f4fbed;
-  color: #000000;
-}
-#T_fa9a6_row9_col4 {
-  background-color: #185493;
-  color: #f1f1f1;
-}
-#T_fa9a6_row9_col6 {
-  background-color: #0f437b;
-  color: #f1f1f1;
-}
-#T_fa9a6_row10_col4, #T_fa9a6_row24_col6 {
-  background-color: #b1d5e7;
-  color: #000000;
-}
-#T_fa9a6_row11_col6 {
-  background-color: #0e4179;
-  color: #f1f1f1;
-}
-#T_fa9a6_row12_col2 {
-  background-color: #eaf7e4;
-  color: #000000;
-}
-#T_fa9a6_row12_col4 {
-  background-color: #a5cee3;
-  color: #000000;
-}
-#T_fa9a6_row12_col6 {
-  background-color: #15508d;
-  color: #f1f1f1;
-}
-#T_fa9a6_row13_col2 {
-  background-color: #f2faeb;
-  color: #000000;
-}
-#T_fa9a6_row13_col4 {
-  background-color: #1a5899;
-  color: #f1f1f1;
-}
-#T_fa9a6_row13_col6 {
-  background-color: #175290;
-  color: #f1f1f1;
-}
-#T_fa9a6_row14_col2 {
-  background-color: #e4f5df;
-  color: #000000;
-}
-#T_fa9a6_row14_col4 {
-  background-color: #d8e9f1;
-  color: #000000;
-}
-#T_fa9a6_row14_col6 {
-  background-color: #1e61a5;
-  color: #f1f1f1;
-}
-#T_fa9a6_row15_col2 {
-  background-color: #eef9e8;
-  color: #000000;
-}
-#T_fa9a6_row15_col4 {
-  background-color: #2f79b5;
-  color: #f1f1f1;
-}
-#T_fa9a6_row15_col6 {
-  background-color: #2065ab;
-  color: #f1f1f1;
-}
-#T_fa9a6_row16_col2 {
-  background-color: #e4f4de;
-  color: #000000;
-}
-#T_fa9a6_row16_col4 {
-  background-color: #c2ddec;
-  color: #000000;
-}
-#T_fa9a6_row16_col6 {
-  background-color: #1f63a8;
-  color: #f1f1f1;
-}
-#T_fa9a6_row17_col4 {
-  background-color: #4291c2;
-  color: #f1f1f1;
-}
-#T_fa9a6_row17_col6 {
-  background-color: #2e77b5;
-  color: #f1f1f1;
-}
-#T_fa9a6_row18_col2 {
-  background-color: #e7f6e2;
-  color: #000000;
-}
-#T_fa9a6_row18_col4, #T_fa9a6_row29_col4 {
-  background-color: #6eaed2;
-  color: #f1f1f1;
-}
-#T_fa9a6_row19_col2 {
-  background-color: #e8f6e2;
-  color: #000000;
-}
-#T_fa9a6_row19_col4 {
-  background-color: #5fa5cd;
-  color: #f1f1f1;
-}
-#T_fa9a6_row19_col6 {
-  background-color: #3a87bd;
-  color: #f1f1f1;
-}
-#T_fa9a6_row20_col2 {
-  background-color: #084081;
-  color: #f1f1f1;
-}
-#T_fa9a6_row20_col4, #T_fa9a6_row26_col6 {
-  background-color: #e4eef4;
-  color: #000000;
-}
-#T_fa9a6_row20_col6, #T_fa9a6_row26_col4 {
-  background-color: #67001f;
-  color: #f1f1f1;
-}
-#T_fa9a6_row21_col2 {
-  background-color: #86d0c0;
-  color: #000000;
-}
-#T_fa9a6_row21_col4 {
-  background-color: #276eb0;
-  color: #f1f1f1;
-}
-#T_fa9a6_row21_col6 {
-  background-color: #8a0b25;
-  color: #f1f1f1;
-}
-#T_fa9a6_row22_col2 {
-  background-color: #2d8fbf;
-  color: #f1f1f1;
-}
-#T_fa9a6_row22_col4 {
-  background-color: #e3edf3;
-  color: #000000;
-}
-#T_fa9a6_row22_col6 {
-  background-color: #e98b6e;
-  color: #f1f1f1;
-}
-#T_fa9a6_row23_col2 {
-  background-color: #bde5be;
-  color: #000000;
-}
-#T_fa9a6_row23_col4 {
-  background-color: #1c5c9f;
-  color: #f1f1f1;
-}
-#T_fa9a6_row23_col6 {
-  background-color: #fbd0b9;
-  color: #000000;
-}
-#T_fa9a6_row24_col2 {
-  background-color: #addfb7;
-  color: #000000;
-}
-#T_fa9a6_row24_col4 {
-  background-color: #e48066;
-  color: #f1f1f1;
-}
-#T_fa9a6_row25_col2 {
-  background-color: #dcf1d7;
-  color: #000000;
-}
-#T_fa9a6_row25_col4 {
-  background-color: #5ca3cb;
-  color: #f1f1f1;
-}
-#T_fa9a6_row25_col6 {
-  background-color: #96c7df;
-  color: #000000;
-}
-#T_fa9a6_row26_col2 {
-  background-color: #8ad2bf;
-  color: #000000;
-}
-#T_fa9a6_row27_col2 {
-  background-color: #daf1d5;
-  color: #000000;
-}
-#T_fa9a6_row27_col4 {
-  background-color: #78b4d5;
-  color: #000000;
-}
-#T_fa9a6_row27_col6 {
-  background-color: #a7d0e4;
-  color: #000000;
-}
-#T_fa9a6_row28_col2 {
-  background-color: #a2dbb7;
-  color: #000000;
-}
-#T_fa9a6_row28_col4 {
-  background-color: #c94741;
-  color: #f1f1f1;
-}
-#T_fa9a6_row28_col6 {
-  background-color: #c7e0ed;
-  color: #000000;
-}
-#T_fa9a6_row29_col2 {
-  background-color: #dbf1d5;
-  color: #000000;
-}
-#T_fa9a6_row29_col6 {
-  background-color: #a2cde3;
-  color: #000000;
-}
-</style>
-
-|        |          |        |           |                   | expected_1        |        | expected_2        |        |
-|--------|----------|--------|-----------|-------------------|-------------------|--------|-------------------|--------|
-|        |          | Claims | Exposures | *q<sup>obs</sup>* | *q<sup>exp</sup>* | *A/E*  | *q<sup>exp</sup>* | *A/E*  |
-| pol_yr | inc_guar |        |           |                   |                   |        |                   |        |
-| 1      | False    | 56     | 7,720     | 0.7%              | 0.5%              | 145.1% | 3.0%              | 24.2%  |
-|        | True     | 46     | 11,532    | 0.4%              | 0.5%              | 79.8%  | 1.5%              | 26.6%  |
-| 2      | False    | 92     | 7,103     | 1.3%              | 0.8%              | 166.5% | 3.0%              | 43.2%  |
-|        | True     | 68     | 10,612    | 0.6%              | 0.8%              | 82.4%  | 1.5%              | 42.7%  |
-| 3      | False    | 67     | 6,447     | 1.0%              | 1.1%              | 98.5%  | 3.0%              | 34.6%  |
-|        | True     | 57     | 9,650     | 0.6%              | 1.1%              | 56.0%  | 1.5%              | 39.4%  |
-| 4      | False    | 123    | 5,799     | 2.1%              | 1.3%              | 159.1% | 3.0%              | 70.7%  |
-|        | True     | 45     | 8,737     | 0.5%              | 1.3%              | 38.6%  | 1.5%              | 34.3%  |
-| 5      | False    | 97     | 5,106     | 1.9%              | 1.6%              | 117.9% | 3.0%              | 63.3%  |
-|        | True     | 67     | 7,810     | 0.9%              | 1.6%              | 53.2%  | 1.5%              | 57.2%  |
-| 6      | False    | 96     | 4,494     | 2.1%              | 1.9%              | 113.1% | 3.0%              | 71.2%  |
-|        | True     | 56     | 6,882     | 0.8%              | 1.9%              | 43.1%  | 1.5%              | 54.2%  |
-| 7      | False    | 92     | 3,899     | 2.4%              | 2.2%              | 108.9% | 3.0%              | 78.7%  |
-|        | True     | 72     | 6,018     | 1.2%              | 2.2%              | 55.2%  | 1.5%              | 79.8%  |
-| 8      | False    | 103    | 3,287     | 3.1%              | 2.4%              | 128.2% | 3.0%              | 104.4% |
-|        | True     | 87     | 5,161     | 1.7%              | 2.4%              | 69.0%  | 1.5%              | 112.4% |
-| 9      | False    | 87     | 2,684     | 3.2%              | 2.7%              | 119.1% | 3.0%              | 108.0% |
-|        | True     | 94     | 4,275     | 2.2%              | 2.7%              | 80.8%  | 1.5%              | 146.6% |
-| 10     | False    | 60     | 2,156     | 2.8%              | 3.0%              | 92.7%  | 3.0%              | 92.7%  |
-|        | True     | 92     | 3,448     | 2.7%              | 3.0%              | 88.9%  | 1.5%              | 177.9% |
-| 11     | False    | 457    | 1,694     | 27.0%             | 20.0%             | 134.9% | 3.0%              | 899.5% |
-|        | True     | 347    | 2,697     | 12.9%             | 20.0%             | 64.3%  | 1.5%              | 857.8% |
-| 12     | False    | 180    | 895       | 20.1%             | 15.0%             | 134.1% | 3.0%              | 670.3% |
-|        | True     | 150    | 1,768     | 8.5%              | 15.0%             | 56.6%  | 1.5%              | 565.5% |
-| 13     | False    | 50     | 503       | 9.9%              | 5.0%              | 198.9% | 3.0%              | 331.5% |
-|        | True     | 49     | 1,117     | 4.4%              | 5.0%              | 87.7%  | 1.5%              | 292.4% |
-| 14     | False    | 33     | 263       | 12.6%             | 5.0%              | 251.3% | 3.0%              | 418.9% |
-|        | True     | 29     | 609       | 4.8%              | 5.0%              | 95.2%  | 1.5%              | 317.3% |
-| 15     | False    | 8      | 74        | 10.8%             | 5.0%              | 216.1% | 3.0%              | 360.1% |
-|        | True     | 9      | 194       | 4.6%              | 5.0%              | 92.7%  | 1.5%              | 309.1% |
-
-Experience Study Results  
-Target status: Surrender  
-Study range: 1900-01-01 to 2019-12-31
+<center>
+<img src="docs/images/exp_gt.png" width="55%" height="55%" />
+</center>
 
 Launch a shiny app to interactively explore experience data.
 
 ``` python
-exposed_data.exp_shiny(expected=['expected_1', 'expected_2'])
+exposed_data.exp_shiny()
 ```
 
-<img src="docs/images/exp_shiny.png" width="100%" />
+<img src="https://raw.githubusercontent.com/mattheaphy/actxpspy/main/docs/images/exp_shiny.png" width="100%" />
 
 <br> **Logo**
 

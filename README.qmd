@@ -4,7 +4,7 @@ format: gfm
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# actxps <a href="https://github.com/mattheaphy/actxpspy/"><img src="docs/images/logo.png" align="right" height="138" /></a>
+# actxps <a href="https://github.com/mattheaphy/actxpspy/"><img src="https://raw.githubusercontent.com/mattheaphy/actxpspy/main/docs/images/logo.png" align="right" height="138" /></a>
  
 
 The actxps package provides a set of tools to assist with the creation
@@ -18,17 +18,21 @@ or calendar year exposure records.
 objects containing observed termination rates and claims. Optionally, expected
 termination rates, actual-to-expected ratios, and limited fluctuation 
 credibility estimates can also be returned.
-- The `add_transactions()` method attaches summarized transactions to an 
-`ExposedDF` object.
+- The `add_transactions()` method of `ExposedDF` attaches summarized 
+transactions to an `ExposedDF` object.
 - The `trx_stats()` method of `ExposedDF` creates `TrxStats` transaction summary 
 objects containing transaction counts, amounts, frequencies, and utilization.
 Optionally, transaction amounts can be expressed as a percentage of one or more
 variables to calculate rates or actual-to-expected ratios.
 - The `plot()` and `table()` methods of `ExpStats` and `TrxStats`
 create plots and tables for reporting.
+- The `exp_shiny()` method of `ExposedDF` launches a Shiny app that allows for 
+interactive exploration of experience drivers.
 
 
 ## Basic usage
+
+An expanded version of this demo is available at [Getting started with actxps](https://mattheaphy.github.io/actxpspy/articles/actxps.html).
 
 The actxps package includes simulated census data for a theoretical 
 deferred annuity product with an optional guaranteed income rider. 
@@ -101,34 +105,29 @@ Create visualizations using the `plot()` and `table()` methods.
 
 ```{python}
 #| label: plots
-
-from plotnine import ggplot, scale_color_manual, labs
-from plotnine.themes import theme_light
-
-colors = ["#eb15e4", "#7515eb"]
-
-(exp_res.plot() +
-  scale_color_manual(values = colors) + 
-  labs(title = "Observed Surrender Rates by Policy Year and Income Guarantee Presence") + 
-  theme_light())
-
+#| message: false
+#| dpi: 300
+print(exp_res.plot())
 ```
 
 ```{python}
 #| label: table1
-
+#| eval: false
+# first 10 rows showed for brevity
 exp_res.table()
 ```
+
+<center><img src="docs/images/exp_gt.png" width="55%" height="55%" /></center>
 
 Launch a shiny app to interactively explore experience data.
 
 ```{python}
 #| label: shiny
 #| eval: false
-exposed_data.exp_shiny(expected=['expected_1', 'expected_2'])
+exposed_data.exp_shiny()
 ```
 
-<img src="docs/images/exp_shiny.png" width="100%" />
+<img src="https://raw.githubusercontent.com/mattheaphy/actxpspy/main/docs/images/exp_shiny.png" width="100%" />
 
 
 <br> **Logo**

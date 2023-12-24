@@ -6,7 +6,10 @@ from plotnine import (
     geom_col,
     aes,
     facet_wrap,
-    scale_y_continuous)
+    scale_y_continuous,
+    scale_color_manual,
+    scale_fill_manual)
+_use_default_colors = False
 
 
 def document(docstring: str):
@@ -105,6 +108,14 @@ def _plot_experience(object, x, y, color, mapping, scales,
     p = (ggplot(data, mapping) +
          scale_y_continuous(labels=y_labels))
 
+    global _use_default_colors
+    if _use_default_colors:
+        colors = ["#1367D4", "#7515EB", "#EB15E4", "#1AC4F2",
+                  "#1FF2C1", "#C6E531", "#FFA13D", "#FF7647"]
+        p = (p +
+             scale_color_manual(colors) +
+             scale_fill_manual(colors))
+
     if geoms == "lines":
         p = p + geom_point() + geom_line()
     else:
@@ -130,6 +141,9 @@ def _set_actxps_plot_theme():
         theme,
         element_rect
     )
+
+    global _use_default_colors
+    _use_default_colors = True
 
     theme_set(theme_light() +
               theme(strip_background=element_rect(fill="#1367D4"))

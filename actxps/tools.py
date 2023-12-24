@@ -118,7 +118,7 @@ def _plot_experience(object, x, y, color, mapping, scales,
 
     if geoms == "lines":
         p = p + geom_point() + geom_line()
-    elif geoms == "lines":
+    elif geoms == "points":
         p = p + geom_point()
     else:
         p = p + geom_col(position="dodge")

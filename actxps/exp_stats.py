@@ -4,7 +4,10 @@ from scipy.stats import norm
 from warnings import warn
 from functools import singledispatchmethod
 from actxps.expose import ExposedDF
-from actxps.tools import _plot_experience
+from actxps.tools import (
+    _plot_experience,
+    _pivot_plot_special
+)
 from matplotlib.colors import Colormap
 from plotnine import aes
 
@@ -129,7 +132,8 @@ class ExpStats():
 
         xp_params = {'credibility': credibility,
                      'cred_p': cred_p,
-                     'cred_r': cred_r}
+                     'cred_r': cred_r,
+                     'conf_int': False}
 
         # set up properties and summarize data
         self._finalize(data, expo.groups, target_status,
@@ -402,7 +406,8 @@ class ExpStats():
                                 geoms, y_labels, facets)
 
     def plot_termination_rates(self,
-                               include_cred_adj: bool = False):
+                               include_cred_adj: bool = False,
+                               **kwargs):
         """
         Plot observed termination rates and any expected termination rates 
         found in the `expected` property.
@@ -412,10 +417,22 @@ class ExpStats():
         `include_cred_adj`: bool, default=False
             If `True`, credibility-weighted termination rates will be plotted 
             as well.
+        **kwargs: dict
+            Additional arguments passed to `plot()`
         """
         if include_cred_adj:
             self._cred_adj_warning()
-        pass
+        
+        piv_cols = ["q_obs"]
+        if self.expected is not None:
+            piv_cols.extend(self.expected)
+        if include_cred_adj:
+            piv_cols.extend([f"adj_{x}" for x in self.expected])
+            
+        piv_data = _pivot_plot_special(self, piv_cols)
+
+        return _plot_experience(self, y="Rate", alt_data=piv_data, **kwargs)
+
 
     def table(self,
               fontsize: int = 100,

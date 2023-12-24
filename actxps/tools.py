@@ -61,8 +61,17 @@ def arg_match(name: str, x, allowed):
                          f'"{x}" is not allowed.')
 
 
-def _plot_experience(xp_obj, x, y, color, mapping, scales,
-                     geoms, y_labels, facets, alt_data=None):
+def _plot_experience(xp_obj,
+                     x: str = None,
+                     y: str = "q_obs",
+                     color: str = None,
+                     mapping: aes = None,
+                     scales: str = "fixed",
+                     geoms: str = "lines",
+                     y_labels: callable = lambda l: [
+                         f"{v * 100:.1f}%" for v in l],
+                     facets: list | str = None,
+                     alt_data=None):
     """
     This helper function is used by `ExpStats.plot()` and `TrxStats.plot()`. 
     It is not meant to be called directly.
@@ -73,13 +82,20 @@ def _plot_experience(xp_obj, x, y, color, mapping, scales,
 
     assert isinstance(xp_obj, TrxStats | ExpStats)
 
+    groups = xp_obj.groups
+    if groups is None:
+        groups = []
+    else:
+        groups = groups.copy()
+
+    # handling for special plotting functions
     if alt_data is None:
         data = xp_obj.data.copy()
     else:
         data = alt_data
+        groups.insert(1, 'Series')
 
-    groups = xp_obj.groups
-    if groups is None or groups == []:
+    if groups == []:
         groups = ["All"]
         data["All"] = ""
 

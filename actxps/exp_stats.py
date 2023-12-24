@@ -9,7 +9,10 @@ from actxps.tools import (
     _pivot_plot_special
 )
 from matplotlib.colors import Colormap
-from plotnine import aes
+from plotnine import (
+    aes,
+    geom_hline
+)
 
 
 class ExpStats():
@@ -422,17 +425,46 @@ class ExpStats():
         """
         if include_cred_adj:
             self._cred_adj_warning()
-        
+
         piv_cols = ["q_obs"]
         if self.expected is not None:
             piv_cols.extend(self.expected)
         if include_cred_adj:
             piv_cols.extend([f"adj_{x}" for x in self.expected])
-            
+
         piv_data = _pivot_plot_special(self, piv_cols)
 
         return _plot_experience(self, y="Rate", alt_data=piv_data, **kwargs)
 
+    def plot_actual_to_expected(self,
+                                add_hline: bool = True,
+                                **kwargs):
+        """
+        Plot actual-to-expected termination rates for any expected termination 
+        rates found in the `expected` property.
+
+        Parameters
+        ----------
+        `add_hline`: bool, default=True
+            If `True`, a blue dashed horizontal line will be drawn at 100%.
+        **kwargs: dict
+            Additional arguments passed to `plot()`
+        """
+        piv_cols = np.intersect1d([f"ae_{x}" for x in self.expected],
+                                  self.data.columns)
+        assert len(piv_cols) > 0, \
+            "This object does not have any actual-to-expected results " + \
+            "available. Hint: to add expected values, use the " + \
+            "`expected` argument in `exp_stats()`"
+
+        piv_data = _pivot_plot_special(self, piv_cols, values_to="A/E ratio")
+
+        p = _plot_experience(self, y="A/E ratio", alt_data=piv_data, **kwargs)
+        if add_hline:
+            return p + geom_hline(yintercept=1,
+                                  linetype='dashed', color="#112599")
+        else:
+            return p
 
     def table(self,
               fontsize: int = 100,
@@ -593,4 +625,7 @@ class ExpStats():
         multiple functions.
         """
         if not self.xp_params['credibility'] or self.expected is None:
-            warn("This object has no credibility-weighted termination rates. Hint: pass `credibility=True` and one or more column names to `expected` when calling `exp_stats()` to calculate credibility-weighted termination rates.")
+            warn("This object has no credibility-weighted termination " +
+                 "rates. Hint: pass `credibility=True` and one or more " +
+                 "column names to `expected` when calling `exp_stats()` " +
+                 "to calculate credibility-weighted termination rates.")

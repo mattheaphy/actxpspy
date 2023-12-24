@@ -1,4 +1,5 @@
 # This module contains helper functions used by other modules
+import numpy as np
 from plotnine import (
     ggplot,
     geom_point,
@@ -60,8 +61,8 @@ def arg_match(name: str, x, allowed):
                          f'"{x}" is not allowed.')
 
 
-def _plot_experience(object, x, y, color, mapping, scales,
-                     geoms, y_labels, facets):
+def _plot_experience(xp_obj, x, y, color, mapping, scales,
+                     geoms, y_labels, facets, alt_data=None):
     """
     This helper function is used by `ExpStats.plot()` and `TrxStats.plot()`. 
     It is not meant to be called directly.
@@ -70,11 +71,14 @@ def _plot_experience(object, x, y, color, mapping, scales,
     from actxps.trx_stats import TrxStats
     from actxps.exp_stats import ExpStats
 
-    assert isinstance(object, TrxStats | ExpStats)
+    assert isinstance(xp_obj, TrxStats | ExpStats)
 
-    data = object.data.copy()
+    if alt_data is None:
+        data = xp_obj.data.copy()
+    else:
+        data = alt_data
 
-    groups = object.groups
+    groups = xp_obj.groups
     if groups is None or groups == []:
         groups = ["All"]
         data["All"] = ""
@@ -127,6 +131,41 @@ def _plot_experience(object, x, y, color, mapping, scales,
         return p
     else:
         return p + facet_wrap(facets, scales=scales)
+
+
+def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
+    """
+    This internal function is used to pivot `ExpStats` or `TrxStats` data frames
+    before they're passed to special plotting functions.
+
+    Parameters
+    ----------
+    xp_obj : ExpStats | TrxStats
+        An experience summary xp_obj
+    piv_cols : list
+        A primary set of columns to pivot longer
+    values_to : str, default="Rate
+        Name of the values column in the pivoted xp_obj.
+
+    Returns
+    -------
+    pd.DataFrame
+        A pivoted dataframe
+    """
+
+    xp_params = xp_obj.xp_params
+    data = xp_obj.data.copy()
+    piv_cols = np.intersect1d(piv_cols, data.columns)
+    id_cols = np.setdiff1d(data.columns, piv_cols)
+
+    if not xp_params['conf_int']:
+        data = data.melt(id_vars=id_cols, value_vars=piv_cols,
+                         var_name='Series', value_name=values_to)
+    else:
+        pass
+        # TODO - confidence intervals
+
+    return data
 
 
 def _set_actxps_plot_theme():

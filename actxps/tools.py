@@ -88,7 +88,7 @@ def _plot_experience(object, x, y, color, mapping, scales,
         else:
             return var
 
-    arg_match("geoms", geoms, ["lines", "bars"])
+    arg_match("geoms", geoms, ["lines", "bars", "points"])
 
     # set up aesthetics
     if mapping is None:
@@ -118,6 +118,8 @@ def _plot_experience(object, x, y, color, mapping, scales,
 
     if geoms == "lines":
         p = p + geom_point() + geom_line()
+    elif geoms == "lines":
+        p = p + geom_point()
     else:
         p = p + geom_col(position="dodge")
 

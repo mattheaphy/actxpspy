@@ -380,9 +380,10 @@ class ExpStats():
             is supplied, the `x`, `y`, and `color` arguments will be ignored.
         scales : str, default='fixed'
             The `scales` argument passed to `plotnine.facet_wrap()`.
-        geoms : {'lines', 'bars'}
+        geoms : {'lines', 'bars', 'points'}
             Type of geometry. If "lines" is passed, the plot will display lines
-            and points. If "bars", the plot will display bars.
+            and points. If "bars", the plot will display bars. If "points",
+            the plot will display points only.
         y_labels : callable, default=lambda l: [f"{v * 100:.1f}%" for v in l]
             Label function passed to `plotnine.scale_y_continuous()`.
 

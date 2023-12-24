@@ -281,7 +281,8 @@ def _exp_shiny(obj,
                                     "plotGeom",
                                     ui.strong("Geometry:"),
                                     {"bars": "Bars",
-                                     "lines": "Lines and Points"})
+                                     "lines": "Lines and Points",
+                                     "points": "Points"})
                             ),
                             ui.column(
                                 4,

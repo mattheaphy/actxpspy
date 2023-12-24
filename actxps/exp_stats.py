@@ -28,8 +28,8 @@ class ExpStats():
     target_status : str | list | np.ndarray, default=None
         A single string, list, or array of target status values
     expected : str | list | np.ndarray, default=None
-         single string, list, or array of column names in the `data` property of
-         `expo` with expected values
+        Single string, list, or array of column names in the `data` property of
+        `expo` with expected values
     wt : str, default=None
         Name of the column in the `data` property of `expo` containing
         weights to use in the calculation of claims, exposures, and
@@ -45,7 +45,7 @@ class ExpStats():
 
     Attributes
     ----------
-    `data`: pd.DataFrame
+    data : pd.DataFrame
         A data frame containing experience study summary results that includes
         columns for any grouping variables, claims, exposures, and observed
         decrement rates (`q_obs`). If any values are passed to `expected`,
@@ -54,8 +54,7 @@ class ExpStats():
         columns are added for partial credibility and credibility-weighted
         decrement rates (assuming values are passed to `expected`).
 
-    `target_status`, `groups`, `start_date`, `end_date`, `expected`, `wt`,
-    `cred_params`
+    target_status, groups, start_date, end_date, expected, wt, xp_params
         Metadata about the experience study inferred from the `ExposedDF`
         object (`expo`) or passed directly to `ExpStats`.
 
@@ -128,14 +127,14 @@ class ExpStats():
         else:
             data['claims'] = data.n_claims
 
-        cred_params = {'credibility': credibility,
-                       'cred_p': cred_p,
-                       'cred_r': cred_r}
+        xp_params = {'credibility': credibility,
+                     'cred_p': cred_p,
+                     'cred_r': cred_r}
 
         # set up properties and summarize data
         self._finalize(data, expo.groups, target_status,
                        expo.end_date, expo.start_date,
-                       expected, wt, cred_params)
+                       expected, wt, xp_params)
 
         return None
 
@@ -147,7 +146,7 @@ class ExpStats():
                   start_date,
                   expected,
                   wt,
-                  cred_params):
+                  xp_params):
         """
         Internal method for finalizing experience study summary objects
         """
@@ -161,7 +160,7 @@ class ExpStats():
             expected = [expected]
         self.expected = expected
         self.wt = wt
-        self.cred_params = cred_params
+        self.xp_params = xp_params
 
         # finish exp stats
         if groups is not None:
@@ -188,9 +187,9 @@ class ExpStats():
 
         expected = self.expected
         wt = self.wt
-        credibility = self.cred_params['credibility']
-        cred_p = self.cred_params['cred_p']
-        cred_r = self.cred_params['cred_r']
+        credibility = self.xp_params['credibility']
+        cred_p = self.xp_params['cred_p']
+        cred_r = self.xp_params['cred_r']
 
         if expected is not None:
             ex_mean = {k: np.average(data[k], weights=data.exposure)
@@ -322,7 +321,7 @@ class ExpStats():
         self.data = None
         self._finalize(old_self.data, old_self.groups, old_self.target_status,
                        old_self.end_date, old_self.start_date,
-                       old_self.expected, old_self.wt, old_self.cred_params)
+                       old_self.expected, old_self.wt, old_self.xp_params)
 
     def __repr__(self):
         repr = "Experience study results\n\n"
@@ -402,6 +401,22 @@ class ExpStats():
         return _plot_experience(self, x, y, color, mapping, scales,
                                 geoms, y_labels, facets)
 
+    def plot_termination_rates(self,
+                               include_cred_adj: bool = False):
+        """
+        Plot observed termination rates and any expected termination rates 
+        found in the `expected` property.
+
+        Parameters
+        ----------
+        `include_cred_adj`: bool, default=False
+            If `True`, credibility-weighted termination rates will be plotted 
+            as well.
+        """
+        if include_cred_adj:
+            self._cred_adj_warning()
+        pass
+
     def table(self,
               fontsize: int = 100,
               decimals: int = 1,
@@ -458,7 +473,7 @@ class ExpStats():
             expected = [None]
         target_status = self.target_status
         wt = self.wt
-        cred = self.cred_params['credibility']
+        cred = self.xp_params['credibility']
         start_date = self.start_date.strftime('%Y-%m-%d')
         end_date = self.end_date.strftime('%Y-%m-%d')
 
@@ -554,3 +569,11 @@ class ExpStats():
             )
 
         return tab
+
+    def _cred_adj_warning(self):
+        """
+        This internal function provides a common warning that is used by 
+        multiple functions.
+        """
+        if not self.xp_params['credibility'] or self.expected is None:
+            warn("This object has no credibility-weighted termination rates. Hint: pass `credibility=True` and one or more column names to `expected` when calling `exp_stats()` to calculate credibility-weighted termination rates.")

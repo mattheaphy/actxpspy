@@ -472,7 +472,7 @@ def _exp_shiny(obj,
             else:
 
                 facets = list(input.facetVar())
-                
+
                 p = new_rxp.plot(mapping=mapping,
                                  geoms=input.plotGeom(),
                                  y_labels=y_labels,

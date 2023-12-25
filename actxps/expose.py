@@ -644,7 +644,7 @@ class ExposedDF():
                   expected: str | list | np.ndarray = None,
                   wt: str = None,
                   credibility: bool = False,
-                  cred_p: float = 0.95,
+                  conf_level: float = 0.95,
                   cred_r: float = 0.05):
         """
         Summarize experience study records
@@ -666,7 +666,7 @@ class ExposedDF():
         credibility : bool, default=False
             Whether the output should include partial credibility weights and
             credibility-weighted decrement rates.
-        cred_p : float, default=0.95
+        conf_level : float, default=0.95
             Confidence level under the Limited Fluctuation credibility method
         cred_r : float, default=0.05
             Error tolerance under the Limited Fluctuation credibility method
@@ -712,7 +712,7 @@ class ExposedDF():
         """
         from actxps.exp_stats import ExpStats
         return ExpStats(self, target_status, expected, wt,
-                        credibility, cred_p, cred_r)
+                        credibility, conf_level, cred_r)
 
     def add_transactions(self,
                          trx_data: pd.DataFrame,

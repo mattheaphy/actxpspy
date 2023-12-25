@@ -43,7 +43,7 @@ class ExpStats():
     credibility : bool, default=False
         Whether the output should include partial credibility weights and
         credibility-weighted decrement rates.
-    cred_p : float, default=0.95
+    conf_level : float, default=0.95
         Confidence level under the Limited Fluctuation credibility method
     cred_r : float, default=0.05
         Error tolerance under the Limited Fluctuation credibility method
@@ -101,7 +101,7 @@ class ExpStats():
                  expected: str | list | np.ndarray = None,
                  wt: str = None,
                  credibility: bool = False,
-                 cred_p: float = 0.95,
+                 conf_level: float = 0.95,
                  cred_r: float = 0.05):
 
         self.data = None
@@ -134,7 +134,7 @@ class ExpStats():
             data['claims'] = data.n_claims
 
         xp_params = {'credibility': credibility,
-                     'cred_p': cred_p,
+                     'conf_level': conf_level,
                      'cred_r': cred_r,
                      'conf_int': False}
 
@@ -195,7 +195,7 @@ class ExpStats():
         expected = self.expected
         wt = self.wt
         credibility = self.xp_params['credibility']
-        cred_p = self.xp_params['cred_p']
+        conf_level = self.xp_params['conf_level']
         cred_r = self.xp_params['cred_r']
 
         if expected is not None:
@@ -219,7 +219,7 @@ class ExpStats():
 
         # credibility formulas - varying by weights
         if credibility:
-            y = (norm.ppf((1 + cred_p) / 2) / cred_r) ** 2
+            y = (norm.ppf((1 + conf_level) / 2) / cred_r) ** 2
 
             if wt is None:
                 cred = {

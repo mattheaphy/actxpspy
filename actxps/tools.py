@@ -5,11 +5,13 @@ from plotnine import (
     geom_point,
     geom_line,
     geom_col,
+    geom_errorbar,
     aes,
     facet_wrap,
     scale_y_continuous,
     scale_color_manual,
     scale_fill_manual)
+from warnings import warn
 _use_default_colors = False
 
 
@@ -71,8 +73,8 @@ def _plot_experience(xp_obj,
                      y_labels: callable = lambda l: [
                          f"{v * 100:.1f}%" for v in l],
                      facets: list | str = None,
-                     y_log10 = False,
-                     conf_int_bars = False,
+                     y_log10: bool = False,
+                     conf_int_bars: bool = False,
                      alt_data=None,
                      group_insert=1):
     """
@@ -127,7 +129,7 @@ def _plot_experience(xp_obj,
         facets = groups[2:]
         if len(facets) == 0:
             facets = None
-                    
+
     if y_log10:
         y_trans = "log10"
     else:
@@ -150,6 +152,20 @@ def _plot_experience(xp_obj,
         p = p + geom_point()
     else:
         p = p + geom_col(position="dodge")
+
+    if conf_int_bars:
+
+        if not xp_obj.xp_params['conf_int']:
+            conf_int_warning()
+        else:
+
+            y_min_max = [y + "_lower", y + "_upper"]
+            if all(np.isin(y_min_max, data.columns)):
+                p = p + geom_errorbar(aes(ymin=y_min_max[0],
+                                          ymax=y_min_max[1]))
+            else:
+                warn("Confidence intervals are not available for the " +
+                     "selected y-variable.")
 
     if facets is None:
         return p
@@ -177,12 +193,11 @@ def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
         A pivoted dataframe
     """
 
-    xp_params = xp_obj.xp_params
     data = xp_obj.data.copy()
     piv_cols = np.intersect1d(piv_cols, data.columns)
     id_cols = np.setdiff1d(data.columns, piv_cols)
 
-    if not xp_params['conf_int']:
+    if not xp_obj.xp_params['conf_int']:
         data = data.melt(id_vars=id_cols, value_vars=piv_cols,
                          var_name='Series', value_name=values_to)
     else:
@@ -205,8 +220,8 @@ def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
                            columns='val_type',
                            values=values_to).
                 reset_index().
-                rename({'lower': values_to + '_lower',
-                        'upper': values_to + '_upper'}))
+                rename(columns={'lower': values_to + '_lower',
+                                'upper': values_to + '_upper'}))
 
     return data
 
@@ -232,3 +247,13 @@ def _set_actxps_plot_theme():
     theme_set(theme_light() +
               theme(strip_background=element_rect(fill="#1367D4"))
               )
+
+
+def conf_int_warning():
+    """
+    This internal function provides a common warning that is used by multiple
+    functions.
+    """
+    warn("This object has no confidence intervals. Hint: pass " +
+         "`conf_int = True` to `exp_stats()` or `trx_stats()` to calculate " +
+         "confidence intervals.")

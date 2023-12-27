@@ -691,7 +691,7 @@ class ExposedDF():
         be a string, list, or array with values corresponding to columns in
         the `data` property containing expected experience. More than one
         expected basis can be provided.
-        
+
         **Confidence intervals**
 
         If `conf_int` is set to `True`, the output will contain lower and upper
@@ -703,7 +703,7 @@ class ExposedDF():
         the aggregate claims distribution is normal with a mean equal to 
         observed claims and a variance equal to:
 
-        `Var(S) = E(N) * Var(X) + E(X)^2 * Var(N)`,
+        `Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)`,
 
         Where `S` is the aggregate claim random variable, `X` is the weighting
         variable assumed to follow a normal distribution, and `N` is a binomial
@@ -723,13 +723,24 @@ class ExposedDF():
         Returns
         ----------
         `ExpStats`
-            An `ExpStats` object with a `data` property that includes columns for
-            any grouping variables, claims, exposures, and observed decrement rates
-            (`q_obs`). If any values are passed to `expected`, additional columns
-            will be added for expected decrements and actual-to-expected ratios. If
-            `credibility` is set to `True`, additional columns are added for partial
-            credibility and credibility-weighted decrement rates (assuming values
-            are passed to `expected`).
+            An `ExpStats` object with a `data` property that includes columns 
+            for any grouping variables, claims, exposures, and observed 
+            decrement rates (`q_obs`). If any values are passed to `expected`, 
+            additional columns will be added for expected decrements and 
+            actual-to-expected ratios. If `credibility` is set to `True`, 
+            additional columns are added for partial credibility and
+            credibility-weighted decrement rates (assuming values are passed to
+            `expected`). If `conf_int` is set to `True`, additional columns are
+            added for lower and upper confidence interval limits around the 
+            observed termination rates and any actual-to-expected ratios. 
+            Additionally, if `credibility` is `True` and expected values are 
+            passed to `expected`, the output will contain confidence intervals
+            around credibility-weighted termination rates. Confidence interval
+            columns include the name of the original output column suffixed by
+            either `_lower` or `_upper`. If a value is passed to `wt`, 
+            additional columns are created containing the the sum of weights 
+            (`.weight`), the sum of squared weights (`.weight_qs`), and the 
+            number of records (`.weight_n`).
 
         References
         ----------
@@ -859,7 +870,9 @@ class ExposedDF():
                   percent_of: list | str = None,
                   combine_trx: bool = False,
                   col_exposure: str = 'exposure',
-                  full_exposures_only: bool = True):
+                  full_exposures_only: bool = True,
+                  conf_int: bool = False,
+                  conf_level: float = 0.95):
         """
         Summarize transactions and utilization rates
 
@@ -885,6 +898,12 @@ class ExposedDF():
         full_exposures_only : bool, default=True
             If `True` (default), partially exposed records will be ignored 
             in the results.
+        conf_int : bool, default=False 
+            If `True`, the output will include confidence intervals around the
+            observed utilization rate and any `percent_of` output columns.
+        conf_level : float, default=0.95 
+            Confidence level for confidence intervals
+
 
         Notes
         ----------
@@ -914,6 +933,29 @@ class ExposedDF():
         containing a maximum benefit amount, utilization rates can be 
         determined.
 
+        **Confidence intervals**
+
+        If `conf_int` is set to `True`, the output will contain lower and upper
+        confidence interval limits for the observed utilization rate and any
+        `percent_of` output columns. The confidence level is dictated
+        by `conf_level`.
+
+        - Intervals for the utilization rate (`trx_util`) assume a binomial
+        distribution.
+        - Intervals for transactions as a percentage of another column with
+        non-zero transactions (`pct_of_{*}_w_trx`) are constructed using a 
+        normal distribution
+        - Intervals for transactions as a percentage of another column
+        regardless of transaction utilization (`pct_of_{*}_all`) are calculated
+        assuming that the aggregate distribution is normal with a mean equal to
+        observed transactions and a variance equal to:
+
+            `Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)`,
+
+        Where `S` is the aggregate transactions random variable, `X` is an 
+        individual transaction amount assumed to follow a normal distribution, 
+        and `N` is a binomial random variable for transaction utilization.
+
         **Default removal of partial exposures**
 
         As a default, partial exposures are removed from `data` before 
@@ -935,12 +977,13 @@ class ExposedDF():
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
         expo = xp.ExposedDF.expose_py(census, "2019-12-31",
-                                      target_status = "Surrender")
+                                      target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        expo.groupby('inc_guar').trx_stats(percent_of = "premium")
-        expo.groupby('inc_guar').trx_stats(percent_of = "premium",
-                                           combine_trx = True)
+        expo.groupby('inc_guar').trx_stats(percent_of="premium")
+        expo.groupby('inc_guar').trx_stats(percent_of="premium",
+                                           combine_trx=True,
+                                           conf_int=True)
         ```
 
         Returns
@@ -970,10 +1013,19 @@ class ExposedDF():
             - `pct_of_{*}_w_trx`: total transactions as a percentage of column
             `{*}_w_trx`
             - `pct_of_{*}_all`: total transactions as a percentage of column `{*}`
+
+            If `conf_int` is set to `True`, additional columns are added for 
+            lower and upper confidence interval limits around the observed 
+            utilization rate and any `percent_of` output columns. Confidence 
+            interval columns include the name of the original output column
+            suffixed by either `_lower` or `_upper`. If values are passed to 
+            `percent_of`, an additional column is created containing the the sum
+            of squared transaction amounts (`trx_amt_sq`).
         """
         from actxps.trx_stats import TrxStats
         return TrxStats(self, trx_types, percent_of, combine_trx,
-                        col_exposure, full_exposures_only)
+                        col_exposure, full_exposures_only, 
+                        conf_int, conf_level)
 
     def exp_shiny(self,
                   predictors=None,

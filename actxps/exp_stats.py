@@ -6,7 +6,8 @@ from functools import singledispatchmethod
 from actxps.expose import ExposedDF
 from actxps.tools import (
     _plot_experience,
-    _pivot_plot_special
+    _pivot_plot_special,
+    _verify_exposed_df
 )
 from matplotlib.colors import Colormap
 from plotnine import (
@@ -96,7 +97,7 @@ class ExpStats():
     aggregate claims distribution is normal with a mean equal to observed claims
     and a variance equal to:
 
-    `Var(S) = E(N) * Var(X) + E(X)^2 * Var(N)`,
+    `Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)`,
 
     Where `S` is the aggregate claim random variable, `X` is the weighting
     variable assumed to follow a normal distribution, and `N` is a binomial
@@ -130,6 +131,7 @@ class ExpStats():
                  conf_level: float = 0.95,
                  cred_r: float = 0.05):
 
+        _verify_exposed_df(expo)
         self.data = None
         # set up target statuses. First, attempt to use the statuses that
         # were passed. If none, then use the target_status
@@ -286,10 +288,10 @@ class ExpStats():
             else:
                 ci = {
                     # For binomial N
-                    # Var(S) = n * p * (Var(X) + E(X)^2 * (1 - p))
+                    # Var(S) = n * p * (Var(X) + E(X)**2 * (1 - p))
                     'sd_agg': lambda x:
-                        (x.n_claims * ((x.ex2_wt - x.ex_wt ^ 2) +
-                                       x.ex_wt ^ 2 * (1 - x.q_obs))) ^ 0.5,
+                        (x.n_claims * ((x.ex2_wt - x.ex_wt ** 2) +
+                                       x.ex_wt ** 2 * (1 - x.q_obs))) ** 0.5,
                     'q_obs_lower': lambda x:
                         norm.ppf(p[[1]], x.claims, x.sd_agg) / x.exposure,
                     'q_obs_upper': lambda x:

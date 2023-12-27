@@ -257,3 +257,9 @@ def conf_int_warning():
     warn("This object has no confidence intervals. Hint: pass " +
          "`conf_int = True` to `exp_stats()` or `trx_stats()` to calculate " +
          "confidence intervals.")
+
+
+def _verify_exposed_df(expo):
+    from actxps import ExposedDF
+    assert isinstance(expo, ExposedDF), \
+        "An `ExposedDF` object is required."

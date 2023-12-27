@@ -4,11 +4,13 @@ from functools import singledispatchmethod
 from actxps.expose import ExposedDF
 from actxps.tools import (
     _plot_experience,
-    _pivot_plot_special
+    _pivot_plot_special,
+    _verify_exposed_df
 )
 from actxps.dates import len2
 from plotnine import aes
 from matplotlib.colors import Colormap
+from scipy.stats import norm, binom
 
 
 class TrxStats():
@@ -41,8 +43,13 @@ class TrxStats():
     col_exposure : str, default='exposure'
         Name of the column in the `data` property of `expo` containing exposures
     full_exposures_only : bool, default=True
-        If `True` (default), partially exposed records will be ignored 
+        If `True`, partially exposed records will be ignored 
         in the results.
+    conf_int : bool, default=False 
+        If `True`, the output will include confidence intervals around the
+        observed utilization rate and any `percent_of` output columns.
+    conf_level : float, default=0.95 
+        Confidence level for confidence intervals
 
 
     Attributes
@@ -94,6 +101,29 @@ class TrxStats():
     containing a maximum benefit amount, utilization rates can be 
     determined.
 
+    **Confidence intervals**
+
+    If `conf_int` is set to `True`, the output will contain lower and upper
+    confidence interval limits for the observed utilization rate and any
+    `percent_of` output columns. The confidence level is dictated
+    by `conf_level`.
+
+    - Intervals for the utilization rate (`trx_util`) assume a binomial
+    distribution.
+    - Intervals for transactions as a percentage of another column with
+    non-zero transactions (`pct_of_{*}_w_trx`) are constructed using a normal
+    distribution
+    - Intervals for transactions as a percentage of another column
+    regardless of transaction utilization (`pct_of_{*}_all`) are calculated
+    assuming that the aggregate distribution is normal with a mean equal to
+    observed transactions and a variance equal to:
+
+        `Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)`,
+
+    Where `S` is the aggregate transactions random variable, `X` is an 
+    individual transaction amount assumed to follow a normal distribution, and 
+    `N` is a binomial random variable for transaction utilization.
+
     **Default removal of partial exposures**
 
     As a default, partial exposures are removed from `data` before 
@@ -115,8 +145,11 @@ class TrxStats():
                  percent_of: list | str = None,
                  combine_trx: bool = False,
                  col_exposure: str = 'exposure',
-                 full_exposures_only: bool = True):
+                 full_exposures_only: bool = True,
+                 conf_int: bool = False,
+                 conf_level: float = 0.95):
 
+        _verify_exposed_df(expo)
         self.data = None
 
         assert len(expo.trx_types) > 0, \
@@ -186,13 +219,14 @@ class TrxStats():
         data.trx_n = data.trx_n.fillna(0)
         data.trx_amt = data.trx_amt.fillna(0)
         data['trx_flag'] = data.trx_n.abs() > 0
+        if conf_int:
+            data['trx_amt_sq'] = data.trx_amt ** 2
 
         for x in percent_of:
             data[x + '_w_trx'] = data[x] * data.trx_flag
-            
-        #TODO
-        xp_params = {'conf_level': 0.95,
-                     'conf_int': False}
+
+        xp_params = {'conf_level': conf_level,
+                     'conf_int': conf_int}
 
         self._finalize(data, trx_types, percent_of,
                        groups, start_date, end_date, xp_params)
@@ -247,6 +281,9 @@ class TrxStats():
                   'trx_amt': sum(data.trx_amt),
                   'exposure': sum(data.exposure)}
 
+        conf_level = self.xp_params['conf_level']
+        conf_int = self.xp_params['conf_int']
+
         fields['avg_trx'] = div(fields['trx_amt'], fields['trx_flag'])
         fields['avg_all'] = div(fields['trx_amt'], fields['exposure'])
         fields['trx_freq'] = div(fields['trx_n'], fields['trx_flag'])
@@ -259,7 +296,48 @@ class TrxStats():
             fields[f"pct_of_{x}_all"] = div(fields['trx_amt'], fields[x])
             fields[f"pct_of_{xw}"] = div(fields['trx_amt'], fields[xw])
 
-        # convert dataults to a data frame
+        # confidence interval formulas
+        if conf_int:
+
+            p = [(1 - conf_level) / 2, 1 - (1 - conf_level) / 2]
+
+            fields['trx_util_lower'] = div(
+                binom.ppf(p[0], np.round(fields['exposure']),
+                          fields['trx_util']), fields['exposure'])
+            fields['trx_util_upper'] = div(
+                binom.ppf(p[1], np.round(fields['exposure']),
+                          fields['trx_util']), fields['exposure'])
+
+            if len(self.percent_of) > 0:
+                # standard deviations
+
+                fields['trx_amt_sq'] = sum(data['trx_amt_sq'])
+                sd_trx = (div(fields['trx_amt_sq'], fields['trx_flag']) -
+                          fields['avg_trx'] ** 2) ** 0.5
+                # For binomial N
+                # Var(S) = n * p * (Var(X) + E(X)**2 * (1 - p))
+                sd_all = (fields['trx_flag'] *
+                          (sd_trx ** 2 + fields['avg_trx'] ** 2 *
+                           (1 - fields['trx_util']))) ** 0.5
+
+            for x in self.percent_of:
+
+                xw = x + "_w_trx"
+
+                # confidence intervals with transactions
+                fields[f'pct_of_{xw}_lower'] = div(
+                    norm.ppf(p[0], fields['trx_amt'], sd_trx *
+                             fields['trx_flag'] ** 0.5), fields[xw])
+                fields[f'pct_of_{xw}_upper'] = div(
+                    norm.ppf(p[1], fields['trx_amt'], sd_trx *
+                             fields['trx_flag'] ** 0.5), fields[xw])
+                # confidence intervals across all records
+                fields[f'pct_of_{x}_all_lower'] = div(
+                    norm.ppf(p[0], fields['trx_amt'], sd_all), fields[x])
+                fields[f'pct_of_{x}_all_upper'] = div(
+                    norm.ppf(p[1], fields['trx_amt'], sd_all), fields[x])
+
+        # convert data to a data frame
         data = pd.DataFrame(fields, index=range(1))
 
         return data
@@ -410,7 +488,7 @@ class TrxStats():
         facets = ['trx_type'] + np.atleast_1d(facets).tolist()
 
         return _plot_experience(self, x, y, color, mapping, scales,
-                                geoms, y_labels, facets, y_log10, 
+                                geoms, y_labels, facets, y_log10,
                                 conf_int_bars)
 
     def plot_utilization_rates(self, **kwargs):
@@ -435,10 +513,10 @@ class TrxStats():
         piv_cols.extend(np.intersect1d(
             [f"pct_of_{x}_w_trx" for x in self.percent_of],
             self.data.columns))
-        
+
         if len2(self.groups == 1):
             kwargs.update({'color': None})
-            
+
         if 'facets' not in kwargs:
             facets = self.groups[2:]
         else:
@@ -447,7 +525,7 @@ class TrxStats():
 
         piv_data = _pivot_plot_special(self, piv_cols)
 
-        return _plot_experience(self, y="Rate", 
+        return _plot_experience(self, y="Rate",
                                 facets=facets,
                                 alt_data=piv_data,
                                 scales="free_y",

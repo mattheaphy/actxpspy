@@ -161,7 +161,7 @@ def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
         An experience summary xp_obj
     piv_cols : list
         A primary set of columns to pivot longer
-    values_to : str, default="Rate
+    values_to : str, default="Rate"
         Name of the values column in the pivoted xp_obj.
 
     Returns
@@ -179,8 +179,27 @@ def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
         data = data.melt(id_vars=id_cols, value_vars=piv_cols,
                          var_name='Series', value_name=values_to)
     else:
-        pass
-        # TODO - confidence intervals
+        extra_piv_cols = np.concatenate((piv_cols + "_upper",
+                                         piv_cols + "_lower"))
+        extra_piv_cols = np.intersect1d(extra_piv_cols, data.columns)
+        id_cols = np.setdiff1d(id_cols, extra_piv_cols)
+        piv_cols_rename = {x: f'{x}_{values_to}' for
+                           x in data.columns if
+                           x in piv_cols}
+
+        data = (data.rename(columns=piv_cols_rename).
+                melt(id_vars=id_cols,
+                     value_vars=list(piv_cols_rename.values()
+                                     ) + list(extra_piv_cols),
+                     var_name='Series', value_name=values_to))
+        data[['Series', 'val_type']] = \
+            data.Series.str.rsplit("_", expand=True, n=1)
+        data = (data.pivot(index=list(id_cols) + ['Series'],
+                           columns='val_type',
+                           values=values_to).
+                reset_index().
+                rename({'lower': values_to + '_lower',
+                        'upper': values_to + '_upper'}))
 
     return data
 

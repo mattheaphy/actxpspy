@@ -172,7 +172,7 @@ class TrxStats():
         # split transaction types from kinds
         data.variable = data.variable.str.replace('^trx_', '', regex=True)
         data[['kind', 'trx_type']] = \
-            data.variable.str.split('_', expand=True, n=2)
+            data.variable.str.split('_', expand=True, n=1)
         # pivot wider
         data = (data.
                 pivot(index=['index'] + id_vars + ['trx_type'],
@@ -436,7 +436,6 @@ class TrxStats():
         facets = ['trx_type'] + np.atleast_1d(facets).tolist() + ['Series']
 
         piv_data = _pivot_plot_special(self, piv_cols)
-        #TODO fix facets to include trx_type. see plot()
 
         return _plot_experience(self, y="Rate", 
                                 facets=facets,

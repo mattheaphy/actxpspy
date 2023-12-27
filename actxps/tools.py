@@ -71,7 +71,8 @@ def _plot_experience(xp_obj,
                      y_labels: callable = lambda l: [
                          f"{v * 100:.1f}%" for v in l],
                      facets: list | str = None,
-                     alt_data=None):
+                     alt_data=None,
+                     group_insert=1):
     """
     This helper function is used by `ExpStats.plot()` and `TrxStats.plot()`. 
     It is not meant to be called directly.
@@ -93,7 +94,7 @@ def _plot_experience(xp_obj,
         data = xp_obj.data.copy()
     else:
         data = alt_data
-        groups.insert(1, 'Series')
+        groups.insert(group_insert, 'Series')
 
     if groups == []:
         groups = ["All"]

@@ -2,7 +2,11 @@ import pandas as pd
 import numpy as np
 from functools import singledispatchmethod
 from actxps.expose import ExposedDF
-from actxps.tools import _plot_experience
+from actxps.tools import (
+    _plot_experience,
+    _pivot_plot_special
+)
+from actxps.dates import len2
 from plotnine import aes
 from matplotlib.colors import Colormap
 
@@ -39,8 +43,8 @@ class TrxStats():
     full_exposures_only : bool, default=True
         If `True` (default), partially exposed records will be ignored 
         in the results.
-        
-        
+
+
     Attributes
     ----------
 
@@ -60,7 +64,7 @@ class TrxStats():
         - The sum of any columns passed to `percent_of`), `pct_of_{*}_w_trx` 
         (total transactions as a percentage of column `{*}_w_trx`), 
         `pct_of_{*}_all` (total transactions as a percentage of column `{*}`).
-        
+
 
     Notes
     ----------
@@ -185,9 +189,13 @@ class TrxStats():
 
         for x in percent_of:
             data[x + '_w_trx'] = data[x] * data.trx_flag
+            
+        #TODO
+        xp_params = {'conf_level': 0.95,
+                     'conf_int': False}
 
         self._finalize(data, trx_types, percent_of,
-                       groups, start_date, end_date)
+                       groups, start_date, end_date, xp_params)
 
     def _finalize(self,
                   data: pd.DataFrame,
@@ -195,7 +203,8 @@ class TrxStats():
                   percent_of,
                   groups,
                   start_date,
-                  end_date):
+                  end_date,
+                  xp_params):
         """
         Internal method for finalizing transaction study summary objects
         """
@@ -206,6 +215,7 @@ class TrxStats():
         self.start_date = start_date
         self.percent_of = percent_of
         self.end_date = end_date
+        self.xp_params = xp_params
 
         # finish trx stats
         res = (data.groupby(groups + ['trx_type'], observed=True).
@@ -310,7 +320,8 @@ class TrxStats():
         assert style == "from_summary"
         self.data = None
         self._finalize(old_self.data, old_self.trx_types, old_self.percent_of,
-                       old_self.groups, old_self.start_date, old_self.end_date)
+                       old_self.groups, old_self.start_date, old_self.end_date,
+                       old_self.xp_params)
 
     def __repr__(self):
         repr = "Transaction study results\n\n"
@@ -391,6 +402,48 @@ class TrxStats():
 
         return _plot_experience(self, x, y, color, mapping, scales,
                                 geoms, y_labels, facets)
+
+    def plot_utilization_rates(self, **kwargs):
+        """
+        Plot transaction frequency and severity. 
+
+        Frequency is represented by utilization rates (`trx_util`). Severity is
+        represented by transaction amounts as a percentage of one or more other
+        columns in the data (`{*}_w_trx`). All severity series begin with the 
+        prefix "pct_of_" and end with the suffix "_w_trx". The suffix refers to 
+        the fact that the denominator only includes records with non-zero 
+        transactions. Severity series are based on column names passed to the 
+        `percent_of` argument in `trx_stats()`. If no "percentage of" columns
+        exist, this function will only plot utilization rates.
+
+        Parameters
+        ----------
+        **kwargs: dict
+            Additional arguments passed to `plot()`
+        """
+        piv_cols = ["trx_util"]
+        piv_cols.extend(np.intersect1d(
+            [f"pct_of_{x}_w_trx" for x in self.percent_of],
+            self.data.columns))
+        
+        if len2(self.groups == 1):
+            kwargs.update({'color': None})
+            
+        if 'facets' not in kwargs:
+            facets = self.groups[2:]
+        else:
+            facets = []
+        facets = ['trx_type'] + np.atleast_1d(facets).tolist() + ['Series']
+
+        piv_data = _pivot_plot_special(self, piv_cols)
+        #TODO fix facets to include trx_type. see plot()
+
+        return _plot_experience(self, y="Rate", 
+                                facets=facets,
+                                alt_data=piv_data,
+                                scales="free_y",
+                                group_insert=999,
+                                **kwargs)
 
     def table(self,
               fontsize: int = 100,

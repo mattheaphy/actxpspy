@@ -71,6 +71,8 @@ def _plot_experience(xp_obj,
                      y_labels: callable = lambda l: [
                          f"{v * 100:.1f}%" for v in l],
                      facets: list | str = None,
+                     y_log10 = False,
+                     conf_int_bars = False,
                      alt_data=None,
                      group_insert=1):
     """
@@ -125,9 +127,14 @@ def _plot_experience(xp_obj,
         facets = groups[2:]
         if len(facets) == 0:
             facets = None
+                    
+    if y_log10:
+        y_trans = "log10"
+    else:
+        y_trans = "identity"
 
     p = (ggplot(data, mapping) +
-         scale_y_continuous(labels=y_labels))
+         scale_y_continuous(labels=y_labels, trans=y_trans))
 
     global _use_default_colors
     if _use_default_colors:

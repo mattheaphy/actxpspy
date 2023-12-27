@@ -351,7 +351,9 @@ class TrxStats():
              mapping: aes = None,
              scales: str = "fixed",
              geoms: str = "lines",
-             y_labels: callable = lambda l: [f"{v * 100:.1f}%" for v in l]):
+             y_labels: callable = lambda l: [f"{v * 100:.1f}%" for v in l],
+             y_log10: bool = False,
+             conf_int_bars: bool = False):
         """
         Plot transaction study results
 
@@ -383,6 +385,13 @@ class TrxStats():
             the plot will display points only.
         y_labels : callable, default=lambda l: [f"{v * 100:.1f}%" for v in l]
             Label function passed to `plotnine.scale_y_continuous()`.
+        y_log10 : bool, default=False
+            If `True`, the y-axes are plotted on a log-10 scale.
+        conf_int_bars: bool, default=False
+            If `True`, confidence interval error bars are included in the plot.
+            This option is only available for utilization rates and any 
+            `pct_of` columns.
+
 
         Notes
         ----------
@@ -401,7 +410,8 @@ class TrxStats():
         facets = ['trx_type'] + np.atleast_1d(facets).tolist()
 
         return _plot_experience(self, x, y, color, mapping, scales,
-                                geoms, y_labels, facets)
+                                geoms, y_labels, facets, y_log10, 
+                                conf_int_bars)
 
     def plot_utilization_rates(self, **kwargs):
         """

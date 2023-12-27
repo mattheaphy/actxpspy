@@ -643,6 +643,7 @@ class ExposedDF():
                   target_status: str | list | np.ndarray = None,
                   expected: str | list | np.ndarray = None,
                   wt: str = None,
+                  conf_int: bool = False,
                   credibility: bool = False,
                   conf_level: float = 0.95,
                   cred_r: float = 0.05):
@@ -663,6 +664,9 @@ class ExposedDF():
             Name of the column in the `data` property containing
             weights to use in the calculation of claims, exposures, and
             partial credibility.
+        conf_int: bool, default=False
+            If `True`, the output will include confidence intervals around the
+            observed termination rates and any actual-to-expected ratios.            
         credibility : bool, default=False
             Whether the output should include partial credibility weights and
             credibility-weighted decrement rates.
@@ -687,6 +691,27 @@ class ExposedDF():
         be a string, list, or array with values corresponding to columns in
         the `data` property containing expected experience. More than one
         expected basis can be provided.
+        
+        **Confidence intervals**
+
+        If `conf_int` is set to `True`, the output will contain lower and upper
+        confidence interval limits for the observed termination rate and any
+        actual-to-expected ratios. The confidence level is dictated
+        by `conf_level`. If no weighting variable is passed to `wt`, confidence
+        intervals will be constructed assuming a binomial distribution of 
+        claims. Otherwise, confidence intervals will be calculated assuming that
+        the aggregate claims distribution is normal with a mean equal to 
+        observed claims and a variance equal to:
+
+        `Var(S) = E(N) * Var(X) + E(X)^2 * Var(N)`,
+
+        Where `S` is the aggregate claim random variable, `X` is the weighting
+        variable assumed to follow a normal distribution, and `N` is a binomial
+        random variable for the number of claims.
+
+        If `credibility` is `True` and expected values are passed to `expected`,
+        the output will also contain confidence intervals for any
+        credibility-weighted termination rates.
 
         **Credibility**
 
@@ -711,7 +736,7 @@ class ExposedDF():
         Herzog, Thomas (1999). Introduction to Credibility Theory
         """
         from actxps.exp_stats import ExpStats
-        return ExpStats(self, target_status, expected, wt,
+        return ExpStats(self, target_status, expected, wt, conf_int,
                         credibility, conf_level, cred_r)
 
     def add_transactions(self,

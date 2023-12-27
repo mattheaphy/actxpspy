@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.stats import norm
+from scipy.stats import norm, binom
 from warnings import warn
 from functools import singledispatchmethod
 from actxps.expose import ExposedDF
@@ -40,11 +40,15 @@ class ExpStats():
         Name of the column in the `data` property of `expo` containing
         weights to use in the calculation of claims, exposures, and
         partial credibility.
+    conf_int: bool, default=False
+        If `True`, the output will include confidence intervals around the
+        observed termination rates and any actual-to-expected ratios.
     credibility : bool, default=False
         Whether the output should include partial credibility weights and
         credibility-weighted decrement rates.
     conf_level : float, default=0.95
-        Confidence level under the Limited Fluctuation credibility method
+        Confidence level under the Limited Fluctuation credibility method 
+        and confidence intervals
     cred_r : float, default=0.05
         Error tolerance under the Limited Fluctuation credibility method
 
@@ -81,6 +85,27 @@ class ExpStats():
     `expo.data` containing expected experience. More than one expected basis
     can be provided.
 
+    **Confidence intervals**
+
+    If `conf_int` is set to `True`, the output will contain lower and upper
+    confidence interval limits for the observed termination rate and any
+    actual-to-expected ratios. The confidence level is dictated
+    by `conf_level`. If no weighting variable is passed to `wt`, confidence
+    intervals will be constructed assuming a binomial distribution of claims.
+    Otherwise, confidence intervals will be calculated assuming that the
+    aggregate claims distribution is normal with a mean equal to observed claims
+    and a variance equal to:
+
+    `Var(S) = E(N) * Var(X) + E(X)^2 * Var(N)`,
+
+    Where `S` is the aggregate claim random variable, `X` is the weighting
+    variable assumed to follow a normal distribution, and `N` is a binomial
+    random variable for the number of claims.
+
+    If `credibility` is `True` and expected values are passed to `expected`,
+    the output will also contain confidence intervals for any
+    credibility-weighted termination rates.
+
     **Credibility**
 
     If `credibility` is set to `True`, the output will contain a
@@ -100,6 +125,7 @@ class ExpStats():
                  target_status: str | list | np.ndarray = None,
                  expected: str | list | np.ndarray = None,
                  wt: str = None,
+                 conf_int: bool = False,
                  credibility: bool = False,
                  conf_level: float = 0.95,
                  cred_r: float = 0.05):
@@ -136,7 +162,7 @@ class ExpStats():
         xp_params = {'credibility': credibility,
                      'conf_level': conf_level,
                      'cred_r': cred_r,
-                     'conf_int': False}
+                     'conf_int': conf_int}
 
         # set up properties and summarize data
         self._finalize(data, expo.groups, target_status,
@@ -197,6 +223,7 @@ class ExpStats():
         credibility = self.xp_params['credibility']
         conf_level = self.xp_params['conf_level']
         cred_r = self.xp_params['cred_r']
+        conf_int = self.xp_params['conf_int']
 
         if expected is not None:
             ex_mean = {k: np.average(data[k], weights=data.exposure)
@@ -242,12 +269,43 @@ class ExpStats():
         else:
             cred = {}
 
+        # confidence interval formulas
+        if conf_int:
+
+            p = [(1 - conf_level) / 2, 1 - (1 - conf_level) / 2]
+
+            if wt is None:
+                ci = {
+                    'q_obs_lower': lambda x:
+                        binom.ppf(p[0], np.round(x.exposure),
+                                  x.q_obs) / x.exposure,
+                    'q_obs_upper': lambda x:
+                        binom.ppf(p[1], np.round(x.exposure),
+                                  x.q_obs) / x.exposure
+                }
+            else:
+                ci = {
+                    # For binomial N
+                    # Var(S) = n * p * (Var(X) + E(X)^2 * (1 - p))
+                    'sd_agg': lambda x:
+                        (x.n_claims * ((x.ex2_wt - x.ex_wt ^ 2) +
+                                       x.ex_wt ^ 2 * (1 - x.q_obs))) ^ 0.5,
+                    'q_obs_lower': lambda x:
+                        norm.ppf(p[[1]], x.claims, x.sd_agg) / x.exposure,
+                    'q_obs_upper': lambda x:
+                        norm.ppf(p[[2]], x.claims, x.sd_agg) / x.exposure
+                }
+
+        else:
+            ci = {}
+
         # dictionary of columns that depend on summarized values
         fields2 = {
             'q_obs': lambda x: x.claims / x.exposure
         }
         fields2.update(wt_forms2)
         fields2.update(cred)
+        fields2.update(ci)
 
         # convert dataults to a data frame
         data = pd.DataFrame(fields, index=range(1)).assign(**fields2)
@@ -257,24 +315,46 @@ class ExpStats():
             for k in expected:
                 data['ae_' + k] = data.q_obs / data[k]
 
-        if credibility & (expected is not None):
+        if credibility and (expected is not None):
             for k in expected:
                 data['adj_' + k] = (data.credibility * data.q_obs +
                                     (1 - data.credibility) * data[k])
+
+        if conf_int and (expected is not None):
+            for k in expected:
+                data[f'ae_{k}_lower'] = data.q_obs_lower / data[k]
+                data[f'ae_{k}_upper'] = data.q_obs_upper / data[k]
+
+                if credibility:
+                    data[f'adj_{k}_lower'] = \
+                        (data.credibility * data.q_obs_lower +
+                         (1 - data.credibility) * data[k])
+                    data[f'adj_{k}_upper'] = \
+                        (data.credibility * data.q_obs_upper +
+                         (1 - data.credibility) * data[k])
 
         # rearrange and drop columns
         if wt is not None:
             data = data.drop(columns=['ex_wt', 'ex2_wt'])
 
         cols = ['n_claims', 'claims', 'exposure', 'q_obs']
+        if conf_int:
+            cols.extend(['q_obs_lower', 'q_obs_upper'])
+
         if expected is not None:
             cols.extend([k for k in expected] +
                         ['ae_' + k for k in expected])
+            if conf_int:
+                cols.extend([f'ae_{k}_lower' for k in expected] +
+                            [f'ae_{k}_upper' for k in expected])
 
         if credibility:
             cols.extend(['credibility'])
-            if expected:
+            if expected is not None:
                 cols.extend(['adj_' + k for k in expected])
+                if conf_int:
+                    cols.extend([f'adj_{k}_lower' for k in expected] +
+                                [f'adj_{k}_upper' for k in expected])
 
         if wt is not None:
             cols.extend(['weight', 'weight_sq', 'weight_n'])

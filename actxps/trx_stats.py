@@ -268,8 +268,10 @@ class TrxStats():
         # safe divide by zero that returns infinite without warning
         def div(x, y):
             if y == 0:
-                if x >= 0:
+                if x > 0:
                     return np.Inf
+                elif x == 0:
+                    return np.nan
                 else:
                     return -np.Inf
             else:

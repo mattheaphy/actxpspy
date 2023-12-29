@@ -156,7 +156,7 @@ def _plot_experience(xp_obj,
     if conf_int_bars:
 
         if not xp_obj.xp_params['conf_int']:
-            conf_int_warning()
+            _conf_int_warning()
         else:
 
             y_min_max = [y + "_lower", y + "_upper"]
@@ -249,7 +249,7 @@ def _set_actxps_plot_theme():
               )
 
 
-def conf_int_warning():
+def _conf_int_warning():
     """
     This internal function provides a common warning that is used by multiple
     functions.

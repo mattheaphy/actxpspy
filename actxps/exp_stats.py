@@ -7,12 +7,24 @@ from actxps.expose import ExposedDF
 from actxps.tools import (
     _plot_experience,
     _pivot_plot_special,
-    _verify_exposed_df
+    _verify_exposed_df,
+    _conf_int_warning,
+    _data_color
+)
+from actxps.col_select import (
+    col_contains,
+    col_starts_with,
+    col_ends_with
 )
 from matplotlib.colors import Colormap
 from plotnine import (
     aes,
     geom_hline
+)
+from great_tables import (
+    GT,
+    pct,
+    md
 )
 
 
@@ -293,9 +305,9 @@ class ExpStats():
                         (x.n_claims * ((x.ex2_wt - x.ex_wt ** 2) +
                                        x.ex_wt ** 2 * (1 - x.q_obs))) ** 0.5,
                     'q_obs_lower': lambda x:
-                        norm.ppf(p[[1]], x.claims, x.sd_agg) / x.exposure,
+                        norm.ppf(p[0], x.claims, x.sd_agg) / x.exposure,
                     'q_obs_upper': lambda x:
-                        norm.ppf(p[[2]], x.claims, x.sd_agg) / x.exposure
+                        norm.ppf(p[1], x.claims, x.sd_agg) / x.exposure
                 }
 
         else:
@@ -496,7 +508,7 @@ class ExpStats():
         """
 
         return _plot_experience(self, x, y, color, mapping, scales,
-                                geoms, y_labels, facets, y_log10, 
+                                geoms, y_labels, facets, y_log10,
                                 conf_int_bars)
 
     def plot_termination_rates(self,
@@ -508,10 +520,10 @@ class ExpStats():
 
         Parameters
         ----------
-        `include_cred_adj`: bool, default=False
+        include_cred_adj : bool, default=False
             If `True`, credibility-weighted termination rates will be plotted 
             as well.
-        **kwargs: dict
+        **kwargs
             Additional arguments passed to `plot()`
         """
         if include_cred_adj:
@@ -536,9 +548,9 @@ class ExpStats():
 
         Parameters
         ----------
-        `add_hline`: bool, default=True
+        add_hline : bool, default=True
             If `True`, a blue dashed horizontal line will be drawn at 100%.
-        **kwargs: dict
+        **kwargs
             Additional arguments passed to `plot()`
         """
         piv_cols = np.intersect1d([f"ae_{x}" for x in self.expected],
@@ -561,9 +573,176 @@ class ExpStats():
               fontsize: int = 100,
               decimals: int = 1,
               colorful: bool = True,
-              color_q_obs: str | Colormap = "GnBu",
-              color_ae_: str | Colormap = "RdBu_r",
-              rename_cols: dict = None):
+              color_q_obs: str = "GnBu",
+              color_ae_: str = "RdBu_r",
+              show_conf_int: bool = False,
+              show_cred_adj: bool = False,
+              decimals_amt: int = 0,
+              suffix_amt: bool = False,
+              **rename_cols: str):
+        """
+        Tabular experience study summary
+
+        Convert experience study results to a presentation-friendly format.
+
+        Parameters
+        ----------
+        fontsize : int, default=100
+            Font size percentage multiplier
+
+        decimals : int, default=1
+            Number of decimals to display for percentages
+
+        colorful : bool, default=True
+            If `True`, color will be added to the the observed decrement rate
+            and actual-to-expected columns.
+
+        color_q_obs : str or colormap, default='GnBu'
+            Matplotlib colormap used for the observed decrement rate.
+
+        color_ae_ : str or colormap, default='RdBu_r'
+            Matplotlib colormap used for actual-to-expected rates.
+
+        show_conf_int: bool, default=False 
+            If `True` any confidence intervals will be displayed.
+
+        show_cred_adj: bool, default=False
+            If `True` any credibility-weighted termination rates will be 
+            displayed.
+
+        decimals_amt: bool, default=0
+            Number of decimals to display for amount columns (number of claims, 
+            claim amounts, and exposures.
+
+        suffix_amt: bool: deafult=False
+            This argument has the same meaning as the `compact` argument in 
+            great_tables.gt.GT.fmt_number() for amount columns. If `False`,
+            no scaling or suffixing are applied to amount columns. If `True`, 
+            all amount columns are automatically scaled and suffixed by "K" 
+            (thousands), "M" (millions), "B" (billions), or "T" (trillions).
+
+        rename_cols : str, default=None
+            A dictionary of key-value pairs where keys are column names
+            and values are labels that will appear on the output table. This
+            parameter is useful for renaming grouping variables that will 
+            appear under their original variable names if left unchanged.
+
+        Notes
+        ----------
+        Further customizations can be added using great_tables.gt.GT methods. 
+        See the `great_tables` package documentation for more information.
+
+        Returns
+        ----------
+        great_tables.gt.GT
+            A formatted HTML table
+        """
+
+        # set up properties
+        data = self.data.copy()
+        expected = self.expected
+        if expected is None:
+            expected = [None]
+        target_status = self.target_status
+        wt = self.wt
+        cred = self.xp_params['credibility']
+        start_date = self.start_date.strftime('%Y-%m-%d')
+        end_date = self.end_date.strftime('%Y-%m-%d')
+        conf_int = self.xp_params['conf_int']
+
+        ci_cols = col_contains(data, '_(?:upp|low)er$')
+        if show_conf_int and not conf_int:
+            _conf_int_warning()
+        elif conf_int and not show_conf_int:
+            data.drop(columns=ci_cols, inplace=True)
+            ci_cols = []
+
+        conf_int = show_conf_int and conf_int
+
+        adj_cols = col_contains(
+            data,
+            f'adj_(?:{"|".join([str(x) for x in expected])})')
+
+        if show_cred_adj and (not cred or expected == [None]):
+            self._cred_adj_warning()
+        elif cred and not show_cred_adj:
+            data.drop(columns=adj_cols, inplace=True)
+            adj_cols = []
+
+        show_cred_adj = show_cred_adj and cred
+
+        wgt_cols = col_starts_with(data, 'weight')
+
+        tab = (GT(data.drop(columns=wgt_cols)).
+               fmt_number(['n_claims', 'claims', 'exposure'],
+                          decimals=decimals_amt, compact=suffix_amt).
+               fmt_percent(['q_obs'] +
+                           col_ends_with(data, '_lower') +
+                           col_ends_with(data, '_upper') +
+                           col_starts_with(data, 'ae_') +
+                           adj_cols +
+                           col_contains(data, '^credibility$') +
+                           expected,
+                           decimals=decimals).
+               tab_options(table_font_size=pct(fontsize),
+                           row_striping_include_table_body=True,
+                           column_labels_font_weight='bold').
+               cols_label(q_obs=md("*q<sup>obs</sup>*"),
+                          claims="Claims",
+                          exposure="Exposures",
+                          **rename_cols).
+               tab_header(title='Experience Study Results',
+                          subtitle=f"Target status{'es' if len(target_status) > 1 else ''}: {', '.join(target_status)}").
+               tab_source_note(f"Study range: {start_date} to {end_date}")
+               )
+
+        if wt is not None:
+            tab = (tab.
+                   tab_source_note(md(f"Results weighted by `{wt}`")).
+                   cols_label(n_claims=f"# Claims"))
+        else:
+            tab = tab.cols_hide('n_claims')
+
+        # TODO add this once great_tables supports cols_merge_range
+        # merge confidence intervals into a single range column
+        if conf_int:
+            tab = (tab.
+                   cols_label(q_obs_lower=md("*q<sup>obs</sup> CI*"),
+                              q_obs_upper=""))
+        #            cols_merge_range('q_obs_lower', 'q_obs_upper').
+        #            cols_label(q_obs_lower=md("*q<sup>obs</sup> CI*")))
+        #     for i in expected:
+        #         tab = (tab.
+        #                cols_merge_range(f"ae_{i}_lower",
+        #                                 f"ae_{i}_upper"))
+        #         if show_cred_adj:
+        #             tab = (tab.
+        #                    cols_merge_range(f"adj_{i}_lower",
+        #                                     f"adj_{i}_upper"))
+
+        for i in expected:
+            tab = _span_expected(tab, i, conf_int, show_cred_adj)
+
+        if cred:
+            tab = tab.cols_label(credibility=md("*Z<sup>cred</sup>*"))
+
+        # TODO - replace _data_color with a great_tables function in the future
+        if colorful:
+            tab = _data_color(tab, ['q_obs'], color_q_obs)
+
+            ae_cols = ["ae_" + x for x in expected]
+            if len(expected) > 0:
+                tab = _data_color(tab, ae_cols, color_ae_)
+
+        return tab
+
+    def table_old(self,
+                  fontsize: int = 100,
+                  decimals: int = 1,
+                  colorful: bool = True,
+                  color_q_obs: str | Colormap = "GnBu",
+                  color_ae_: str | Colormap = "RdBu_r",
+                  rename_cols: dict = None):
         """
         Tabular experience study summary
 
@@ -720,3 +899,40 @@ class ExpStats():
                  "rates. Hint: pass `credibility=True` and one or more " +
                  "column names to `expected` when calling `exp_stats()` " +
                  "to calculate credibility-weighted termination rates.")
+
+
+def _span_expected(tab, ex, conf_int, show_cred_adj):
+    """
+    Internal helper function for adding spanners to table outputs
+    """
+    ae = "ae_" + ex
+    cols = [ex, ae]
+    if conf_int:
+        # TODO update after cols_merge is implemented & use append instead of extend
+        ae_ci = [ae + "_lower", ae + "_upper"]
+        cols.extend(ae_ci)
+    if show_cred_adj:
+        adj = "adj_" + ex
+        cols.append(adj)
+        if conf_int:
+            # TODO update after cols_merge is implemented & use append instead of extend
+            adj_ci = ["adj_" + ex + "_lower", "adj_" + ex + "_upper"]
+            cols.extend(adj_ci)
+
+    tab = (tab.
+           tab_spanner(md(f"`{ex}`"), cols).
+           cols_label(**{ex: md("*q<sup>exp</sup>*"),
+                         ae: md("*A/E*")}))
+
+    if show_cred_adj:
+        tab = tab.cols_label(**{adj: md("*q<sup>adj</sup>*")})
+
+    if conf_int:
+        rename_dict = {ae_ci[0]: md("*A/E CI*"),
+                       ae_ci[1]: ""}
+        if show_cred_adj:
+            rename_dict.update({adj_ci[0]: md("*q<sup>adj</sup> CI*"),
+                                adj_ci[1]: ""})
+        tab = tab.cols_label(**rename_dict)
+
+    return tab

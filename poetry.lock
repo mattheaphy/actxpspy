@@ -482,6 +482,20 @@ traitlets = ">=4"
 test = ["pytest"]
 
 [[package]]
+name = "commonmark"
+version = "0.9.1"
+description = "Python parser for the CommonMark Markdown spec"
+optional = false
+python-versions = "*"
+files = [
+    {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
+    {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
+]
+
+[package.extras]
+test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
+
+[[package]]
 name = "contourpy"
 version = "1.2.0"
 description = "Python library for calculating contours of 2D quadrilateral grids"
@@ -792,6 +806,31 @@ files = [
     {file = "fqdn-1.4.0-py3-none-any.whl", hash = "sha256:e935616ae81c9c60a22267593fe8e6af68cecc68549cc71bb9bfbcbbcb383386"},
     {file = "fqdn-1.4.0.tar.gz", hash = "sha256:30e8f2e685ce87cdace4712fd97c5d09f5e6fa519bbb66e8f188f6a7cb3a5c4e"},
 ]
+
+[[package]]
+name = "great-tables"
+version = "0.1.4"
+description = "Easily generate information-rich, publication-quality tables from Python."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "great-tables-0.1.4.tar.gz", hash = "sha256:4a421ed9dea28fb79c28910ef1fb16ce75f63b44dff01520cc6ddf23b9f201b3"},
+    {file = "great_tables-0.1.4-py3-none-any.whl", hash = "sha256:581b899ad00da576ca1586a5feff50259b0fb3a7ecc11376d43daccc180a62f4"},
+]
+
+[package.dependencies]
+Babel = ">=2.13.1"
+commonmark = ">=0.9.1"
+htmltools = ">=0.4.1"
+importlib-metadata = "*"
+numpy = ">=1.22.4"
+packaging = ">=20.9"
+pandas = ">=1.4.2"
+typing-extensions = ">=3.10.0.0"
+webcolors = "*"
+
+[package.extras]
+dev = ["jupyter", "polars", "pyarrow", "pytest (>=3)", "pytest-cov", "quartodoc (>=0.7.1)", "shiny", "siuba", "syrupy"]
 
 [[package]]
 name = "griffe"
@@ -3685,4 +3724,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "b1182708a4ac9a3090234f6266c8bd0ad04c20832eb6ca582ae8e3729a5c5369"
+content-hash = "3380fb26c2bd640bdb2a5622193c061cae39f10bbe8903f7ba690e12c314e757"

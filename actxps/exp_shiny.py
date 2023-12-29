@@ -1,5 +1,4 @@
 from shiny import ui, render, reactive, App
-
 import pandas as pd
 import numpy as np
 from warnings import warn
@@ -11,6 +10,7 @@ from plotnine import (aes,
                       theme,
                       element_text,
                       element_rect)
+from actxps.col_select import col_contains
 import io
 
 
@@ -39,13 +39,13 @@ def _exp_shiny(obj,
         predictors = pd.Index(np.atleast_1d(predictors))
 
     if expected is None:
-        expected = cols[cols.str.contains('expected')]
+        expected = col_contains(dat, 'expected')
     else:
         expected = pd.Index(np.atleast_1d(expected))
 
     # check for presence of transactions
     has_trx = len(obj.trx_types) > 0
-    trx_cols = cols[cols.str.contains("^trx_(?:n|amt)_", regex=True)]
+    trx_cols = col_contains(dat, "^trx_(?:n|amt)_")
 
     if any(~(predictors.append(expected)).isin(cols)):
         warn("All predictors and expected values must be columns in `dat`. " +

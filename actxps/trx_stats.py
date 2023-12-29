@@ -508,7 +508,7 @@ class TrxStats():
 
         Parameters
         ----------
-        **kwargs: dict
+        **kwargs
             Additional arguments passed to `plot()`
         """
         piv_cols = ["trx_util"]

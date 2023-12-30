@@ -730,8 +730,8 @@ class ExpStats():
         if colorful:
             tab = _data_color(tab, ['q_obs'], color_q_obs)
 
-            ae_cols = ["ae_" + x for x in expected]
             if len(expected) > 0:
+                ae_cols = ["ae_" + x for x in expected]
                 tab = _data_color(tab, ae_cols, color_ae_)
 
         return tab
@@ -901,7 +901,7 @@ class ExpStats():
                  "to calculate credibility-weighted termination rates.")
 
 
-def _span_expected(tab, ex, conf_int, show_cred_adj):
+def _span_expected(tab: GT, ex, conf_int, show_cred_adj):
     """
     Internal helper function for adding spanners to table outputs
     """

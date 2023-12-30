@@ -288,12 +288,14 @@ def _data_color(tab: GT, cols: list, color_map: str):
     """
     data = tab._tbl_data
     x = np.array(data[cols])
-    dmin, dmax = x.min(), x.max()
+    dmin, dmax = np.nanmin(x), np.nanmax(x)
     
     for c in cols:
         A = colormaps[color_map]((data[c] - dmin) / (dmax - dmin))
         B = A[:, :3].sum(1)
         data['color' + c] = [rgb2hex(A[i, :]) for i in range(A.shape[0])]
+        data['color' + c] = np.where(np.isnan(data[c]), '#808080', 
+                                     data['color' + c])
         data['fc' + c] = np.where(B < 3/2, 'white', 'black')
         tab = tab.tab_style(
             style=[style.fill(color=from_column('color' + c)),

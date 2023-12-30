@@ -1,14 +1,26 @@
 import pandas as pd
 import numpy as np
 from functools import singledispatchmethod
+from itertools import product
 from actxps.expose import ExposedDF
 from actxps.tools import (
     _plot_experience,
     _pivot_plot_special,
-    _verify_exposed_df
+    _verify_exposed_df,
+    _conf_int_warning,
+    _data_color
+)
+from actxps.col_select import (
+    col_contains,
+    col_starts_with
 )
 from actxps.dates import len2
 from plotnine import aes
+from great_tables import (
+    GT,
+    pct,
+    md
+)
 from matplotlib.colors import Colormap
 from scipy.stats import norm, binom
 
@@ -538,9 +550,165 @@ class TrxStats():
               fontsize: int = 100,
               decimals: int = 1,
               colorful: bool = True,
-              color_util: str | Colormap = "GnBu",
-              color_pct_of: str | Colormap = "RdBu_r",
-              rename_cols: dict = None):
+              color_util: str = "GnBu",
+              color_pct_of: str = "RdBu_r",
+              show_conf_int: bool = False,
+              decimals_amt: int = 0,
+              suffix_amt: bool = False,
+              **rename_cols: str):
+        """
+        Tabular transaction study summary
+
+        Convert transaction study results to a presentation-friendly format.
+
+        Parameters
+        ----------
+        fontsize : int, default=100
+            Font size percentage multiplier
+
+        decimals : int, default=1
+            Number of decimals to display for percentages
+
+        colorful : bool, default=True
+            If `True`, color will be added to the the observed utilization rate
+            and "percentage of" columns.
+
+        color_util : str, default='GnBu'
+            Matplotlib colormap used for the observed utilization rate.
+
+        color_pct_of : str, default='RdBu_r'
+            Matplotlib colormap used for "percentage of" columns.
+            
+        show_conf_int: bool, default=False 
+            If `True` any confidence intervals will be displayed.
+
+        decimals_amt: bool, default=0
+            Number of decimals to display for amount columns (transaction 
+            counts, total transactions, and average transactions)
+
+        suffix_amt: bool: deafult=False
+            This argument has the same meaning as the `compact` argument in 
+            great_tables.gt.GT.fmt_number() for amount columns. If `False`,
+            no scaling or suffixing are applied to amount columns. If `True`, 
+            all amount columns are automatically scaled and suffixed by "K" 
+            (thousands), "M" (millions), "B" (billions), or "T" (trillions).
+
+        rename_cols : dict, default=None
+            An optional dictionary of key-value pairs where keys are column 
+            names and values are labels that will appear on the output table. 
+            This parameter is useful for renaming grouping variables that will 
+            appear under their original variable names if left unchanged.
+
+        Notes
+        ----------
+        Further customizations can be added using great_tables.gt.GT methods. 
+        See the `great_tables` package documentation for more information.
+
+        Returns
+        ----------
+        great_tables.gt.GT
+            A formatted HTML table
+        """
+
+        # set up properties
+        data = self.data.copy()
+        percent_of = self.percent_of
+        trx_types = self.trx_types
+        start_date = self.start_date.strftime('%Y-%m-%d')
+        end_date = self.end_date.strftime('%Y-%m-%d')
+        conf_int = self.xp_params['conf_int']
+
+        # remove unnecessary columns
+        if len(percent_of) > 0:
+            data.drop(columns=percent_of + [x + "_w_trx" for x in percent_of],
+                      inplace=True)
+        if conf_int:
+            data.drop(columns=['trx_amt_sq'], inplace=True)
+
+        ci_cols = col_contains(data, '_(?:upp|low)er$')
+        if show_conf_int and not conf_int:
+            _conf_int_warning()
+        elif conf_int and not show_conf_int:
+            data.drop(columns=ci_cols, inplace=True)
+            ci_cols = []
+        conf_int = show_conf_int and conf_int
+
+        # set up index and groups
+        data = (data.
+                drop(columns=['exposure']).
+                sort_values(['trx_type'] + self.groups).
+                reset_index())
+        if len(self.groups) > 0:
+            rowname_col = self.groups[0]
+            data = data.drop(columns='index')
+        else:
+            rowname_col = 'index'
+
+        # TODO - once implemented, add `sub_missing()`
+        tab = (GT(data,
+                  groupname_col='trx_type',
+                  rowname_col=rowname_col).
+               fmt_number(['trx_n', 'trx_amt', 'trx_flag',
+                           'avg_trx', 'avg_all'],
+                          decimals=decimals_amt,
+                          compact=suffix_amt).
+               fmt_number('trx_freq', decimals=1).
+               fmt_percent(col_starts_with(data, "trx_util") +
+                           col_starts_with(data, "pct_of_"),
+                           decimals=decimals).
+               # sub_missing().
+               tab_options(table_font_size=pct(fontsize),
+                           row_striping_include_table_body=True,
+                           column_labels_font_weight='bold').
+               tab_spanner(md("**Counts**"), ["trx_n", "trx_flag"]).
+               tab_spanner(md("**Averages**"), ["avg_trx", "avg_all"]).
+               cols_label(trx_n="Total",
+                          trx_flag="Periods",
+                          trx_amt="Amount",
+                          avg_trx=md("*w/ trx*"),
+                          avg_all=md("*all*"),
+                          trx_freq="Frequency",
+                          trx_util="Utilization",
+                          **rename_cols).
+               tab_header(title="Transaction Study Results",
+                          subtitle=f"Transaction type{'s' if len(trx_types) > 1 else ''}: {', '.join(trx_types)}").
+               tab_source_note(f"Study range: {start_date} to {end_date}")
+               )
+
+        # TODO add this once great_tables supports cols_merge_range
+        # merge confidence intervals into a single range column
+        if conf_int:
+            tab = (tab.
+                   tab_spanner(md("**Utilization**"),
+                               ['trx_util', 'trx_util_lower', 'trx_util_upper']).
+                   cols_label(trx_util=md("*Rate*"),
+                              trx_util_lower=md("*CI*"),
+                              trx_util_upper=""))
+            # TODO merge pct_of columns
+            # for i in percent_of:
+            #     pass
+
+        for i in percent_of:
+            tab = _span_percent_of(tab, i, conf_int)
+
+        # TODO - replace _data_color with a great_tables function in the future
+        if colorful:
+            tab = _data_color(tab, ['trx_util'], color_util)
+
+            if len(percent_of) > 0:
+                pct_of_cols = [f"pct_of_{x}_w_trx" for x in percent_of] + \
+                    [f"pct_of_{x}_all" for x in percent_of]
+                tab = _data_color(tab, pct_of_cols, color_pct_of)
+
+        return tab
+
+    def table_old(self,
+                  fontsize: int = 100,
+                  decimals: int = 1,
+                  colorful: bool = True,
+                  color_util: str | Colormap = "GnBu",
+                  color_pct_of: str | Colormap = "RdBu_r",
+                  rename_cols: dict = None):
         """
         Tabular transaction study summary
 
@@ -697,3 +865,30 @@ class TrxStats():
             )
 
         return tab
+
+
+def _span_percent_of(tab: GT, pct_of, conf_int):
+
+    pct_names = [f"pct_of_{pct_of}{x}" for x in ["_w_trx", "_all"]]
+    if conf_int:
+        pct_names = pct_names + [x + y for x, y in
+                                 product(pct_names, ['_lower', '_upper'])]
+
+    rename_dict = {
+        pct_names[0]: md("*w/ trx*"),
+        pct_names[1]: md("*all*")
+    }
+
+    if conf_int:
+        rename_dict.update({
+            pct_names[2]: md("*w/ trx CI*"),
+            pct_names[3]: "",
+            pct_names[4]: md("*all CI*"),
+            pct_names[5]: "",
+        })
+
+    tab = (tab.
+           tab_spanner(md(f"**% of {pct_of}**"), pct_names).
+           cols_label(**rename_dict))
+
+    return tab

@@ -565,7 +565,7 @@ class TrxStats():
             self.data.columns))
 
         if len2(self.groups == 1):
-            kwargs.update({'color': None})
+            kwargs.update({'color': '_no_color'})
 
         if 'facets' not in kwargs:
             facets = self.groups[2:]

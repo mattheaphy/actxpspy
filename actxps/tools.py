@@ -108,7 +108,7 @@ def _plot_experience(xp_obj,
         data["All"] = ""
 
     def auto_aes(var, default, if_none):
-        if (var is None):
+        if var is None:
             if len(groups) < default:
                 return if_none
             else:
@@ -121,7 +121,10 @@ def _plot_experience(xp_obj,
     # set up aesthetics
     if mapping is None:
         x = auto_aes(x, 1, "All")
-        color = auto_aes(color, 2, None)
+        if color != "_no_color":
+            color = auto_aes(color, 2, None)
+        else:
+            color = None
         if color is None:
             mapping = aes(x, y)
         else:

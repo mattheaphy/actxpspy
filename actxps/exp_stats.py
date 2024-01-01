@@ -395,6 +395,20 @@ class ExpStats():
         ----------
         ExpStats
             A new `ExpStats` object with rows for all the unique groups in `*by`
+            
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        
+        exp_res = (xp.ExposedDF(xp.load_census_dat(),
+                                "2019-12-31", 
+                                target_status="Surrender").
+                   groupby('pol_yr', 'inc_guar').
+                   exp_stats())
+        
+        exp_res.summary('inc_guar')
+        ```
         """
 
         by = list(by)
@@ -505,6 +519,20 @@ class ExpStats():
         If no faceting variables are supplied, the plot will use grouping
         variables 3 and up as facets. These variables are passed into
         `plotnine.facet_wrap()`.
+        
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        
+        exp_res = (xp.ExposedDF(xp.load_census_dat(),
+                                "2019-12-31", 
+                                target_status="Surrender").
+                   groupby('pol_yr').
+                   exp_stats())
+        
+        exp_res.plot()
+        ```        
         """
 
         return _plot_experience(self, x, y, color, mapping, scales,
@@ -525,6 +553,31 @@ class ExpStats():
             as well.
         **kwargs
             Additional arguments passed to `plot()`
+            
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        import numpy as np
+        
+        expo = xp.ExposedDF(xp.load_census_dat(),
+                            "2019-12-31", 
+                            target_status="Surrender")
+                                    
+        expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
+                                         np.array([0.2, 0.15]), 
+                                         np.repeat(0.05, 3)))
+        expo.data['expected_1'] = \
+            expected_table[expo.data.pol_yr - 1]
+        expo.data['expected_2'] = \
+            np.where(expo.data.inc_guar, 0.015, 0.03)
+        
+        exp_res = (expo.
+                   groupby('pol_yr').
+                   exp_stats(expected=['expected_1', 'expected_2']))
+        
+        exp_res.plot_termination_rates()
+        ```                
         """
         if include_cred_adj:
             self._cred_adj_warning()
@@ -552,6 +605,31 @@ class ExpStats():
             If `True`, a blue dashed horizontal line will be drawn at 100%.
         **kwargs
             Additional arguments passed to `plot()`
+            
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        import numpy as np
+        
+        expo = xp.ExposedDF(xp.load_census_dat(),
+                            "2019-12-31", 
+                            target_status="Surrender")
+                                    
+        expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
+                                         np.array([0.2, 0.15]), 
+                                         np.repeat(0.05, 3)))
+        expo.data['expected_1'] = \
+            expected_table[expo.data.pol_yr - 1]
+        expo.data['expected_2'] = \
+            np.where(expo.data.inc_guar, 0.015, 0.03)
+        
+        exp_res = (expo.
+                   groupby('pol_yr').
+                   exp_stats(expected=['expected_1', 'expected_2']))
+        
+        exp_res.plot_actual_to_expected()
+        ```                            
         """
         piv_cols = np.intersect1d([f"ae_{x}" for x in self.expected],
                                   self.data.columns)
@@ -636,6 +714,32 @@ class ExpStats():
         ----------
         great_tables.gt.GT
             A formatted HTML table
+            
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        import numpy as np
+        
+        expo = xp.ExposedDF(xp.load_census_dat(),
+                            "2019-12-31", 
+                            target_status="Surrender")
+                                    
+        expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
+                                         np.array([0.2, 0.15]), 
+                                         np.repeat(0.05, 3)))
+        expo.data['expected_1'] = \
+            expected_table[expo.data.pol_yr - 1]
+        expo.data['expected_2'] = \
+            np.where(expo.data.inc_guar, 0.015, 0.03)
+        
+        exp_res = (expo.
+                   groupby('pol_yr').
+                   exp_stats(expected=['expected_1', 'expected_2'],
+                             credibility=True))
+        
+        exp_res.table()
+        ```                            
         """
 
         # set up properties

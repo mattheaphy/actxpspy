@@ -122,6 +122,15 @@ class ExposedDF():
     Atkinson and McGarry (2016). Experience Study Calculations
 
     https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    
+    xp.ExposedDF(xp.load_toy_census(), "2020-12-31", 
+                 target_status='Surrender')
+    ```
     """
 
     # helper dictionary for abbreviations
@@ -745,6 +754,18 @@ class ExposedDF():
         References
         ----------
         Herzog, Thomas (1999). Introduction to Credibility Theory
+        
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        
+        (xp.ExposedDF(xp.load_census_dat(),
+                      "2019-12-31", 
+                      target_status="Surrender").
+                   groupby('pol_yr', 'inc_guar').
+                   exp_stats(conf_int=True))
+        ```        
         """
         from actxps.exp_stats import ExpStats
         return ExpStats(self, target_status, expected, wt, conf_int,
@@ -970,21 +991,6 @@ class ExposedDF():
         the exposure should be 0.5 years or 0.5 / 0.75 years. To override this 
         treatment, set `full_exposures_only` to `False`.
 
-        Examples
-        ----------
-        ```{python}
-        import actxps as xp
-        census = xp.load_census_dat()
-        withdrawals = xp.load_withdrawals()
-        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
-                                      target_status="Surrender")
-        expo.add_transactions(withdrawals)
-
-        expo.groupby('inc_guar').trx_stats(percent_of="premium")
-        expo.groupby('inc_guar').trx_stats(percent_of="premium",
-                                           combine_trx=True,
-                                           conf_int=True)
-        ```
 
         Returns
         ----------
@@ -1021,6 +1027,21 @@ class ExposedDF():
             suffixed by either `_lower` or `_upper`. If values are passed to 
             `percent_of`, an additional column is created containing the the sum
             of squared transaction amounts (`trx_amt_sq`).
+            
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status="Surrender")
+        expo.add_transactions(withdrawals)
+
+        expo.groupby('inc_guar').trx_stats(percent_of="premium",
+                                           combine_trx=True,
+                                           conf_int=True)
+        ```            
         """
         from actxps.trx_stats import TrxStats
         return TrxStats(self, trx_types, percent_of, combine_trx,

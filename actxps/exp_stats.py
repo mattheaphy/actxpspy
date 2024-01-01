@@ -395,18 +395,18 @@ class ExpStats():
         ----------
         ExpStats
             A new `ExpStats` object with rows for all the unique groups in `*by`
-            
+
         Examples
         ----------
         ```{python}
         import actxps as xp
-        
+
         exp_res = (xp.ExposedDF(xp.load_census_dat(),
                                 "2019-12-31", 
                                 target_status="Surrender").
                    groupby('pol_yr', 'inc_guar').
                    exp_stats())
-        
+
         exp_res.summary('inc_guar')
         ```
         """
@@ -519,18 +519,18 @@ class ExpStats():
         If no faceting variables are supplied, the plot will use grouping
         variables 3 and up as facets. These variables are passed into
         `plotnine.facet_wrap()`.
-        
+
         Examples
         ----------
         ```{python}
         import actxps as xp
-        
+
         exp_res = (xp.ExposedDF(xp.load_census_dat(),
                                 "2019-12-31", 
                                 target_status="Surrender").
                    groupby('pol_yr').
                    exp_stats())
-        
+
         exp_res.plot()
         ```        
         """
@@ -553,17 +553,17 @@ class ExpStats():
             as well.
         **kwargs
             Additional arguments passed to `plot()`
-            
+
         Examples
         ----------
         ```{python}
         import actxps as xp
         import numpy as np
-        
+
         expo = xp.ExposedDF(xp.load_census_dat(),
                             "2019-12-31", 
                             target_status="Surrender")
-                                    
+
         expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
                                          np.array([0.2, 0.15]), 
                                          np.repeat(0.05, 3)))
@@ -571,11 +571,11 @@ class ExpStats():
             expected_table[expo.data.pol_yr - 1]
         expo.data['expected_2'] = \
             np.where(expo.data.inc_guar, 0.015, 0.03)
-        
+
         exp_res = (expo.
                    groupby('pol_yr').
                    exp_stats(expected=['expected_1', 'expected_2']))
-        
+
         exp_res.plot_termination_rates()
         ```                
         """
@@ -605,17 +605,17 @@ class ExpStats():
             If `True`, a blue dashed horizontal line will be drawn at 100%.
         **kwargs
             Additional arguments passed to `plot()`
-            
+
         Examples
         ----------
         ```{python}
         import actxps as xp
         import numpy as np
-        
+
         expo = xp.ExposedDF(xp.load_census_dat(),
                             "2019-12-31", 
                             target_status="Surrender")
-                                    
+
         expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
                                          np.array([0.2, 0.15]), 
                                          np.repeat(0.05, 3)))
@@ -623,11 +623,11 @@ class ExpStats():
             expected_table[expo.data.pol_yr - 1]
         expo.data['expected_2'] = \
             np.where(expo.data.inc_guar, 0.015, 0.03)
-        
+
         exp_res = (expo.
                    groupby('pol_yr').
                    exp_stats(expected=['expected_1', 'expected_2']))
-        
+
         exp_res.plot_actual_to_expected()
         ```                            
         """
@@ -714,17 +714,17 @@ class ExpStats():
         ----------
         great_tables.gt.GT
             A formatted HTML table
-            
+
         Examples
         ----------
         ```{python}
         import actxps as xp
         import numpy as np
-        
+
         expo = xp.ExposedDF(xp.load_census_dat(),
                             "2019-12-31", 
                             target_status="Surrender")
-                                    
+
         expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
                                          np.array([0.2, 0.15]), 
                                          np.repeat(0.05, 3)))
@@ -732,12 +732,12 @@ class ExpStats():
             expected_table[expo.data.pol_yr - 1]
         expo.data['expected_2'] = \
             np.where(expo.data.inc_guar, 0.015, 0.03)
-        
+
         exp_res = (expo.
                    groupby('pol_yr').
                    exp_stats(expected=['expected_1', 'expected_2'],
                              credibility=True))
-        
+
         exp_res.table()
         ```                            
         """
@@ -843,159 +843,6 @@ class ExpStats():
             if has_expected:
                 ae_cols = ["ae_" + x for x in expected]
                 tab = _data_color(tab, ae_cols, color_ae_)
-
-        return tab
-
-    def table_old(self,
-                  fontsize: int = 100,
-                  decimals: int = 1,
-                  colorful: bool = True,
-                  color_q_obs: str | Colormap = "GnBu",
-                  color_ae_: str | Colormap = "RdBu_r",
-                  rename_cols: dict = None):
-        """
-        Tabular experience study summary
-
-        Convert experience study results to a presentation-friendly format.
-
-        Parameters
-        ----------
-        fontsize : int, default=100
-            Font size percentage multiplier
-
-        decimals : int, default=1
-            Number of decimals to display for percentages
-
-        colorful : bool, default=True
-            If `True`, color will be added to the the observed decrement rate
-            and actual-to-expected columns.
-
-        color_q_obs : str or colormap, default='GnBu'
-            Matplotlib colormap used for the observed decrement rate.
-
-        color_ae_ : str or colormap, default='RdBu_r'
-            Matplotlib colormap used for actual-to-expected rates.
-
-        rename_cols : dict, default=None
-            A dictionary of key-value pairs where keys are column names
-            and values are labels that will appear on the output table. This
-            parameter is useful for renaming grouping variables that will 
-            appear under their original variable names if left unchanged.
-
-        Notes
-        ----------
-        Further customizations can be added using Pandas Styler functions. See 
-        `pd.DataFrame.style` for more information.
-
-        Returns
-        ----------
-        pd.io.formats.style.Styler
-            A formatted HTML table of the Pandas styler class
-        """
-
-        # set up properties
-        data = self.data.copy()
-        if self.groups is not None:
-            data = data.set_index(self.groups)
-        expected = self.expected
-        if expected is None:
-            expected = [None]
-        target_status = self.target_status
-        wt = self.wt
-        cred = self.xp_params['credibility']
-        start_date = self.start_date.strftime('%Y-%m-%d')
-        end_date = self.end_date.strftime('%Y-%m-%d')
-
-        # display column names
-        q_obs = '<em>q<sup>obs</sup></em>'
-        claims = 'Claims'
-        exposure = 'Exposures'
-        credibility = '<em>Z<sup>cred</sup></em>'
-
-        # rename and drop unnecessary columns
-        if rename_cols is None:
-            rename_cols = {}
-
-        rename_cols.update({'q_obs': q_obs,
-                            'claims': claims,
-                            'exposure': exposure,
-                            'credibility': credibility})
-
-        data = (data.
-                drop(columns=data.columns[data.columns.str.startswith('weight')]).
-                rename(columns=rename_cols)
-                )
-
-        if expected == [None]:
-            l1 = ['' for x in data.columns]
-            l2 = data.columns
-        else:
-            l1 = data.columns.str.extract(
-                f"^.*({'|'.join(expected)})$").fillna('')[0]
-            l2 = data.columns.str.replace(
-                f"{'|'.join(expected)}$", "", regex=True)
-        l2 = np.where(l2 == '', '<em>q<sup>exp</sup></em>', l2)
-        l2 = np.where(l2 == 'ae_', '<em>A/E</em>', l2)
-        l2 = np.where(l2 == 'adj_', '<em>q<sup>adj</sup></em>', l2)
-
-        # set up spanners by creating a multi-index and relocating columns
-        data.columns = pd.MultiIndex.from_arrays([l1, l2])
-
-        if expected != [None]:
-            data = data[[''] + expected]
-        if cred:
-            z = data.pop(('', credibility))
-            data[('', credibility)] = z
-
-        # identify percentage and A/E columns for formatting
-        pct_cols = [(x, y) for x, y in zip(l1, l2) if y.startswith('<em>')]
-        ae_cols = [(x, y) for x, y in zip(l1, l2) if y.startswith('<em>A/E')]
-
-        if wt is not None:
-            data = data.rename(columns={'n_claims': '# Claims'})
-        else:
-            data = data.drop(columns=('', 'n_claims'))
-
-        # apply all styling except colors
-        tab = (
-            data.
-            style.
-            format('{:,.0f}', subset=[("", claims), ("", exposure)]).
-            format('{:.' + str(decimals) + '%}', subset=pct_cols).
-            set_table_styles([{'selector': 'th',
-                               'props': [('font-weight', 'bold'),
-                                         ('font-size', str(fontsize) + '%')]},
-                              {'selector': 'tr',
-                             'props': [('font-size', str(fontsize) + '%')]},
-                              {'selector': 'caption',
-                               'props': f'font-size: {fontsize}%;'},
-                              {'selector': 'th.col_heading',
-                               'props': 'text-align: center;'},
-                              {'selector': 'th.col_heading.level0',
-                               'props': 'font-size: 1.1em;'},
-                              {'selector': 'caption',
-                               'props': 'caption-side: top;'
-                               }]).
-            set_caption('<h1>Experience Study Results</h1>' +
-                        f"Target status{'es' if len(target_status) > 1 else ''}: " +
-                        f"{', '.join(target_status)}<br>" +
-                        f"Study range: {start_date} to "
-                        f"{end_date}" +
-                        (f"<br>Results weighted by {wt}" if wt is not None else ""))
-        )
-
-        if self.groups is None:
-            tab = tab.hide(axis='index')
-        else:
-            tab.columns.names = [None, None]
-
-        # apply colors
-        if colorful:
-            tab = (
-                tab.
-                background_gradient(subset=[("", q_obs)], cmap=color_q_obs).
-                background_gradient(subset=ae_cols, cmap=color_ae_)
-            )
 
         return tab
 

@@ -374,7 +374,7 @@ class TrxStats():
         ----------
         TrxStats
             A new `TrxStats` object with rows for all the unique groups in `*by`
-            
+
         Examples
         ----------
         ```{python}
@@ -495,7 +495,7 @@ class TrxStats():
         If no faceting variables are supplied, the plot will use grouping
         variables 3 and up as facets. These variables are passed into
         `plotnine.facet_wrap()`.
-        
+
 
         Examples
         ----------
@@ -539,7 +539,7 @@ class TrxStats():
         ----------
         **kwargs
             Additional arguments passed to `plot()`
-            
+
         Examples
         ----------
         ```{python}
@@ -614,7 +614,7 @@ class TrxStats():
 
         color_pct_of : str, default='RdBu_r'
             Matplotlib colormap used for "percentage of" columns.
-            
+
         show_conf_int: bool, default=False 
             If `True` any confidence intervals will be displayed.
 
@@ -735,170 +735,6 @@ class TrxStats():
                 pct_of_cols = [f"pct_of_{x}_w_trx" for x in percent_of] + \
                     [f"pct_of_{x}_all" for x in percent_of]
                 tab = _data_color(tab, pct_of_cols, color_pct_of)
-
-        return tab
-
-    def table_old(self,
-                  fontsize: int = 100,
-                  decimals: int = 1,
-                  colorful: bool = True,
-                  color_util: str | Colormap = "GnBu",
-                  color_pct_of: str | Colormap = "RdBu_r",
-                  rename_cols: dict = None):
-        """
-        Tabular transaction study summary
-
-        Convert transaction study results to a presentation-friendly format.
-
-        Parameters
-        ----------
-        fontsize : int, default=100
-            Font size percentage multiplier
-
-        decimals : int, default=1
-            Number of decimals to display for percentages
-
-        colorful : bool, default=True
-            If `True`, color will be added to the the observed utilization rate
-            and "percentage of" columns.
-
-        color_util : str or colormap, default='GnBu'
-            Matplotlib colormap used for the observed utilization rate.
-
-        color_pct_of : str or colormap, default='RdBu_r'
-            Matplotlib colormap used for "percentage of" columns.
-
-        rename_cols : dict, default=None
-            An optional dictionaryof key-value pairs where keys are column names
-            and values are labels that will appear on the output table. This
-            parameter is useful for renaming grouping variables that will 
-            appear under their original variable names if left unchanged.
-
-        Notes
-        ----------
-        Further customizations can be added using Pandas Styler functions. See 
-        `pandas.DataFrame.style` for more information.
-
-        Returns
-        ----------
-        pd.io.formats.style.Styler
-            A formatted HTML table of the Pandas styler class
-        """
-
-        # set up properties
-        data = (self.data.copy().
-                rename(columns={'trx_type': 'Type'}).
-                set_index(['Type'] + self.groups).
-                sort_index())
-        percent_of = self.percent_of
-        trx_types = self.trx_types
-        start_date = self.start_date.strftime('%Y-%m-%d')
-        end_date = self.end_date.strftime('%Y-%m-%d')
-
-        # display column names
-        trx_n = "Total"
-        trx_flag = "Periods"
-        trx_amt = "Amount"
-        avg_trx = "<em>w/ trx</em>"
-        avg_all = "<em>all</em>"
-        trx_freq = "Frequency"
-        trx_util = "Utilization"
-
-        # rename and drop unnecessary columns
-        if rename_cols is None:
-            rename_cols = {}
-
-        drop_pct_of = percent_of + [x + '_w_trx' for x in percent_of]
-
-        rename_cols.update({'trx_n': trx_n,
-                            'trx_flag': trx_flag,
-                            'trx_amt': trx_amt,
-                            'avg_trx': avg_trx,
-                            'avg_all': avg_all,
-                            'trx_freq': trx_freq,
-                            'trx_util': trx_util})
-
-        data = (data.
-                drop(columns=drop_pct_of + ['exposure']).
-                rename(columns=rename_cols)
-                )
-
-        if len(percent_of) == 0:
-            l1 = ['' for x in data.columns]
-            l2 = data.columns
-        else:
-            l1 = data.columns.str.extract(
-                f"^pct_of_({'|'.join(percent_of)})").fillna('')[0]
-            l2 = data.columns.str.replace(
-                f"^pct_of_({'|'.join(percent_of)})", "", regex=True)
-        l2 = np.where(l2 == '_all', '<em>all</em>', l2)
-        l2 = np.where(l2 == '_w_trx', '<em>w/ trx</em>', l2)
-
-        for i, x in enumerate(l2):
-            if l1[i] != '':
-                l1[i] = "% of " + l1[i]
-            if x in [trx_n, trx_flag] and l1[i] == "":
-                l1[i] = "Counts"
-            if x in [avg_trx, avg_all] and l1[i] == "":
-                l1[i] = "Averages"
-
-        # set up spanners by creating a multi-index and relocating columns
-        data.columns = pd.MultiIndex.from_arrays([l1, l2])
-
-        # TODO - remove after confirming columns are alread in the right order
-        # if expected != [None]:
-        #     data = data[[''] + expected]
-        # if cred:
-        #     z = data.pop(('', credibility))
-        #     data[('', credibility)] = z
-
-        # identify percentage and A/E columns for formatting
-        pct_of_cols = [(x, y) for x, y in zip(l1, l2)
-                       if x.startswith("% of ")]
-        pct_cols = [('', trx_util)] + pct_of_cols
-
-        # apply all styling except colors
-        tab = (
-            data.
-            style.
-            # TODO can we do a groupname column?
-            format('{:,.0f}', subset=[("Counts", trx_n),
-                                      ("Counts", trx_flag),
-                                      ("", trx_amt),
-                                      ("Averages", avg_trx),
-                                      ("Averages", avg_all)]).
-            format('{:,.1f}', subset=[("", trx_freq)]).
-            format('{:.' + str(decimals) + '%}', subset=pct_cols).
-            set_table_styles([{'selector': 'th',
-                               'props': [('font-weight', 'bold'),
-                                         ('font-size', str(fontsize) + '%')]},
-                              {'selector': 'tr',
-                             'props': [('font-size', str(fontsize) + '%')]},
-                              {'selector': 'caption',
-                               'props': f'font-size: {fontsize}%;'},
-                              {'selector': 'th.col_heading',
-                               'props': 'text-align: center;'},
-                              {'selector': 'th.col_heading.level0',
-                               'props': 'font-size: 1.1em;'},
-                              {'selector': 'caption',
-                               'props': 'caption-side: top;'
-                               }]).
-            set_caption('<h1>Transaction Study Results</h1>' +
-                        f"Transaction type{'s' if len(trx_types) > 1 else ''}: " +
-                        f"{', '.join(trx_types)}<br>" +
-                        f"Study range: {start_date} to "
-                        f"{end_date}")
-        )
-
-        tab.columns.names = [None, None]
-
-        # apply colors
-        if colorful:
-            tab = (
-                tab.
-                background_gradient(subset=[("", trx_util)], cmap=color_util).
-                background_gradient(subset=pct_of_cols, cmap=color_pct_of)
-            )
 
         return tab
 

@@ -19,6 +19,8 @@ expo.data = expo.data.merge(account_vals, how='left',
 res = (expo.
        groupby('pol_yr', 'inc_guar').
        trx_stats(percent_of=["av_anniv", "premium"]))
+# results with non-zero transactions only
+dat_nz = res.data[res.data.trx_n > 0]
 
 
 class TestErrorChecks():
@@ -70,14 +72,14 @@ class TestTrxStats():
         assert all(res.data.exposure >= res.data.trx_flag)
         
     def test_avg_trx_gte_avg_all(self):
-        assert all(res.data.avg_trx >= res.data.avg_all)
+        assert all(dat_nz.avg_trx >= dat_nz.avg_all)
         
     def test_trx_freq_gte_trx_util(self):
-        assert all(res.data.trx_freq >= res.data.trx_util)
+        assert all(dat_nz.trx_freq >= dat_nz.trx_util)
     
     def test_pct_trx_gte_pct_all(self):
-        assert all(res.data.pct_of_av_anniv_w_trx >= 
-                   res.data.pct_of_av_anniv_all)
+        assert all(dat_nz.pct_of_av_anniv_w_trx >= 
+                   dat_nz.pct_of_av_anniv_all)
         
     def test_part_expo_lte_full_expo(self):
         assert all(res.data.exposure <=

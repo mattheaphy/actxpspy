@@ -622,10 +622,10 @@ class ExpStats():
             (thousands), "M" (millions), "B" (billions), or "T" (trillions).
 
         rename_cols : str, default=None
-            A dictionary of key-value pairs where keys are column names
-            and values are labels that will appear on the output table. This
-            parameter is useful for renaming grouping variables that will 
-            appear under their original variable names if left unchanged.
+            Key-value pairs where keys are column names and values are labels
+            that will appear on the output table. This parameter is useful for
+            renaming grouping variables that will appear under their original
+            variable names if left unchanged.
 
         Notes
         ----------
@@ -642,7 +642,15 @@ class ExpStats():
         data = self.data.copy()
         expected = self.expected
         if expected is None:
-            expected = [None]
+            has_expected = False
+            ex_cols = []
+            adj_cols = []
+        else:
+            has_expected = True
+            adj_cols = col_contains(
+                data,
+                f'adj_(?:{"|".join([str(x) for x in expected])})')
+            ex_cols = expected
         target_status = self.target_status
         wt = self.wt
         cred = self.xp_params['credibility']
@@ -659,13 +667,9 @@ class ExpStats():
 
         conf_int = show_conf_int and conf_int
 
-        adj_cols = col_contains(
-            data,
-            f'adj_(?:{"|".join([str(x) for x in expected])})')
-
-        if show_cred_adj and (not cred or expected == [None]):
+        if show_cred_adj and (not cred or not has_expected):
             self._cred_adj_warning()
-        elif cred and not show_cred_adj:
+        elif cred and not show_cred_adj and has_expected:
             data.drop(columns=adj_cols, inplace=True)
             adj_cols = []
 
@@ -682,7 +686,7 @@ class ExpStats():
                            col_starts_with(data, 'ae_') +
                            adj_cols +
                            col_contains(data, '^credibility$') +
-                           expected,
+                           ex_cols,
                            decimals=decimals).
                tab_options(table_font_size=pct(fontsize),
                            row_striping_include_table_body=True,
@@ -711,17 +715,19 @@ class ExpStats():
                               q_obs_upper=""))
         #            cols_merge_range('q_obs_lower', 'q_obs_upper').
         #            cols_label(q_obs_lower=md("*q<sup>obs</sup> CI*")))
-        #     for i in expected:
-        #         tab = (tab.
-        #                cols_merge_range(f"ae_{i}_lower",
-        #                                 f"ae_{i}_upper"))
-        #         if show_cred_adj:
+        #     if has_expected:
+        #         for i in expected:
         #             tab = (tab.
-        #                    cols_merge_range(f"adj_{i}_lower",
-        #                                     f"adj_{i}_upper"))
+        #                    cols_merge_range(f"ae_{i}_lower",
+        #                                 f"ae_{i}_upper"))
+        #             if show_cred_adj:
+        #                 tab = (tab.
+        #                        cols_merge_range(f"adj_{i}_lower",
+        #                                         f"adj_{i}_upper"))
 
-        for i in expected:
-            tab = _span_expected(tab, i, conf_int, show_cred_adj)
+        if has_expected:
+            for i in expected:
+                tab = _span_expected(tab, i, conf_int, show_cred_adj)
 
         if cred:
             tab = tab.cols_label(credibility=md("*Z<sup>cred</sup>*"))
@@ -730,7 +736,7 @@ class ExpStats():
         if colorful:
             tab = _data_color(tab, ['q_obs'], color_q_obs)
 
-            if len(expected) > 0:
+            if has_expected:
                 ae_cols = ["ae_" + x for x in expected]
                 tab = _data_color(tab, ae_cols, color_ae_)
 

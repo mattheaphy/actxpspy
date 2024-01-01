@@ -586,18 +586,18 @@ class TrxStats():
             Number of decimals to display for amount columns (transaction 
             counts, total transactions, and average transactions)
 
-        suffix_amt: bool: deafult=False
+        suffix_amt: bool, default=False
             This argument has the same meaning as the `compact` argument in 
             great_tables.gt.GT.fmt_number() for amount columns. If `False`,
             no scaling or suffixing are applied to amount columns. If `True`, 
             all amount columns are automatically scaled and suffixed by "K" 
             (thousands), "M" (millions), "B" (billions), or "T" (trillions).
 
-        rename_cols : dict, default=None
-            An optional dictionary of key-value pairs where keys are column 
-            names and values are labels that will appear on the output table. 
-            This parameter is useful for renaming grouping variables that will 
-            appear under their original variable names if left unchanged.
+        rename_cols : str, default=None
+            Key-value pairs where keys are column names and values are labels
+            that will appear on the output table. This parameter is useful for
+            renaming grouping variables that will appear under their original
+            variable names if left unchanged.
 
         Notes
         ----------

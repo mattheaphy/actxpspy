@@ -2,7 +2,10 @@ import pandas as pd
 from pandas.tseries.offsets import Day
 import numpy as np
 from datetime import datetime
-from actxps.tools import arg_match
+from actxps.tools import (
+    arg_match,
+    _verify_col_names
+)
 from actxps.dates import frac_interval, add_interval
 from warnings import warn
 from functools import singledispatchmethod
@@ -539,7 +542,7 @@ class ExposedDF():
 
         # minimum required columns - pol_num, status, exposure,
         #  policy period (policy expo only)
-        unmatched = {"pol_num", "status", "exposure", exp_col_pol_per}
+        req_names = {"pol_num", "status", "exposure", exp_col_pol_per}
 
         # check transaction types
         if trx_types != None:
@@ -553,17 +556,10 @@ class ExposedDF():
             trx_types = np.unique(trx_types).tolist()
             exp_cols_trx = [x + y for x, y in product(["trx_n_", "trx_amt_"],
                                                       trx_types)]
-            unmatched.update(exp_cols_trx)
+            req_names.update(exp_cols_trx)
 
         # check required columns
-        unmatched.update(exp_cols_dates)
-        unmatched = unmatched.difference(data.columns)
-
-        assert len(unmatched) == 0, \
-            ("The following columns are missing from `data`: "
-                f"{', '.join(unmatched)}.\nHint: create these columns or use "
-                "the `col_*` arguments to specify existing columns that "
-                "should be mapped to these elements.")
+        _verify_col_names(data.columns, req_names)
 
         return cls('already_exposed',
                    data, end_date, start_date, target_status, cal_expo,

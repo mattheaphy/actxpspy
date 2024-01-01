@@ -292,12 +292,12 @@ def _data_color(tab: GT, cols: list, color_map: str):
     data = tab._tbl_data
     x = np.array(data[cols])
     dmin, dmax = np.nanmin(x), np.nanmax(x)
-    
+
     for c in cols:
         A = colormaps[color_map]((data[c] - dmin) / (dmax - dmin))
         B = A[:, :3].sum(1)
         data['color' + c] = [rgb2hex(A[i, :]) for i in range(A.shape[0])]
-        data['color' + c] = np.where(np.isnan(data[c]), '#808080', 
+        data['color' + c] = np.where(np.isnan(data[c]), '#808080',
                                      data['color' + c])
         data['fc' + c] = np.where(B < 3/2, 'white', 'black')
         tab = tab.tab_style(
@@ -305,5 +305,17 @@ def _data_color(tab: GT, cols: list, color_map: str):
                    style.text(color=from_column('fc' + c))],
             locations=loc.body(columns=c)
         )
-        
+
     return tab
+
+
+def _verify_col_names(x_names, required: set):
+    """
+    Internal function to verify that required names exist and to 
+    send an error if not.
+    """
+    unmatched = required.difference(x_names)
+    assert len(unmatched) == 0, \
+        f"The following columns are missing: {', '.join(unmatched)}." + \
+        "Hint: create these columns or use the `col_*` arguments to " + \
+        "specify existing columns that should be mapped to these elements."

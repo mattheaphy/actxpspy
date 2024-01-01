@@ -370,6 +370,11 @@ class TrxStats():
             the re-summarized object. Passing nothing is acceptable and will
             produce a 1-row experience summary.
 
+        Returns
+        ----------
+        TrxStats
+            A new `TrxStats` object with rows for all the unique groups in `*by`
+            
         Examples
         ----------
         ```{python}
@@ -377,18 +382,13 @@ class TrxStats():
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
         expo = xp.ExposedDF.expose_py(census, "2019-12-31",
-                                      target_status = "Surrender")
+                                      target_status="Surrender")
         expo.add_transactions(withdrawals)
 
         trx_res = (expo.groupby('inc_guar', 'pol_yr').
-                   trx_stats(percent_of = "premium"))
+                   trx_stats(percent_of='premium'))
         trx_res.summary('inc_guar')
-        ```
-
-        Returns
-        ----------
-        TrxStats
-            A new `TrxStats` object with rows for all the unique groups in `*by`
+        ```            
         """
 
         by = list(by)
@@ -495,6 +495,23 @@ class TrxStats():
         If no faceting variables are supplied, the plot will use grouping
         variables 3 and up as facets. These variables are passed into
         `plotnine.facet_wrap()`.
+        
+
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status="Surrender")
+        expo.add_transactions(withdrawals)
+
+        trx_res = (expo.groupby('pol_yr').
+                   trx_stats(percent_of='premium'))
+
+        trx_res.plot()
+        ```        
         """
 
         if facets is None:
@@ -522,6 +539,25 @@ class TrxStats():
         ----------
         **kwargs
             Additional arguments passed to `plot()`
+            
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        account_vals = xp.load_account_vals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status="Surrender")
+        expo.add_transactions(withdrawals)
+        expo.data = expo.data.merge(account_vals, how='left',
+                                    on=["pol_num", "pol_date_yr"])        
+
+        trx_res = (expo.groupby('pol_yr').
+                   trx_stats(percent_of='av_anniv', combine_trx=True))
+
+        trx_res.plot_utilization_rates()
+        ```                    
         """
         piv_cols = ["trx_util"]
         piv_cols.extend(np.intersect1d(

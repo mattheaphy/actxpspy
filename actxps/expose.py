@@ -45,7 +45,8 @@ class ExposedDF():
     col_term_date str, default='term_date'
         name of the column in `data` containing the termination date
     default_status : str, default=`None`
-        Default active status code
+        Default active status code. If `None`, the most common status is
+        assumed.
 
 
     Attributes
@@ -61,7 +62,7 @@ class ExposedDF():
         Columns beginning with (`pol_`) are integer policy periods. Columns
         beginning with (`pol_date_`) are calendar dates representing
         anniversary dates, monthiversary dates, etc.
-    end_date, start_date, target_status, cal_expo, expo_length :
+    end_date, start_date, target_status, cal_expo, expo_length, default_status :
         Values passed on class instantiation. See Parameters for definitions.
     exposure_type : str
         A description of the exposure type that combines the `cal_expo` and
@@ -94,7 +95,7 @@ class ExposedDF():
 
     `default_status` is used to indicate the default active status that
     should be used when exposure records are created. If `None`, then the
-    first status level will be assumed to be the default active status.
+    most common status will be assumed.
 
     **Alternative class constructors**
 
@@ -125,12 +126,12 @@ class ExposedDF():
     Atkinson and McGarry (2016). Experience Study Calculations
 
     https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf
-    
+
     Examples
     ----------
     ```{python}
     import actxps as xp
-    
+
     xp.ExposedDF(xp.load_toy_census(), "2020-12-31", 
                  target_status='Surrender')
     ```
@@ -219,7 +220,7 @@ class ExposedDF():
         status_levels = data.status.unique()
         if default_status is None:
             default_status = pd.Categorical(
-                [status_levels[0]],
+                [_most_common(data.status)],
                 categories=status_levels)
         else:
             status_levels = np.union1d(status_levels, default_status)
@@ -337,13 +338,14 @@ class ExposedDF():
 
         # set up other properties
         self._finalize(data, end_date, start_date, target_status,
-                       cal_expo, expo_length)
+                       cal_expo, expo_length, default_status=default_status[0])
 
         return None
 
     def _finalize(self,
                   data, end_date, start_date, target_status,
-                  cal_expo, expo_length, trx_types=None):
+                  cal_expo, expo_length, trx_types=None,
+                  default_status=None):
         """
         This internal function finalizes class construction for `ExposedDF`
         objects.
@@ -353,6 +355,7 @@ class ExposedDF():
         self.end_date = end_date
         self.start_date = start_date
         self.target_status = target_status
+        self.default_status = default_status
         self.cal_expo = cal_expo
         self.expo_length = expo_length
         self.exposure_type = ('calendar' if (cal_expo) else 'policy') + \
@@ -438,7 +441,8 @@ class ExposedDF():
                        col_pol_per: str = None,
                        cols_dates: str = None,
                        col_trx_n_: str = "trx_n_",
-                       col_trx_amt_: str = "trx_amt_"):
+                       col_trx_amt_: str = "trx_amt_",
+                       default_status: str = None):
         """
         Coerce a data frame to an `ExposedDF` object
 
@@ -493,6 +497,8 @@ class ExposedDF():
             Prefix to use for columns containing transaction counts.
         col_trx_amt_ : str, default="trx_amt_"
             Prefix to use for columns containing transaction amounts.
+        default_status : str, default=`None`
+            Default active status code
 
 
         Returns
@@ -561,9 +567,12 @@ class ExposedDF():
         # check required columns
         _verify_col_names(data.columns, req_names)
 
+        if default_status is None:
+            default_status = _most_common(data.status)
+
         return cls('already_exposed',
                    data, end_date, start_date, target_status, cal_expo,
-                   expo_length, trx_types)
+                   expo_length, trx_types, default_status)
 
     @__init__.register(str)
     def _special_init(self,
@@ -574,7 +583,8 @@ class ExposedDF():
                       target_status: str = None,
                       cal_expo: bool = False,
                       expo_length: str = 'year',
-                      trx_types: list = None):
+                      trx_types: list = None,
+                      default_status: str = None):
         """
         Special constructor for the ExposedDF class. This constructor is used
         by the `from_DataFrame()` class method to create new classes from
@@ -585,7 +595,7 @@ class ExposedDF():
             "`style` must be 'already_exposed'"
 
         self._finalize(data, end_date, start_date, target_status,
-                       cal_expo, expo_length, trx_types)
+                       cal_expo, expo_length, trx_types, default_status)
 
     @staticmethod
     def _make_date_col_names(cal_expo: bool, expo_length: str):
@@ -750,12 +760,12 @@ class ExposedDF():
         References
         ----------
         Herzog, Thomas (1999). Introduction to Credibility Theory
-        
+
         Examples
         ----------
         ```{python}
         import actxps as xp
-        
+
         (xp.ExposedDF(xp.load_census_dat(),
                       "2019-12-31", 
                       target_status="Surrender").
@@ -1023,7 +1033,7 @@ class ExposedDF():
             suffixed by either `_lower` or `_upper`. If values are passed to 
             `percent_of`, an additional column is created containing the the sum
             of squared transaction amounts (`trx_amt_sq`).
-            
+
         Examples
         ----------
         ```{python}
@@ -1041,7 +1051,7 @@ class ExposedDF():
         """
         from actxps.trx_stats import TrxStats
         return TrxStats(self, trx_types, percent_of, combine_trx,
-                        col_exposure, full_exposures_only, 
+                        col_exposure, full_exposures_only,
                         conf_int, conf_level)
 
     def exp_shiny(self,
@@ -1172,3 +1182,20 @@ class ExposedDF():
         ```
         """
         return _exp_shiny(self, predictors, expected, distinct_max)
+
+
+def _most_common(x: pd.Series):
+    """
+    Determine the most common status
+
+    Parameters
+    ----------
+    x : pd.Series
+        A Series of policy statuses
+
+    Returns
+    ----------
+    str
+        Label of the most common policy status
+    """
+    return x.value_counts(sort=True).index[0]

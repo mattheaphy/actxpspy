@@ -199,6 +199,7 @@ expo4 = expo3.rename(columns={'status': 'stat',
                               'pol_date_yr_end': 'end'})
 
 
+# .from_DataFrame method
 class TestFromDataFrame():
 
     def test_wrong_format(self):
@@ -253,6 +254,7 @@ expo7 = expo6.copy().rename(columns={
 })
 
 
+# .from_DataFrame method with transactions
 class TestFromDataFrameTrx():
 
     def test_from_df_w_trx_works(self):
@@ -277,3 +279,20 @@ class TestFromDataFrameTrx():
                                                 "2022-12-31", trx_types=['A', 'B'],
                                                 col_trx_amt_='amt_', col_trx_n_='n_'),
                        ExposedDF)
+
+
+
+# from_DataFrame default_status works
+class TestDefaultStatus():
+    
+    def test_default(self):
+        assert ExposedDF.from_DataFrame(expo2, "2022-12-31").default_status == \
+            'Active'
+            
+    def test_default_override(self):
+        assert ExposedDF.from_DataFrame(
+            expo2, "2022-12-31", default_status='Inforce').default_status == \
+            'Inforce'
+            
+    def test_default2(self):
+        assert expo.default_status == 'Active'

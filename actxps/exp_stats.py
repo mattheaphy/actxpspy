@@ -631,12 +631,13 @@ class ExpStats():
         exp_res.plot_actual_to_expected()
         ```                            
         """
-        piv_cols = np.intersect1d([f"ae_{x}" for x in self.expected],
-                                  self.data.columns)
-        assert len(piv_cols) > 0, \
+        assert self.expected is not None, \
             "This object does not have any actual-to-expected results " + \
             "available. Hint: to add expected values, use the " + \
             "`expected` argument in `exp_stats()`"
+        
+        piv_cols = np.intersect1d([f"ae_{x}" for x in self.expected],
+                                  self.data.columns)
 
         piv_data = _pivot_plot_special(self, piv_cols, values_to="A/E ratio")
 

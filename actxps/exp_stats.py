@@ -749,12 +749,8 @@ class ExpStats():
         if expected is None:
             has_expected = False
             ex_cols = []
-            adj_cols = []
         else:
             has_expected = True
-            adj_cols = col_contains(
-                data,
-                f'adj_(?:{"|".join([str(x) for x in expected])})')
             ex_cols = expected
         target_status = self.target_status
         wt = self.wt
@@ -771,6 +767,13 @@ class ExpStats():
             ci_cols = []
 
         conf_int = show_conf_int and conf_int
+        
+        if has_expected:
+            adj_cols = col_contains(
+                data,
+                f'adj_(?:{"|".join([str(x) for x in expected])})')
+        else:
+            adj_cols = []
 
         if show_cred_adj and (not cred or not has_expected):
             self._cred_adj_warning()

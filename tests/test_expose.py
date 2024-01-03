@@ -1,7 +1,6 @@
 from actxps.expose import *
 from actxps.datasets import *
 import pandas as pd
-import numpy as np
 import pytest
 
 toy_census = load_toy_census()
@@ -19,6 +18,7 @@ class TestExposeInit():
             ExposedDF(toy_census, '2022-12-31', expo_length='quantum')
 
 
+# Policy year exposure checks
 class TestPolExpo():
 
     def test_min_expo(self):
@@ -34,6 +34,7 @@ class TestPolExpo():
         assert all(study_py.data.loc[study_py.data.status == "Surrender"] == 1)
 
 
+# Calendar year exposure checks
 class TestCalExpo():
 
     def test_min_expo(self):
@@ -74,6 +75,7 @@ check_period_end_cal = check_period_end_cal.\
         check_period_end_cal.cal_mth_end + Day(1)].shape[0]
 
 
+# Period start and end dates roll
 class TestRollDates():
 
     def test_beg_lt_end1(self):
@@ -106,6 +108,7 @@ march_1 = pd.DataFrame({'pol_num': 1,
 march_1_expose = ExposedDF.expose_pm(march_1, end_date="2020-02-29")
 
 
+# Test leap day stability
 class TestLeapStability():
 
     def test_leap(self):
@@ -122,6 +125,7 @@ with_start_date = ExposedDF.expose_py(
 )
 
 
+# Start and end dates work
 class TestStartEnd():
 
     def test_min_date(self):
@@ -138,6 +142,7 @@ exposed_dates = ExposedDF(toy_census, pd.to_datetime("2020-12-31"),
                           pd.to_datetime("2016-04-01"))
 
 
+# Expose date arguments can be passed strings
 class TestDateArgString:
 
     def test_same(self):
@@ -151,6 +156,7 @@ renamer = {"pol_num": "a",
 toy_census2 = toy_census.rename(columns=renamer)
 
 
+# Renaming and name conflict warnings work
 class TestRenames():
 
     def test_name_error(self):
@@ -281,18 +287,17 @@ class TestFromDataFrameTrx():
                        ExposedDF)
 
 
-
 # from_DataFrame default_status works
 class TestDefaultStatus():
-    
+
     def test_default(self):
         assert ExposedDF.from_DataFrame(expo2, "2022-12-31").default_status == \
             'Active'
-            
+
     def test_default_override(self):
         assert ExposedDF.from_DataFrame(
             expo2, "2022-12-31", default_status='Inforce').default_status == \
             'Inforce'
-            
+
     def test_default2(self):
         assert expo.default_status == 'Active'

@@ -585,8 +585,8 @@ class ExpStats():
         piv_cols = ["q_obs"]
         if self.expected is not None:
             piv_cols.extend(self.expected)
-        if include_cred_adj:
-            piv_cols.extend([f"adj_{x}" for x in self.expected])
+            if include_cred_adj:
+                piv_cols.extend([f"adj_{x}" for x in self.expected])
 
         piv_data = _pivot_plot_special(self, piv_cols)
 

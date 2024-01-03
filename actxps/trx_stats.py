@@ -564,7 +564,7 @@ class TrxStats():
             [f"pct_of_{x}_w_trx" for x in self.percent_of],
             self.data.columns))
 
-        if len2(self.groups == 1):
+        if len2(self.groups) == 1:
             kwargs.update({'color': '_no_color'})
 
         if 'facets' not in kwargs:

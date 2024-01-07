@@ -578,6 +578,11 @@ class ExpStats():
 
     @ __init__.register(pd.DataFrame)
     def _special_init(self, data: pd.DataFrame, **kwargs):
+        """
+        Special constructor for the ExpStats class. This constructor is used
+        by the `from_DataFrame()` class method to create new ExpStats objects 
+        from pre-aggregated data frames.
+        """
         self._finalize(data, **kwargs)
 
     def summary(self, *by):
@@ -613,23 +618,10 @@ class ExpStats():
         exp_res.summary('inc_guar')
         ```
         """
+        return ExpStats(by, self)
 
-        by = list(by)
-
-        if len(by) == 0:
-            by = None
-        else:
-            assert all(pd.Series(by).isin(self.data.columns)), \
-                "All grouping variables passed to `*by` must be in the`.data` property."
-
-        self.groups = by
-
-        return ExpStats('from_summary', self)
-
-    @ __init__.register(str)
-    def _special_init(self,
-                      style: str,
-                      old_self=None):
+    @ __init__.register(tuple)
+    def _special_init(self, by: tuple, old_self):
         """
         Special constructor for the ExpStats class. This constructor is used
         by the `summary()` class method to create new summarized instances and 
@@ -637,10 +629,16 @@ class ExpStats():
         pre-aggregated data.
         """
 
-        assert style == "from_summary"
+        by = list(by)
 
-        self.data = None
-        self._finalize(old_self.data, old_self.groups,
+        if len(by) == 0:
+            by = None
+        else:
+            assert all(pd.Series(by).isin(old_self.data.columns)), \
+                "All grouping variables passed to `*by` must be in the " + \
+                "`data` property."
+
+        self._finalize(old_self.data, by,
                        old_self.target_status, old_self.end_date,
                        old_self.start_date, old_self.expected,
                        old_self.wt, old_self.xp_params)

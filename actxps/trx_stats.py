@@ -390,29 +390,24 @@ class TrxStats():
         trx_res.summary('inc_guar')
         ```            
         """
+        return TrxStats(by, self)
 
-        by = list(by)
-
-        if len(by) > 0:
-            assert all(pd.Series(by).isin(self.data.columns)), \
-                "All grouping variables passed to `*by` must be in the`.data` property."
-
-        self.groups = by
-
-        return TrxStats('from_summary', self)
-
-    @ __init__.register(str)
-    def _special_init(self,
-                      style: str,
-                      old_self):
+    @ __init__.register(tuple)
+    def _special_init(self, by: tuple, old_self):
         """
         Special constructor for the TrxStats class. This constructor is used
         by the `summary()` class method to create new summarized instances.
         """
-        assert style == "from_summary"
-        self.data = None
+        
+        by = list(by)
+
+        if len(by) > 0:
+            assert all(pd.Series(by).isin(old_self.data.columns)), \
+                "All grouping variables passed to `*by` must be in the " + \
+                    "`.data` property."
+
         self._finalize(old_self.data, old_self.trx_types, old_self.percent_of,
-                       old_self.groups, old_self.start_date, old_self.end_date,
+                       by, old_self.start_date, old_self.end_date,
                        old_self.xp_params)
 
     def __repr__(self):

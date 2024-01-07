@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
 from scipy.stats import norm, binom
 from warnings import warn
 from functools import singledispatchmethod
@@ -9,7 +10,9 @@ from actxps.tools import (
     _pivot_plot_special,
     _verify_exposed_df,
     _conf_int_warning,
-    _data_color
+    _data_color,
+    _verify_col_names,
+    _date_str
 )
 from actxps.col_select import (
     col_contains,
@@ -125,7 +128,13 @@ class ExpStats():
     `credibility` column equal to the partial credibility estimate under
     the Limited Fluctuation credibility method (also known as Classical
     Credibility) assuming a binomial distribution of claims.
+    
+    **Alternative class constructor**
 
+    `from_DataFrame()` can be used to coerce a data frame containing 
+    pre-aggregated experience into an `ExpStats` object. This is most useful
+    for working with industry study data where individual exposure records are
+    not available.
 
     See Also
     ----------
@@ -193,7 +202,8 @@ class ExpStats():
                   start_date,
                   expected,
                   wt,
-                  xp_params):
+                  xp_params,
+                  agg: bool = True):
         """
         Internal method for finalizing experience study summary objects
         """
@@ -201,8 +211,8 @@ class ExpStats():
         # set up properties
         self.groups = groups
         self.target_status = target_status
-        self.end_date = end_date
-        self.start_date = start_date
+        self.end_date = _date_str(end_date)
+        self.start_date = _date_str(start_date)
         if isinstance(expected, str | int):
             expected = [expected]
         self.expected = expected
@@ -210,16 +220,18 @@ class ExpStats():
         self.xp_params = xp_params
 
         # finish exp stats
-        if groups is not None:
-            res = (data.groupby(groups, observed=True).
-                   apply(self._calc).
-                   reset_index().
-                   drop(columns=[f'level_{len(groups)}']))
+        if agg:
+            if groups is not None:
+                res = (data.groupby(groups, observed=True).
+                       apply(self._calc).
+                       reset_index().
+                       drop(columns=[f'level_{len(groups)}']))
+            else:
+                res = self._calc(data)
 
+            self.data = res
         else:
-            res = self._calc(data)
-
-        self.data = res
+            self.data = data
 
         return None
 
@@ -377,6 +389,194 @@ class ExpStats():
 
         return data
 
+    @classmethod
+    def from_DataFrame(cls,
+                       data: pd.DataFrame,
+                       target_status: str | list | np.ndarray = None,
+                       expected: str | list | np.ndarray = None,
+                       wt: str = None,
+                       conf_int: bool = False,
+                       credibility: bool = False,
+                       conf_level: float = 0.95,
+                       cred_r: float = 0.05,
+                       col_claims: str = 'claims',
+                       col_exposure: str = 'exposure',
+                       col_n_claims: str = 'n_claims',
+                       col_weight_sq: str = 'weight_sq',
+                       col_weight_n: str = 'weight_n',
+                       start_date: datetime | int | str = datetime(1900, 1, 1),
+                       end_date: datetime | int | str = None):
+        """
+        Convert a data frame containing aggregate termination experience study
+        results to the `ExpStats` class.
+
+        `from_DataFrame()` is most useful for working with aggregate summaries 
+        of experience that were not created by actxps where individual policy
+        information is not available. After converting the data to the 
+        `ExpStats` class, `summary()` can be used to summarize data by any 
+        grouping variables, and `plot()` and `table()` are available for 
+        reporting.
+
+        Parameters
+        ----------
+
+        data : pd.DataFrame
+            A DataFrame containing aggregate experience study results. See the 
+            Notes section for required columns that must be present.
+        target_status : str | list | np.ndarray, default=None
+            Target status values
+        expected : str | list | np.ndarray, default=None
+            Column names in x with expected values.
+        wt : str, default=None
+            Name of the column in `data` containing weights to use in the
+            calculation of claims, exposures, partial credibility, and 
+            confidence intervals.
+        conf_int : bool, default=False
+            If `True`, future calls to `summary()` will include confidence 
+            intervals around the observed termination rates and any 
+            actual-to-expected ratios.
+        credibility : bool, default=False
+            If `True`, future calls to `summary()` will include partial 
+            credibility weights and credibility-weighted termination rates.
+        conf_level : float, default=0.95
+            Confidence level used for the Limited Fluctuation credibility method
+            and confidence intervals.
+        cred_r : float, default=0.05
+            Error tolerance under the Limited Fluctuation credibility method.            
+        col_claims : str, default='claims'
+            Name of the column in `data` containing claims.
+        col_exposure : str, default='exposure'
+            Name of the column in `data` containing exposures.
+        The assumed default is "exposure".
+        col_n_claims : str, default='n_claims'
+            Only used used when `wt` is passed. Name of the column in `data` 
+            containing the number of claims.
+        col_weight_sq : default='weight_sq
+            Only used used when `wt` is passed. Name of the column in `data` 
+            containing the sum of squared weights.
+        col_weight_n : str, default='weight_n'
+            Only used used when `wt` is passed. Name of the column in `data` 
+            containing exposure record counts.
+        start_date : datetime | int | str, default='1900-01-01'
+            Experience study start date
+        end_date : datetime | int | str: default=None
+            Experience study end date
+
+        Returns
+        -------
+        ExpStats
+            An `ExpStats` object
+
+        Notes
+        ----------        
+        If nothing is passed to `wt`, the data frame `data` must include columns
+        containing:
+
+        - Exposures (`exposure`)
+        - Claim counts (`claims`)
+
+        If `wt` is passed, the data must include columns containing:
+
+        - Weighted exposures (`exposure`)
+        - Weighted claims (`claims`)
+        - Claim counts (`n_claims`)
+        - The raw sum of weights **NOT** multiplied by exposures
+        - Exposure record counts (`.weight_n`)
+        - The raw sum of squared weights (`.weight_sq`)
+
+        The names in parentheses above are expected column names. If the data
+        frame passed to `from_DataFrame()` uses different column names, these 
+        can be specified using the `col_*` arguments.
+
+        When a column name is passed to `wt`, the columns `.weight`, 
+        `.weight_n`, and `.weight_sq` are used to calculate credibility and
+        confidence intervals. If credibility and confidence intervals aren't
+        required, then it is not necessary to pass anything to `wt`. The 
+        resulting `ExpStats` class and any downstream summaries will still be
+        weighted as long as the exposures and claims are pre-weighted.
+
+        `target_status`, `start_date`, and `end_date` are optional arguments 
+        that are only used for printing the resulting `ExpStats` object.
+
+
+        Examples
+        ----------
+        ``` {python}
+        import actxps as xp
+
+        # convert pre-aggregated experience into an ExpStats object
+        agg_sim_dat = xp.load_agg_sim_dat()
+        dat = xp.ExpStats.from_DataFrame(
+            agg_sim_dat,
+            col_exposure="exposure_n",
+            col_claims="claims_n",
+            target_status="Surrender",
+            start_date=2005,
+            end_date=2019,
+            conf_int=True)
+
+        # summary by policy year
+        dat.summary('pol_yr')
+
+        # repeat the prior exercise on a weighted basis
+        dat_wt = xp.ExpStats.from_DataFrame(
+            agg_sim_dat, wt="av",
+            col_exposure="exposure_amt",
+            col_claims="claims_amt",
+            col_n_claims="claims_n",
+            col_weight_sq="av_sq",
+            col_weight_n="n",
+            target_status="Surrender",
+            start_date=2005, end_date=2019,
+            conf_int=True)
+        dat_wt
+
+        # summary by policy year
+        dat_wt.summary('pol_yr')
+        ```
+
+        See Also
+        ----------
+        `ExposedDF.exp_stats()` for information on how `ExpStats` objects are
+        typically created from individual exposure records.
+        """
+
+        target_status = np.atleast_1d(target_status)
+
+        assert isinstance(data, pd.DataFrame), \
+            '`data` must be a Pandas DataFrame'
+
+        # column name alignment
+        rename_dict = {col_claims: 'claims',
+                       col_exposure: 'exposure'}
+
+        req_names = {"exposure", "claims"}
+        if wt is not None:
+            req_names.update(["n_claims", "weight", "weight_sq", "weight_n"])
+            rename_dict.update({col_n_claims: 'n_claims',
+                                wt: 'weight',
+                                col_weight_sq: 'weight_sq',
+                                col_weight_n: 'weight_n'})
+
+        data = data.rename(columns=rename_dict)
+
+        # # check required columns
+        _verify_col_names(data.columns, req_names)
+
+        if wt is None:
+            data['n_claims'] = data['claims']
+
+        return cls('from_DataFrame',
+                   data=data, groups=None,
+                   target_status=target_status,
+                   end_date=end_date, start_date=start_date,
+                   expected=expected, wt=wt,
+                   xp_params={'conf_int': conf_int,
+                              'credibility': credibility,
+                              'conf_level': conf_level,
+                              'cred_r': cred_r},
+                   agg=False)
+
     def summary(self, *by):
         """
         Re-summarize termination experience data
@@ -426,17 +626,25 @@ class ExpStats():
     @ __init__.register(str)
     def _special_init(self,
                       style: str,
-                      old_self):
+                      old_self=None,
+                      **kwargs):
         """
         Special constructor for the ExpStats class. This constructor is used
-        by the `summary()` class method to create new summarized instances.
+        by the `summary()` class method to create new summarized instances and 
+        by the `from_DataFrame()` class method to create ExpStats objects from
+        pre-aggregated data.
         """
 
-        assert style == "from_summary"
-        self.data = None
-        self._finalize(old_self.data, old_self.groups, old_self.target_status,
-                       old_self.end_date, old_self.start_date,
-                       old_self.expected, old_self.wt, old_self.xp_params)
+        assert style in ["from_summary", "from_DataFrame"]
+
+        if style == "from_summary":
+            self.data = None
+            self._finalize(old_self.data, old_self.groups,
+                           old_self.target_status, old_self.end_date,
+                           old_self.start_date, old_self.expected,
+                           old_self.wt, old_self.xp_params)
+        else:
+            self._finalize(**kwargs)
 
     def __repr__(self):
         repr = "Experience study results\n\n"
@@ -445,7 +653,7 @@ class ExpStats():
             repr += f"Groups: {', '.join([str(i) for i in self.groups])}\n"
 
         repr += f"Target status: {', '.join([str(i) for i in self.target_status])}\n"
-        repr += f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}\n"
+        repr += f"Study range: {self.start_date} to {self.end_date}\n"
 
         if self.expected is not None:
             repr += f"Expected values: {', '.join([str(i) for i in self.expected])}\n"
@@ -635,7 +843,7 @@ class ExpStats():
             "This object does not have any actual-to-expected results " + \
             "available. Hint: to add expected values, use the " + \
             "`expected` argument in `exp_stats()`"
-        
+
         piv_cols = np.intersect1d([f"ae_{x}" for x in self.expected],
                                   self.data.columns)
 
@@ -693,7 +901,7 @@ class ExpStats():
             Number of decimals to display for amount columns (number of claims, 
             claim amounts, and exposures.
 
-        suffix_amt: bool: deafult=False
+        suffix_amt: bool: default=False
             This argument has the same meaning as the `compact` argument in 
             great_tables.gt.GT.fmt_number() for amount columns. If `False`,
             no scaling or suffixing are applied to amount columns. If `True`, 
@@ -755,8 +963,8 @@ class ExpStats():
         target_status = self.target_status
         wt = self.wt
         cred = self.xp_params['credibility']
-        start_date = self.start_date.strftime('%Y-%m-%d')
-        end_date = self.end_date.strftime('%Y-%m-%d')
+        start_date = self.start_date
+        end_date = self.end_date
         conf_int = self.xp_params['conf_int']
 
         ci_cols = col_contains(data, '_(?:upp|low)er$')
@@ -767,7 +975,7 @@ class ExpStats():
             ci_cols = []
 
         conf_int = show_conf_int and conf_int
-        
+
         if has_expected:
             adj_cols = col_contains(
                 data,

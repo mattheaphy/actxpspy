@@ -316,6 +316,17 @@ def _verify_col_names(x_names, required: set):
     """
     unmatched = required.difference(x_names)
     assert len(unmatched) == 0, \
-        f"The following columns are missing: {', '.join(unmatched)}." + \
+        f"The following columns are missing: {', '.join(unmatched)}. " + \
         "Hint: create these columns or use the `col_*` arguments to " + \
         "specify existing columns that should be mapped to these elements."
+
+
+def _date_str(x) -> str:
+    """
+    Internal function for converting dates to ISO-8601 format. If x is not a 
+    date object, it is returned as-is.
+    """
+    try:
+        return x.strftime('%Y-%m-%d')
+    except:
+        return x

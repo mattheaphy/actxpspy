@@ -118,7 +118,7 @@ class ExposedDF():
 
     - `from_DataFrame()`
         Convert a data frame that already has exposure-level records into an 
-        `ExposedDF` object.    
+        `ExposedDF` object.
 
 
     References
@@ -503,7 +503,7 @@ class ExposedDF():
 
         Returns
         ----------
-        `ExposedDF`
+        ExposedDF
             An `ExposedDF` object.
         """
 

@@ -128,7 +128,7 @@ class ExpStats():
     `credibility` column equal to the partial credibility estimate under
     the Limited Fluctuation credibility method (also known as Classical
     Credibility) assuming a binomial distribution of claims.
-    
+
     **Alternative class constructor**
 
     `from_DataFrame()` can be used to coerce a data frame containing 
@@ -566,16 +566,19 @@ class ExpStats():
         if wt is None:
             data['n_claims'] = data['claims']
 
-        return cls('from_DataFrame',
-                   data=data, groups=None,
-                   target_status=target_status,
-                   end_date=end_date, start_date=start_date,
-                   expected=expected, wt=wt,
-                   xp_params={'conf_int': conf_int,
-                              'credibility': credibility,
-                              'conf_level': conf_level,
-                              'cred_r': cred_r},
-                   agg=False)
+        return ExpStats(data, groups=None,
+                        target_status=target_status,
+                        end_date=end_date, start_date=start_date,
+                        expected=expected, wt=wt,
+                        xp_params={'conf_int': conf_int,
+                                   'credibility': credibility,
+                                   'conf_level': conf_level,
+                                   'cred_r': cred_r},
+                        agg=False)
+
+    @ __init__.register(pd.DataFrame)
+    def _special_init(self, data: pd.DataFrame, **kwargs):
+        self._finalize(data, **kwargs)
 
     def summary(self, *by):
         """
@@ -626,8 +629,7 @@ class ExpStats():
     @ __init__.register(str)
     def _special_init(self,
                       style: str,
-                      old_self=None,
-                      **kwargs):
+                      old_self=None):
         """
         Special constructor for the ExpStats class. This constructor is used
         by the `summary()` class method to create new summarized instances and 
@@ -635,16 +637,13 @@ class ExpStats():
         pre-aggregated data.
         """
 
-        assert style in ["from_summary", "from_DataFrame"]
+        assert style == "from_summary"
 
-        if style == "from_summary":
-            self.data = None
-            self._finalize(old_self.data, old_self.groups,
-                           old_self.target_status, old_self.end_date,
-                           old_self.start_date, old_self.expected,
-                           old_self.wt, old_self.xp_params)
-        else:
-            self._finalize(**kwargs)
+        self.data = None
+        self._finalize(old_self.data, old_self.groups,
+                       old_self.target_status, old_self.end_date,
+                       old_self.start_date, old_self.expected,
+                       old_self.wt, old_self.xp_params)
 
     def __repr__(self):
         repr = "Experience study results\n\n"

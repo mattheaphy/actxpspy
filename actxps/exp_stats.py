@@ -131,7 +131,7 @@ class ExpStats():
 
     **Alternative class constructor**
 
-    `from_DataFrame()` can be used to coerce a data frame containing 
+    `ExpStats.from_DataFrame()` can be used to coerce a data frame containing 
     pre-aggregated experience into an `ExpStats` object. This is most useful
     for working with industry study data where individual exposure records are
     not available.

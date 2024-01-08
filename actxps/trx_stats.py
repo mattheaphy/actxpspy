@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
 from functools import singledispatchmethod
 from itertools import product
 from actxps.expose import ExposedDF
@@ -8,7 +9,9 @@ from actxps.tools import (
     _pivot_plot_special,
     _verify_exposed_df,
     _conf_int_warning,
-    _data_color
+    _data_color,
+    _verify_col_names,
+    _date_str
 )
 from actxps.col_select import (
     col_contains,
@@ -149,6 +152,13 @@ class TrxStats():
     expected to take withdrawals 9 months into the year, it's not clear if
     the exposure should be 0.5 years or 0.5 / 0.75 years. To override this 
     treatment, set `full_exposures_only` to `False`.
+
+    **Alternative class constructor**
+
+    `TrxStats.from_DataFrame()` can be used to coerce a data frame containing 
+    pre-aggregated experience into a `TrxStats` object. This is most useful
+    for working with industry study data where individual exposure records are
+    not available.    
     """
     @singledispatchmethod
     def __init__(self,
@@ -250,7 +260,8 @@ class TrxStats():
                   groups,
                   start_date,
                   end_date,
-                  xp_params):
+                  xp_params,
+                  agg: bool = True):
         """
         Internal method for finalizing transaction study summary objects
         """
@@ -258,18 +269,20 @@ class TrxStats():
         # set up properties
         self.groups = groups
         self.trx_types = trx_types
-        self.start_date = start_date
         self.percent_of = percent_of
-        self.end_date = end_date
+        self.start_date = _date_str(start_date)
+        self.end_date = _date_str(end_date)
         self.xp_params = xp_params
 
         # finish trx stats
-        res = (data.groupby(groups + ['trx_type'], observed=True).
-               apply(self._calc).
-               reset_index().
-               drop(columns=[f'level_{len(groups) + 1}']))
-
-        self.data = res
+        if agg:
+            res = (data.groupby(groups + ['trx_type'], observed=True).
+                   apply(self._calc).
+                   reset_index().
+                   drop(columns=[f'level_{len(groups) + 1}']))
+            self.data = res
+        else:
+            self.data = data
 
         return None
 
@@ -356,6 +369,193 @@ class TrxStats():
 
         return data
 
+    @classmethod
+    def from_DataFrame(cls,
+                       data: pd.DataFrame,
+                       conf_int: bool = False,
+                       conf_level: float = 0.95,
+                       col_trx_amt: str = 'trx_amt',
+                       col_trx_n: str = 'trx_n',
+                       col_trx_flag: str = 'trx_flag',
+                       col_exposure: str = "exposure",
+                       col_percent_of: str = None,
+                       col_percent_of_w_trx: str = None,
+                       col_trx_amt_sq: str = "trx_amt_sq",
+                       start_date: datetime | int | str = datetime(1900, 1, 1),
+                       end_date: datetime | int | str = None):
+        """
+        Convert a data frame containing aggregate transaction experience study
+        results to the `TrxStats` class.
+
+        `from_DataFrame()` is most useful for working with aggregate summaries 
+        of experience that were not created by actxps where individual policy
+        information is not available. After converting the data to the 
+        `TrxStats` class, `summary()` can be used to summarize data by any 
+        grouping variables, and `plot()` and `table()` are available for 
+        reporting.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            A DataFrame containing aggregate transaction study results. See the 
+            Notes section for required columns that must be present.
+        conf_int : bool, default=False
+            If `True`, future calls to `summary()` will include confidence 
+            intervals around the observed utilization rates and any
+            `percent_of` output columns.
+        conf_level : float, default=0.95
+            Confidence level used for the Limited Fluctuation credibility method
+            and confidence intervals.
+        col_trx_amt : str, default='trx_amt'
+            Name of the column in `data` containing transaction amounts.
+        col_trx_n : str, default='trx_n'
+            Name of the column in `data` containing transaction counts.
+        col_trx_flag : str, default='trx_flag'
+            Name of the column in `data` containing the number of exposure records
+            with transactions.
+        col_exposure : str, default='exposure'
+            Name of the column in `data` containing exposures.
+        col_percent_of : str, default=None
+            Name of the column in `data` containing a numeric variable to use 
+            in "percent of" calculations.
+        col_percent_of_w_trx : str, default=None
+            Name of the column in `data` containing a numeric variable to use 
+            in "percent of" calculations with transactions.
+        col_trx_amt_sq : str, default='trx_amt_sq'
+            Only required when `col_percent_of` is passed and `conf_int` is 
+            `True`. Name of the column in `data` containing squared transaction 
+            amounts.
+        start_date : datetime | int | str, optional
+            Transaction study start date
+        end_date : datetime | int | str, optional
+            Transaction study end date
+
+        Returns
+        -------
+        TrxStats
+            A `TrxStats` object
+
+
+        Notes
+        ----------
+        At a minimum, the following columns are required:
+
+        - Transaction amounts (`trx_amt`)
+        - Transaction counts (`trx_n`)
+        - The number of exposure records with transactions (`trx_flag`). 
+        This number is not necessarily equal to transaction counts. If multiple 
+        transactions are allowed per exposure period, `trx_flag` will be less 
+        than `trx_n`.
+        - Exposures (`exposure`)
+
+        If transaction amounts should be expressed as a percentage of another
+        variable (i.e. to calculate utilization rates or actual-to-expected 
+        ratios), additional columns are required:
+
+        - A denominator "percent of" column. For example, the sum of account 
+        values.
+        - A denominator "percent of" column for exposure records with
+        transactions. For example, the sum of account values across all records
+        with non-zero transaction amounts.
+
+        If confidence intervals are desired and "percent of" columns are passed,
+        an additional column for the sum of squared transaction amounts 
+        (`trx_amt_sq`) is also required.
+
+        The names in parentheses above are expected column names. If the data
+        frame passed to `from_DataFrame()` uses different column names, these 
+        can be specified using the `col_*` arguments.
+
+        `start_date`, and `end_date` are optional arguments that are
+        only used for printing the resulting `TrxStats` object.
+
+        Unlike `ExposedDF.trx_stats()`, `from_DataFrame()` only permits a 
+        single transaction type and a single `percent_of` column.
+
+        Examples
+        ----------
+        # convert pre-aggregated experience into a TrxStats object
+        import actxps as xp
+
+        agg_sim_dat = xp.load_agg_sim_dat()
+        dat = xp.TrxStats.from_DataFrame(
+            agg_sim_dat,
+            col_exposure="n",
+            col_trx_amt="wd",
+            col_trx_n="wd_n",
+            col_trx_flag="wd_flag",
+            col_percent_of="av",
+            col_percent_of_w_trx="av_w_wd",
+            col_trx_amt_sq="wd_sq",
+            start_date=2005, end_date=2019,
+            conf_int=True)
+        dat
+
+        # summary by policy year
+        dat.summary('pol_yr')
+        ```    
+
+        See Also
+        ----------
+        `ExposedDF.trx_stats()` for information on how `TrxStats` objects are 
+        typically created from individual exposure records.
+        """
+
+        assert isinstance(data, pd.DataFrame), \
+            '`data` must be a Pandas DataFrame'
+
+        # column name alignment
+        rename_dict = {col_trx_amt: 'trx_amt',
+                       col_trx_n: 'trx_n',
+                       col_trx_flag: 'trx_flag',
+                       col_exposure: "exposure"}
+
+        req_names = {"exposure", "trx_amt", "trx_n", "trx_flag"}
+
+        if conf_int and col_percent_of is not None:
+            req_names.update(["trx_amt_sq"])
+            rename_dict.update({col_trx_amt_sq: "trx_amt_sq"})
+
+        if col_percent_of is not None:
+            req_names.update([col_percent_of, col_percent_of + "_w_trx"])
+
+        if col_percent_of_w_trx is not None:
+            assert col_percent_of is not None, \
+                "`col_percent_of_w_trx` was supplied without passing " + \
+                "anything to `col_percent_of`"
+            rename_dict.update(
+                {col_percent_of_w_trx: col_percent_of + "_w_trx"})
+
+        data = data.rename(columns=rename_dict)
+        data['trx_type'] = col_trx_amt
+
+        # check required columns
+        _verify_col_names(data.columns, req_names)
+
+        if col_percent_of is None:
+            col_percent_of = []
+        else:
+            col_percent_of = [col_percent_of]
+
+        return TrxStats(data,
+                        trx_types=col_trx_amt,
+                        percent_of=col_percent_of,
+                        groups=[],
+                        start_date=start_date,
+                        end_date=end_date,
+                        xp_params={'conf_int': conf_int,
+                                   'conf_level': conf_level},
+                        agg=False)
+
+    @ __init__.register(pd.DataFrame)
+    def _special_init(self, data: pd.DataFrame, **kwargs):
+        """
+        Special constructor for the TrxStats class. This constructor is used
+        by the `from_DataFrame()` class method to create new TrxStats objects 
+        from pre-aggregated data frames.
+        """
+        self._finalize(data, **kwargs)
+
     def summary(self, *by):
         """
         Re-summarize transaction experience data
@@ -398,13 +598,13 @@ class TrxStats():
         Special constructor for the TrxStats class. This constructor is used
         by the `summary()` class method to create new summarized instances.
         """
-        
+
         by = list(by)
 
         if len(by) > 0:
             assert all(pd.Series(by).isin(old_self.data.columns)), \
                 "All grouping variables passed to `*by` must be in the " + \
-                    "`.data` property."
+                "`.data` property."
 
         self._finalize(old_self.data, old_self.trx_types, old_self.percent_of,
                        by, old_self.start_date, old_self.end_date,
@@ -416,7 +616,7 @@ class TrxStats():
         if len(self.groups) > 0:
             repr += f"Groups: {', '.join([str(i) for i in self.groups])}\n"
 
-        repr += f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}\n"
+        repr += f"Study range: {self.start_date} to {self.end_date}\n"
 
         repr += f"Transaction types: {', '.join([str(i) for i in self.trx_types])}\n"
 
@@ -645,8 +845,8 @@ class TrxStats():
         data = self.data.copy()
         percent_of = self.percent_of
         trx_types = self.trx_types
-        start_date = self.start_date.strftime('%Y-%m-%d')
-        end_date = self.end_date.strftime('%Y-%m-%d')
+        start_date = self.start_date
+        end_date = self.end_date
         conf_int = self.xp_params['conf_int']
 
         # remove unnecessary columns

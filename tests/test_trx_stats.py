@@ -1,6 +1,6 @@
 from actxps.expose import ExposedDF
 import actxps as xp
-import numpy as np
+import pandas as pd
 import pytest
 from copy import deepcopy
 
@@ -147,3 +147,56 @@ class TestTrxCI():
         assert all(res2.data.trx_util_upper - res2.data.trx_util_lower >
                    less_confident.data.trx_util_upper -
                    less_confident.data.trx_util_lower)
+
+
+# Test that from_DataFrame works
+trx_res2 = res.data.copy()
+trx_res3 = xp.TrxStats.from_DataFrame(trx_res2, col_percent_of='av_anniv',
+                                      conf_int=True)
+trx_res4 = trx_res2.copy().rename(columns={'exposure': 'expo'})
+trx_res5 = trx_res4.copy().rename(columns={'trx_amt': 'tamt',
+                                           'trx_n': 'tn'})
+
+
+class TestFromDataFrame():
+
+    def test_missing_column_error(self):
+        with pytest.raises(AssertionError,
+                           match='The following columns are missing'):
+            xp.TrxStats.from_DataFrame(pd.DataFrame({'a': range(3)}))
+
+    def test_class(self):
+        assert isinstance(trx_res3, xp.TrxStats)
+
+    def test_before_rename(self):
+        with pytest.raises(AssertionError,
+                           match='The following columns are missing'):
+            xp.TrxStats.from_DataFrame(trx_res4)
+
+    def test_rename_1(self):
+        assert isinstance(
+            xp.TrxStats.from_DataFrame(trx_res4, col_exposure='expo'),
+            xp.TrxStats)
+
+    def test_rename_2(self):
+        assert isinstance(
+            xp.TrxStats.from_DataFrame(trx_res5, col_exposure='expo',
+                                       col_trx_amt='tamt',
+                                       col_trx_n='tn'),
+            xp.TrxStats)
+
+    def test_non_data_frame(self):
+        with pytest.raises(AssertionError,
+                           match='must be a Pandas DataFrame'):
+            xp.TrxStats.from_DataFrame(1)
+
+
+# Test consistency of from_DataFrame summaries and summaries created by
+# trx_stats
+class TestSummaryConsistency():
+
+    def test_unweighted(self):
+        x = res.summary('inc_guar').data.drop(columns=['inc_guar', 'trx_type'])
+        y = trx_res3.summary('inc_guar').data.drop(
+            columns=['inc_guar', 'trx_type'])
+        assert all(x - y == 0)

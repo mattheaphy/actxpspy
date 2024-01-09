@@ -538,7 +538,7 @@ class TrxStats():
             col_percent_of = [col_percent_of]
 
         return TrxStats(data,
-                        trx_types=col_trx_amt,
+                        trx_types=[col_trx_amt],
                         percent_of=col_percent_of,
                         groups=[],
                         start_date=start_date,

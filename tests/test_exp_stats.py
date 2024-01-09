@@ -120,9 +120,6 @@ class TestExpConfInt():
                    less_confident.data.q_obs_lower)
 
 
-# res <- expose(toy_census, "2022-12-31", target_status = "Surrender") |>
-#   exp_stats()
-
 # Test that from_DataFrame works
 exp_res2 = exp_res.data.copy()
 exp_res3 = xp.ExpStats.from_DataFrame(exp_res2)
@@ -207,7 +204,7 @@ class TestFromDataFrameWeighted():
                                        col_n_claims='n'),
             xp.ExpStats)        
 
-# Test consistency of from_DataFrame summaries and sumamries created by 
+# Test consistency of from_DataFrame summaries and summaries created by 
 # exp_stats
 class TestSummaryConsistency():
     

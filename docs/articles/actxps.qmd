@@ -6,8 +6,9 @@ title: "Getting started with actxps"
 #| label: setup
 #| include: false
 
-#TODO
-# actxps:::set_actxps_plot_theme()
+from actxps.tools import _set_actxps_plot_theme
+_set_actxps_plot_theme()
+
 ```
 
 This article is based on creating a termination study using sample data that 

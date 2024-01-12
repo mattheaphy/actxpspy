@@ -2,9 +2,323 @@
 title: "Experience summaries"
 ---
 
-After experience data has been prepared for analysis, the next step is to summarize results. The actxps package's workhorse function for summarizing termination experience is `exp_stats()`. This function returns an `exp_df` object, which is a type of data frame containing additional attributes about the experience study.
+After experience data has been prepared for analysis, the next step is to summarize results. The actxps package's workhorse function for summarizing termination experience is the `exp_stats()` method of the `ExposedDF` class. This function returns an `ExpStats` object, which is a type of data frame containing additional attributes about the experience study.
+
+At a minimum, an `ExpStats` includes:
+
+- The number of claims (termination events, `n_claims`)
+- The amount of claims (weighted by a variable of the user's choice; more on this below, `claims`)
+- The total exposure (`exposure`)
+- The observed termination rate (`q_obs`)
+
+Optionally, an `ExpStats` can also include:
+
+- Any grouping variables attached to the input data
+- Expected termination rates and actual-to-expected (A/E) ratios (`ae_*`)
+- Limited fluctuation credibility estimates (`credibility`) and credibility-adjusted expected termination rates (`adj_*`)
+
+To demonstrate this function, we're going to use a data frame containing simulated census data for a theoretical deferred annuity product that has an optional guaranteed income rider. Before `exp_stats()` can be used, we must convert our census data into exposure records using the `ExposedDF()` class^[See [Exposures](exposures.qmd) for more information on creating exposure records.]. In addition, let's assume we're interested in studying surrender rates, so we'll pass the argument `target_status = 'Surrender'` to `ExposedDF()`.
 
 
 ```{python}
-#TODO
+#| label: packages
+import actxps as xp
+import numpy as np
+
+census_dat = xp.load_census_dat()
+exposed_data = xp.ExposedDF(census_dat, end_date="2019-12-31",
+                            target_status="Surrender")
+
 ```
+
+## The `exp_stats()` method
+
+To use `exp_stats()`, simply call the method from an `ExposedDF` object.
+
+```{python}
+#| label: xp-basic
+exposed_data.exp_stats()
+```
+
+The results show us that we specified no groups, which is why the output data is a single row. In addition, we can see that we're looking at surrender rates through the end of 2019, which `exp_stats()` inferred from `exposed_data`. 
+
+The number of claims (`n_claims`) is equal to the number of "Surrender" statuses in `exposed_data`. Since we didn't specify any weighting variable, the amount of claims (`claims`) equals the number of claims.
+
+```{python}
+#| label: claim-check
+amount = sum(exposed_data.data.status == "Surrender")
+amount
+```
+
+The total exposure (`exposure`) is equal to the sum of the exposures in `exposed_data`. Had we specified a weighting variable, this would be equal to the sum of weighted exposures.
+
+```{python}
+#| label: expo-check
+sum_expo = sum(exposed_data.data.exposure)
+sum_expo
+```
+
+Lastly, the observed termination rate (`q_obs`) equals the amount of claims divided by the exposures.
+
+```{python}
+#| label: q-check
+amount / sum_expo
+```
+
+
+### Grouped data
+
+If the data is grouped using the `groupby()` method, future calls to `exp_stats()` will contain one record for each unique group.
+
+In the following, `exposed_data` is grouped by policy year before `exp_stats()` is called. This results in one row per policy year found in the data.
+
+```{python}
+#| label: grouped-1
+(exposed_data.
+    groupby('pol_yr').
+    exp_stats())
+```
+
+Multiple grouping variables are allowed. Below, the presence of an income guarantee (`inc_guar`) is added as a second grouping variable.
+
+```{python}
+#| label: grouped-2
+(exposed_data.
+    groupby('inc_guar', 'pol_yr').
+    exp_stats())
+```
+
+Grouping persists after `groupby()` is called. To remove groups, the `ungroup()` method can be used.
+
+```{python}
+# check groups
+print(exposed_data.groups)
+```
+
+```{python}
+# ungroup, then check groups again
+exposed_data.ungroup()
+print(exposed_data.groups is None)
+```
+
+### Target status
+
+The `target_status` argument of `exp_stats()` specifies which status levels count as claims in the experience study summary. If the `ExposedDF` object already has a specified target status (from the original call to `ExposedDF()`), then this argument is not necessary because the target status is automatically inferred.
+
+Even if the target status exists, it can be overridden. However care should be taken to ensure that exposure values in the data are appropriate for the new status.
+
+Using the example data, a total termination rate can be estimated by including both death and surrender statuses in `target_status`. To ensure exposures are accurate, an adjustment is made to fully expose deaths prior to calling `exp_stats()`^[This adjustment is not necessary on surrenders because the `expose()` function previously did this for us.].
+
+```{python}
+# | label: targ-status
+
+from copy import deepcopy
+
+exposed_data2 = deepcopy(exposed_data)
+exposed_data2.data['exposure'] = np.where(
+    exposed_data2.data.status == "Death", 1,
+    exposed_data2.data.exposure)
+
+(exposed_data2.groupby('pol_yr').
+    exp_stats(target_status=["Surrender", "Death"]))
+
+```
+
+
+## Weighted results
+
+Experience studies often weight output by key policy values. Examples include account values, cash values, face amount, premiums, and more. Weighting can be accomplished by passing the name of a weighting column to the `wt` argument of `exp_stats()`.
+
+Our sample data contains a column called `premium` that we can weight by. When weights are supplied, the `claims`, `exposure`, and `q_obs` columns will be weighted. If expected termination rates are supplied (see below), these rates and A/E values will also be weighted.^[When weights are supplied, additional columns are created containing the sum of weights, the sum of squared weights, and the number of records. These columns are used for re-summarizing the data (see the "Summary method" section on this page).]
+
+```{python}
+#  label: weight-res
+(exposed_data.
+    groupby('pol_yr').
+    exp_stats(wt='premium'))
+```
+
+
+## Expected values and A/E ratios
+
+As common metric in experience studies is the actual-to-expected, or A/E ratio.
+
+$$
+A/E\ ratio = \frac{observed\ value}{expected\ value}
+$$
+
+If the data passed to `exp_stats()` has one or more columns containing expected termination rates, A/E ratios can be calculated by passing the names of these columns to the `expected` argument.
+
+Let's assume we have two sets of expected rates. The first set is a vector that varies by policy year. The second set is either 1.5% or 3.0% depending on whether the policy has a guaranteed income benefit. First, we need to attach these assumptions to our exposure data. We will use the names `expected_1` and `expected_2`. Then we pass these names to the `expected` argument when we call `exp_stats()`.
+
+In the output, 4 new columns are created for expected rates and A/E ratios.
+
+
+```{python}
+#| label: act-exp
+expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
+                                 [.2, .15], np.repeat(0.05, 3)))
+
+# using 2 different expected termination rates
+exposed_data.data['expected_1'] = \
+    expected_table[exposed_data.data.pol_yr - 1]
+exposed_data.data['expected_2'] = \
+    np.where(exposed_data.data.inc_guar, 0.015, 0.03)
+
+exp_res = (exposed_data.
+           groupby("pol_yr", "inc_guar").
+           exp_stats(expected=["expected_1", "expected_2"]))
+
+exp_res.data[['pol_yr', 'inc_guar', 'q_obs', 'expected_1', 'expected_2',
+              'ae_expected_1', 'ae_expected_2']]
+```
+
+As noted above, if weights are passed to `exp_stats()` then A/E ratios will also be weighted.
+
+```{python}
+#| label: act-exp-wt
+exp_res_wt = (exposed_data.
+              groupby('pol_yr', 'inc_guar').
+              exp_stats(expected=["expected_1", "expected_2"],
+                        wt="premium"))
+
+exp_res_wt.data[['pol_yr', 'inc_guar', 'q_obs', 'expected_1', 'expected_2',
+                 'ae_expected_1', 'ae_expected_2']]
+```
+
+## Credibility
+
+If the `credibility` argument is set to `True`, `exp_stats()` will produce an estimate of partial credibility under the Limited Fluctuation credibility method (also known as Classical Credibility) assuming a binomial distribution of claims.^[See Herzog, Thomas (1999). Introduction to Credibility Theory for more information on Limited Fluctuation Credibility.]
+
+```{python}
+#| label: cred1
+(exposed_data.
+    groupby('pol_yr', 'inc_guar').
+    exp_stats(credibility=True).
+    data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility']])
+```
+
+Under the default arguments, credibility calculations assume a 95% confidence of being within 5% of the true value. These parameters can be overridden using the `conf_level` and `cred_r` arguments, respectively.
+
+```{python}
+#| label: cred2
+(exposed_data.
+    groupby('pol_yr', 'inc_guar').
+    exp_stats(credibility=True, conf_level=0.98, cred_r=0.03).
+    data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility']])
+```
+
+If expected values are passed to `exp_stats()` and `credibility` is set to `True`, then the output will also contain credibility-weighted expected values:
+
+$$
+q^{adj} = Z^{cred} \times q^{obs} + (1-Z^{cred}) \times q^{exp}
+$$
+where,
+
+  - $q^{adj}$ = credibility-weighted estimate
+  - $Z^{cred}$ = partial credibility factor
+  - $q^{obs}$ = observed termination rate
+  - $q^{exp}$ = expected termination rate
+
+
+```{python}
+#| label: cred3
+(exposed_data.
+    groupby('pol_yr', 'inc_guar').
+    exp_stats(credibility=True, expected='expected_1').
+    data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility',
+       'adj_expected_1', 'expected_1', 'ae_expected_1']])
+```
+
+
+## Confidence intervals
+
+If `conf_int` is set to `True`, `exp_stats()` will produce lower and upper confidence interval limits for the observed termination rate.
+
+```{python}
+#| label: conf1
+(exposed_data.
+    groupby('pol_yr', 'inc_guar').
+    exp_stats(conf_int=True).
+    data[['pol_yr', 'inc_guar', 'q_obs', 'q_obs_lower', 'q_obs_upper']])
+```
+
+If no weighting variable is passed to `wt`, confidence intervals will be constructed assuming a binomial distribution of claims. However, if a weighting variable is supplied, a normal distribution for aggregate claims will be assumed with a mean equal to observed claims and a variance equal to:
+
+$$
+Var(S) = E(N) \times Var(X) + E(X)^2 \times Var(N)
+$$
+
+Where `S` is the aggregate claim random variable, `X` is the weighting variable assumed to follow a normal distribution, and `N` is a binomial random variable for the number of claims.
+
+The default confidence level is 95%. This can be changed using the `conf_level` argument. Below, tighter confidence intervals are constructed by decreasing the confidence level to 90%.
+
+```{python}
+#| label: conf2
+(exposed_data.
+    groupby('pol_yr', 'inc_guar').
+    exp_stats(conf_int = True, conf_level = 0.9).
+    data[['pol_yr', 'inc_guar', 'q_obs', 'q_obs_lower', 'q_obs_upper']])
+```
+
+If expected values are passed to `expected`, the output will also contain confidence intervals around any actual-to-expected ratios. 
+
+```{python}
+#| label: conf3
+(exposed_data.
+    groupby('pol_yr', 'inc_guar').
+    exp_stats(conf_int = True, expected='expected_1').
+    data[['pol_yr', 'inc_guar', 'ae_expected_1', 
+          'ae_expected_1_lower', 'ae_expected_1_lower']])
+```
+
+Lastly, if `credibility` is `True` *and* expected values are passed to `expected`, confidence intervals will also be calculated for any credibility-weighted termination rates.
+
+## Miscellaneous
+
+### Summary method
+
+As noted above, the result of `exp_stats()` is an `ExpStats` object. If the `summary()` function is applied to an `ExpStats` object, the data will be summarized again and return a higher level `ExpStats` object.
+
+If no additional arguments are passed, `summary()` returns a single row of aggregate results.
+
+```{python}
+#| label: summary1
+exp_res.summary()
+```
+
+If additional variable names are passed to the `summary()` method, then the output will group the data by those variables. In our example, if `pol_yr` is passed to `summary()`, the output will contain one row per policy year.
+
+```{python}
+#| label: summary2
+exp_res.summary('pol_yr')
+```
+
+Similarly, if `inc_guar` is passed to `summary()`, the output will contain a row for each unique value in `inc_guar`.
+
+```{python}
+#| label: summary3
+exp_res.summary('inc_guar')
+```
+
+
+### Column names
+
+As a default, `exp_stats()` assumes the input data frame uses the following naming conventions:
+
+- The exposure column is called `exposure`
+- The status column is called `status`
+
+These default names can be overridden using the `col_exposure` and `col_status` arguments. 
+
+For example, if the status column was called `curr_stat` in our data, we could write:
+
+```{python}
+#| label: col-names
+#| eval: False
+exposed_data.exp_stats(col_status="curr_stat")
+```
+
+### Limitations
+
+The `exp_stats()` method only supports termination studies. It does not contain support for transaction studies or studies with multiple changes from an active to an inactive status. For information on transaction studies, see [Transactions](transactions.qmd).

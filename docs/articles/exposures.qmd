@@ -27,7 +27,6 @@ To get started, we're going to use a toy census data frame from the actxps packa
 
 ```{python}
 #| label: packages
-
 import actxps as xp
 
 toy_census = xp.load_toy_census()

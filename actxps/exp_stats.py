@@ -447,7 +447,7 @@ class ExpStats():
             Name of the column in `data` containing claims.
         col_exposure : str, default='exposure'
             Name of the column in `data` containing exposures.
-        The assumed default is "exposure".
+            The assumed default is "exposure".
         col_n_claims : str, default='n_claims'
             Only used used when `wt` is passed. Name of the column in `data` 
             containing the number of claims.

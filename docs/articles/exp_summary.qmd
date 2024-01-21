@@ -2,6 +2,15 @@
 title: "Experience summaries"
 ---
 
+```{python}
+#| label: setup
+#| include: false
+import pandas as pd
+pd.options.display.max_rows = 10
+from actxps.tools import _set_actxps_plot_theme
+_set_actxps_plot_theme()
+```
+
 After experience data has been prepared for analysis, the next step is to summarize results. The actxps package's workhorse function for summarizing termination experience is the `exp_stats()` method of the `ExposedDF` class. This function returns an `ExpStats` object, which is a type of data frame containing additional attributes about the experience study.
 
 At a minimum, an `ExpStats` includes:

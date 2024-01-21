@@ -2,6 +2,16 @@
 title: "Exposure calculations"
 ---
 
+```{python}
+#| label: setup
+#| include: false
+import pandas as pd
+pd.options.display.max_rows = 10
+from actxps.tools import _set_actxps_plot_theme
+_set_actxps_plot_theme()
+```
+
+
 **Census-level data** refers to a data set wherein there is one row per policy. **Exposure-level data** expands census-level data such that there is one record per policy per observation period. Observation periods could be any meaningful period of time such as a policy year, policy month, calendar year, calendar quarter, calendar month, etc.
 
 A common step in experience studies is converting census-level data into exposure-level data. The `ExposedDF` class performs this task. Specifically, this class:

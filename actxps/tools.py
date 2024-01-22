@@ -15,6 +15,7 @@ from matplotlib import colormaps
 from matplotlib.colors import rgb2hex
 from great_tables import style, loc, from_column, GT
 from warnings import warn
+from scipy.stats import norm
 _use_default_colors = False
 
 
@@ -330,3 +331,27 @@ def _date_str(x) -> str:
         return x.strftime('%Y-%m-%d')
     except:
         return x
+
+
+# safe version of normal ppf when standard deviation is zero
+def _qnorm(p, mean = 0, sd = 1):
+    """
+    Internal function for the inverse cumulative normal distribution
+    that returns the mean when the standard deviation is zero.
+
+    Parameters
+    ----------
+    p : np.ndarray
+        A vector of probabilities
+    mean : np.ndarray
+        A vector of means
+    sd : np.ndarray
+        A vector of standard deviations
+
+    Returns
+    -------
+    np.ndarray
+        A vector of quantiles
+    """
+    sd = np.maximum(sd, 1E-16)
+    return norm.ppf(p, mean, sd)

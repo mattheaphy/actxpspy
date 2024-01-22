@@ -11,7 +11,8 @@ from actxps.tools import (
     _conf_int_warning,
     _data_color,
     _verify_col_names,
-    _date_str
+    _date_str,
+    _qnorm
 )
 from actxps.col_select import (
     col_contains,
@@ -25,7 +26,7 @@ from great_tables import (
     md
 )
 from matplotlib.colors import Colormap
-from scipy.stats import norm, binom
+from scipy.stats import binom
 
 
 class TrxStats():
@@ -353,16 +354,16 @@ class TrxStats():
 
                 # confidence intervals with transactions
                 fields[f'pct_of_{xw}_lower'] = div(
-                    norm.ppf(p[0], fields['trx_amt'], sd_trx *
-                             fields['trx_flag'] ** 0.5), fields[xw])
+                    _qnorm(p[0], fields['trx_amt'], sd_trx *
+                           fields['trx_flag'] ** 0.5), fields[xw])
                 fields[f'pct_of_{xw}_upper'] = div(
-                    norm.ppf(p[1], fields['trx_amt'], sd_trx *
-                             fields['trx_flag'] ** 0.5), fields[xw])
+                    _qnorm(p[1], fields['trx_amt'], sd_trx *
+                           fields['trx_flag'] ** 0.5), fields[xw])
                 # confidence intervals across all records
                 fields[f'pct_of_{x}_all_lower'] = div(
-                    norm.ppf(p[0], fields['trx_amt'], sd_all), fields[x])
+                    _qnorm(p[0], fields['trx_amt'], sd_all), fields[x])
                 fields[f'pct_of_{x}_all_upper'] = div(
-                    norm.ppf(p[1], fields['trx_amt'], sd_all), fields[x])
+                    _qnorm(p[1], fields['trx_amt'], sd_all), fields[x])
 
         # convert data to a data frame
         data = pd.DataFrame(fields, index=range(1))

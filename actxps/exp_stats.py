@@ -12,7 +12,8 @@ from actxps.tools import (
     _conf_int_warning,
     _data_color,
     _verify_col_names,
-    _date_str
+    _date_str,
+    _qnorm
 )
 from actxps.col_select import (
     col_contains,
@@ -272,7 +273,7 @@ class ExpStats():
 
         # credibility formulas - varying by weights
         if credibility:
-            y = (norm.ppf((1 + conf_level) / 2) / cred_r) ** 2
+            y = (_qnorm((1 + conf_level) / 2) / cred_r) ** 2
 
             if wt is None:
                 cred = {
@@ -317,9 +318,9 @@ class ExpStats():
                         (x.n_claims * ((x.ex2_wt - x.ex_wt ** 2) +
                                        x.ex_wt ** 2 * (1 - x.q_obs))) ** 0.5,
                     'q_obs_lower': lambda x:
-                        norm.ppf(p[0], x.claims, x.sd_agg) / x.exposure,
+                        _qnorm(p[0], x.claims, x.sd_agg) / x.exposure,
                     'q_obs_upper': lambda x:
-                        norm.ppf(p[1], x.claims, x.sd_agg) / x.exposure
+                        _qnorm(p[1], x.claims, x.sd_agg) / x.exposure
                 }
 
         else:

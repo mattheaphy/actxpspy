@@ -809,13 +809,13 @@ files = [
 
 [[package]]
 name = "great-tables"
-version = "0.1.4"
+version = "0.2.0"
 description = "Easily generate information-rich, publication-quality tables from Python."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "great-tables-0.1.4.tar.gz", hash = "sha256:4a421ed9dea28fb79c28910ef1fb16ce75f63b44dff01520cc6ddf23b9f201b3"},
-    {file = "great_tables-0.1.4-py3-none-any.whl", hash = "sha256:581b899ad00da576ca1586a5feff50259b0fb3a7ecc11376d43daccc180a62f4"},
+    {file = "great-tables-0.2.0.tar.gz", hash = "sha256:aa75913a773c8e6dd5a33e4437a772440f4444cf2e59cc2aeb93b83d50953297"},
+    {file = "great_tables-0.2.0-py3-none-any.whl", hash = "sha256:56003df01e1eb8e1606336581a34bf1715227eea65839641d2fa63addae74e69"},
 ]
 
 [package.dependencies]
@@ -823,6 +823,7 @@ Babel = ">=2.13.1"
 commonmark = ">=0.9.1"
 htmltools = ">=0.4.1"
 importlib-metadata = "*"
+mizani = ">=0.9.3"
 numpy = ">=1.22.4"
 packaging = ">=20.9"
 pandas = ">=1.4.2"
@@ -830,7 +831,7 @@ typing-extensions = ">=3.10.0.0"
 webcolors = "*"
 
 [package.extras]
-dev = ["jupyter", "polars", "pyarrow", "pytest (>=3)", "pytest-cov", "quartodoc (>=0.7.1)", "shiny", "siuba", "syrupy"]
+dev = ["griffe (==0.38.1)", "jupyter", "polars", "pyarrow", "pytest (>=3)", "pytest-cov", "quartodoc (>=0.7.1)", "shiny", "siuba", "syrupy"]
 
 [[package]]
 name = "griffe"
@@ -3742,4 +3743,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "a22f5e2fd00c7ec896da790c99aa5711e8930f08916cdcb0a6d916939d28e405"
+content-hash = "5dd37cdabc69229b49668e1cc959eab65efff472a0e8ea769e6ab8cba36b5cc8"

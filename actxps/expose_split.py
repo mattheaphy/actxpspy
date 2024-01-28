@@ -22,7 +22,7 @@ class SplitExposedDF(ExposedDF):
     expo : ExposedDF
         An exposure data frame class with calendar-based exposure periods
 
-    Details
+    Notes
     ----------
     The `ExposedDF` must have calendar year, quarter, month, or week exposure
     records. Calendar year exposures are created by passing `cal_expo = True` to 
@@ -45,7 +45,7 @@ class SplitExposedDF(ExposedDF):
     ```{python}
     import actxps as xp
     toy_census = xp.load_toy_census()
-    expo = xp.ExposedDF.expose_cy(toy_census, "2022-12-31").
+    expo = xp.ExposedDF.expose_cy(toy_census, "2022-12-31")
     xp.SplitExposedDF(expo)
     ```
 

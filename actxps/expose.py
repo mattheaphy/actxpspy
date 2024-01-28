@@ -609,6 +609,52 @@ class ExposedDF():
         abbrev = ExposedDF.abbr_period[expo_length]
         x = ("cal_" if cal_expo else "pol_date_") + abbrev
         return x, x + "_end"
+    
+    def expose_split(self):
+        """
+        Split calendar exposures by policy year
+
+        Split calendar period exposures that cross a policy anniversary
+        into a pre-anniversary record and a post-anniversary record.
+
+        Returns
+        -------
+        SplitExposedDF
+            A subclass of ExposedDF with
+            
+        Notes
+        ----------
+        The `ExposedDF` must have calendar year, quarter, month, or week 
+        exposure records. Calendar year exposures are created by passing 
+        `cal_expo = True` to `ExposedDF` (or alternatively, with the class 
+        methods `ExposedDF.expose_cy()`, `ExposedDF.expose_cq()`, 
+        `ExposedDF.expose_cm()`, and `ExposedDF.expose_cw()`).
+
+        After splitting, the resulting data will contain both calendar exposures
+        and policy year exposures. These columns will be named 'exposure_cal' 
+        and 'exposure_pol', respectively. Calendar exposures will be in the 
+        original units passed to `SplitExposedDF()`. Policy exposures will 
+        always be expressed in years. Downstream functions like `exp_stats()` 
+        and `exp_shiny()` will require clarification as to which exposure basis 
+        should be used to summarize results.    
+
+        After splitting, the column 'pol_yr' will contain policy years.
+        
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        toy_census = xp.load_toy_census()
+        expo = xp.ExposedDF.expose_cy(toy_census, "2022-12-31")
+        expo.expose_split()
+        ```        
+            
+        See Also
+        --------
+        `SplitExposedDF()` for full information on `SplitExposedDF` class.
+        """
+        from actxps.expose_split import SplitExposedDF
+        return SplitExposedDF(self)
 
     def __repr__(self) -> str:
         repr = ("Exposure data\n\n" +

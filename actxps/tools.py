@@ -1,5 +1,6 @@
 # This module contains helper functions used by other modules
 import numpy as np
+import pandas as pd
 from plotnine import (
     ggplot,
     geom_point,
@@ -355,3 +356,44 @@ def _qnorm(p, mean = 0, sd = 1):
     """
     sd = np.maximum(sd, 1E-16)
     return norm.ppf(p, mean, sd)
+
+
+def relocate(data: pd.DataFrame, 
+             x: str | list | np.ndarray, 
+             before: str=None, 
+             after: str=None):
+    """
+    Reorder columns in a data frame
+    
+    Move the columns in `x` before or after a given column. If neither `before`
+    or `after` are specified, `x` will be moved to the left. If both `before`
+    and `after` are specified, an error is returned.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        A data frame
+    x : str | list | np.ndarray
+        Column names to to move
+    before : str, default=None
+        A column in `data`
+    after : str, default=None
+        A column in `data`
+
+    Returns
+    -------
+    pd.DataFrame
+        A data frame with reordered columns.
+    """
+    assert before is None or after is None, \
+        'One of `before` and `after` must be specified, but not both.'
+    x = np.atleast_1d(x)
+    columns = data.columns
+    columns2 = columns[~columns.isin(x)]
+    if before is None and after is None:
+        return data[list(x) + list(columns2)]
+    if before is None:
+        pos = list(columns2).index(after) + 1
+    else:
+        pos = list(columns2).index(before)
+    return data[list(columns2[:pos]) + list(x) + list(columns2[pos:])]

@@ -61,6 +61,8 @@ quartodoc:
       contents:
         - ExposedDF
         - ExposedDF.from_DataFrame
+        - package: actxps.expose_split
+          name: SplitExposedDF
 
     - title: "Termination studies"
       desc: "Create termination study summaries and reports"

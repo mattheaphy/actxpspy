@@ -136,6 +136,8 @@ class ExposedDF():
                  target_status='Surrender')
     ```
     """
+    
+    #from actxps.expose_split import expose_split
 
     # helper dictionary for abbreviations
     abbr_period = {
@@ -274,7 +276,7 @@ class ExposedDF():
 
             def cal_frac(x):
                 """
-                Faster function per_frac for computing the distance
+                Faster function than per_frac for computing the distance
                 between two calendar dates. Only works for partial periods
                 less than 1 full period.
                 """
@@ -345,7 +347,7 @@ class ExposedDF():
     def _finalize(self,
                   data, end_date, start_date, target_status,
                   cal_expo, expo_length, trx_types=None,
-                  default_status=None):
+                  default_status=None, split=False):
         """
         This internal function finalizes class construction for `ExposedDF`
         objects.
@@ -358,8 +360,13 @@ class ExposedDF():
         self.default_status = default_status
         self.cal_expo = cal_expo
         self.expo_length = expo_length
-        self.exposure_type = ('calendar' if (cal_expo) else 'policy') + \
-            '_' + expo_length
+        if split:
+            self.exposure_type = 'split'
+        elif cal_expo:
+            self.exposure_type = 'calendar'
+        else:
+            self.exposure_type = 'policy'
+        self.exposure_type = self.exposure_type + '_' + expo_length
         self.date_cols = ExposedDF._make_date_col_names(cal_expo, expo_length)
         if trx_types is None:
             self.trx_types = []

@@ -57,8 +57,6 @@ class TrxStats():
         If `False`, the results will contain output rows for each 
         transaction type. If `True`, the results will contain aggregated
         experience across all transaction types.
-    col_exposure : str, default='exposure'
-        Name of the column in the `data` property of `expo` containing exposures
     full_exposures_only : bool, default=True
         If `True`, partially exposed records will be ignored 
         in the results.
@@ -67,6 +65,8 @@ class TrxStats():
         observed utilization rate and any `percent_of` output columns.
     conf_level : float, default=0.95 
         Confidence level for confidence intervals
+    col_exposure : str, default='exposure'
+        Name of the column in the `data` property of `expo` containing exposures        
 
 
     Attributes
@@ -168,10 +168,10 @@ class TrxStats():
                  trx_types: list | str = None,
                  percent_of: list | str = None,
                  combine_trx: bool = False,
-                 col_exposure: str = 'exposure',
                  full_exposures_only: bool = True,
                  conf_int: bool = False,
-                 conf_level: float = 0.95):
+                 conf_level: float = 0.95,
+                 col_exposure: str = 'exposure'):
 
         _verify_exposed_df(expo)
         self.data = None

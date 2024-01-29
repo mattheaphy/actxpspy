@@ -975,9 +975,6 @@ class ExposedDF():
             If `False` (default), the results will contain output rows for each 
             transaction type. If `True`, the results will contains aggregated
             results across all transaction types.
-        col_exposure : str, default='exposure'
-            Name of the column in the `data` property containing exposures. 
-            Only necessary for `SplitExposedDF` objects.
         full_exposures_only : bool, default=True
             If `True` (default), partially exposed records will be ignored 
             in the results.
@@ -986,6 +983,9 @@ class ExposedDF():
             observed utilization rate and any `percent_of` output columns.
         conf_level : float, default=0.95 
             Confidence level for confidence intervals
+        col_exposure : str, default='exposure'
+            Name of the column in the `data` property containing exposures. 
+            Only necessary for `SplitExposedDF` objects.            
 
 
         Notes

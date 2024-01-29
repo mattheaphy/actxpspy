@@ -11,20 +11,33 @@ from plotnine import (aes,
                       element_text,
                       element_rect)
 from actxps.col_select import col_contains
+from actxps.tools import _verify_exposed_df
+from actxps.expose_split import _check_split_expose_basis
 import io
 
 
 def _exp_shiny(obj,
-               predictors=None,
-               expected=None,
-               distinct_max=25):
+               predictors = None,
+               expected = None,
+               distinct_max = 25,
+               col_exposure = 'exposure'):
     """
     Internal function for creating interactive shiny apps. This function is 
     not meant to be called directly. Use `ExposedDF.exp_shiny()` instead.
     """
 
-    from actxps import ExposedDF
-    assert isinstance(obj, ExposedDF)
+    from actxps import SplitExposedDF
+    _verify_exposed_df(obj)
+    
+    # special logic required for split exposed data frames
+    if isinstance(obj, SplitExposedDF):
+        _check_split_expose_basis(obj, col_exposure)
+        dat = dat.rename(columns={col_exposure: 'exposure'})
+
+        if col_exposure == "exposure_cal":
+            dat.drop(columns=['exposure_pol'], inplace=True)
+        else:
+            dat.drop(columns=['exposure_cal'], inplace=True)
 
     dat = obj.data
     cols = dat.columns

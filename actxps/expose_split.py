@@ -1,5 +1,5 @@
 from warnings import warn
-from actxps.expose import ExposedDF
+from actxps import ExposedDF
 from actxps.dates import add_yr
 from actxps.tools import (
     relocate,
@@ -139,6 +139,7 @@ class SplitExposedDF(ExposedDF):
                                   pd.Categorical([default_status],
                                                  data.status.cat.categories),
                                   data.status)
+        data.status = data.status.astype('category')
         data['claims'] = data.status.isin(target_status)
         data['exposure_cal'] = np.select(
             [data.claims, pd.isna(data.term_date), data.piece == 1],
@@ -175,3 +176,16 @@ class SplitExposedDF(ExposedDF):
                        expo.trx_types, default_status, True)
 
         return None
+
+def _check_split_expose_basis(obj, col_exposure):
+    """
+    This internal function sends an error if a `SplitExposedDF` is passed
+    without clarifying which exposure basis should be used.
+    """
+    if isinstance(obj, SplitExposedDF):
+        assert col_exposure in ["exposure_cal", "exposure_pol"], \
+            'A `SplitExposedDF` was passed without clarifying which ' + \
+            'exposure basis should be used to summarize results. Hint: ' + \
+            'Pass "exposure_pol" to `col_exposure` for policy year ' + \
+            'exposures pass "exposure_cal" to `col_exposure` for calendar ' + \
+            'exposures.'

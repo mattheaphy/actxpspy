@@ -18,6 +18,7 @@ from actxps.col_select import (
     col_contains,
     col_starts_with
 )
+from actxps.expose_split import _check_split_expose_basis
 from actxps.dates import len2
 from plotnine import aes
 from great_tables import (
@@ -187,6 +188,8 @@ class TrxStats():
             assert len(unmatched) == 0, \
                 ("The following transactions do not exist in `expo`: " +
                  ", ".join(unmatched))
+                
+        _check_split_expose_basis(expo, col_exposure)
 
         start_date = expo.start_date
         end_date = expo.end_date

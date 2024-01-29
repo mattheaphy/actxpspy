@@ -10,7 +10,6 @@ from actxps.dates import frac_interval, add_interval
 from warnings import warn
 from functools import singledispatchmethod
 from itertools import product
-from actxps.exp_shiny import _exp_shiny
 
 
 class ExposedDF():
@@ -136,8 +135,6 @@ class ExposedDF():
                  target_status='Surrender')
     ```
     """
-    
-    #from actxps.expose_split import expose_split
 
     # helper dictionary for abbreviations
     abbr_period = {
@@ -609,7 +606,7 @@ class ExposedDF():
         abbrev = ExposedDF.abbr_period[expo_length]
         x = ("cal_" if cal_expo else "pol_date_") + abbrev
         return x, x + "_end"
-    
+
     def expose_split(self):
         """
         Split calendar exposures by policy year
@@ -620,8 +617,9 @@ class ExposedDF():
         Returns
         -------
         SplitExposedDF
-            A subclass of ExposedDF with
-            
+            A subclass of ExposedDF with calendar period exposures split by 
+            policy year.
+
         Notes
         ----------
         The `ExposedDF` must have calendar year, quarter, month, or week 
@@ -639,7 +637,7 @@ class ExposedDF():
         should be used to summarize results.    
 
         After splitting, the column 'pol_yr' will contain policy years.
-        
+
         Examples
         ----------
         ```{python}
@@ -648,7 +646,7 @@ class ExposedDF():
         expo = xp.ExposedDF.expose_cy(toy_census, "2022-12-31")
         expo.expose_split()
         ```        
-            
+
         See Also
         --------
         `SplitExposedDF()` for full information on `SplitExposedDF` class.
@@ -714,7 +712,8 @@ class ExposedDF():
                   conf_int: bool = False,
                   credibility: bool = False,
                   conf_level: float = 0.95,
-                  cred_r: float = 0.05):
+                  cred_r: float = 0.05,
+                  col_exposure: str = 'exposure'):
         """
         Summarize experience study records
 
@@ -742,6 +741,9 @@ class ExposedDF():
             Confidence level under the Limited Fluctuation credibility method
         cred_r : float, default=0.05
             Error tolerance under the Limited Fluctuation credibility method
+        col_exposure : str, default='exposure'
+            Name of the column in `data` containing exposures. Only necessary 
+            for `SplitExposedDF` objects.
 
         Notes
         ----------
@@ -828,7 +830,7 @@ class ExposedDF():
         """
         from actxps.exp_stats import ExpStats
         return ExpStats(self, target_status, expected, wt, conf_int,
-                        credibility, conf_level, cred_r)
+                        credibility, conf_level, cred_r, col_exposure)
 
     def add_transactions(self,
                          trx_data: pd.DataFrame,
@@ -949,10 +951,10 @@ class ExposedDF():
                   trx_types: list | str = None,
                   percent_of: list | str = None,
                   combine_trx: bool = False,
-                  col_exposure: str = 'exposure',
                   full_exposures_only: bool = True,
                   conf_int: bool = False,
-                  conf_level: float = 0.95):
+                  conf_level: float = 0.95,
+                  col_exposure: str = 'exposure'):
         """
         Summarize transactions and utilization rates
 
@@ -973,8 +975,9 @@ class ExposedDF():
             If `False` (default), the results will contain output rows for each 
             transaction type. If `True`, the results will contains aggregated
             results across all transaction types.
-        col_exposure: str, default='exposure'
-            Name of the column in the `data` property containing exposures
+        col_exposure : str, default='exposure'
+            Name of the column in the `data` property containing exposures. 
+            Only necessary for `SplitExposedDF` objects.
         full_exposures_only : bool, default=True
             If `True` (default), partially exposed records will be ignored 
             in the results.
@@ -1104,8 +1107,8 @@ class ExposedDF():
         """
         from actxps.trx_stats import TrxStats
         return TrxStats(self, trx_types, percent_of, combine_trx,
-                        col_exposure, full_exposures_only,
-                        conf_int, conf_level)
+                        full_exposures_only,
+                        conf_int, conf_level, col_exposure)
 
     def exp_shiny(self,
                   predictors=None,
@@ -1234,6 +1237,7 @@ class ExposedDF():
         app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
         ```
         """
+        from actxps.exp_shiny import _exp_shiny
         return _exp_shiny(self, predictors, expected, distinct_max)
 
 

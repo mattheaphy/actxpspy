@@ -20,6 +20,7 @@ from actxps.col_select import (
     col_starts_with,
     col_ends_with
 )
+from actxps.expose_split import _check_split_expose_basis
 from matplotlib.colors import Colormap
 from plotnine import (
     aes,
@@ -68,7 +69,8 @@ class ExpStats():
         and confidence intervals
     cred_r : float, default=0.05
         Error tolerance under the Limited Fluctuation credibility method
-
+    col_exposure : str, default='exposure'
+        Name of the column in `data` containing exposures.
 
     Attributes
     ----------
@@ -151,7 +153,8 @@ class ExpStats():
                  conf_int: bool = False,
                  credibility: bool = False,
                  conf_level: float = 0.95,
-                 cred_r: float = 0.05):
+                 cred_r: float = 0.05,
+                 col_exposure: str = 'exposure'):
 
         _verify_exposed_df(expo)
         self.data = None
@@ -182,6 +185,9 @@ class ExpStats():
 
         else:
             data['claims'] = data.n_claims
+            
+        _check_split_expose_basis(expo, col_exposure)
+        data = data.rename(columns={col_exposure: 'exposure'})
 
         xp_params = {'credibility': credibility,
                      'conf_level': conf_level,
@@ -448,7 +454,6 @@ class ExpStats():
             Name of the column in `data` containing claims.
         col_exposure : str, default='exposure'
             Name of the column in `data` containing exposures.
-            The assumed default is "exposure".
         col_n_claims : str, default='n_claims'
             Only used used when `wt` is passed. Name of the column in `data` 
             containing the number of claims.

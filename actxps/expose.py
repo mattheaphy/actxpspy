@@ -282,7 +282,7 @@ class ExposedDF():
 
             # partial exposure calculations
             expo_cond = [
-                data.status.isin in target_status,
+                data.status.isin(target_status),
                 data.first_per & data.last_per,
                 data.first_per,
                 data.last_per

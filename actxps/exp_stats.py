@@ -778,10 +778,8 @@ class ExpStats():
         expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
                                          np.array([0.2, 0.15]), 
                                          np.repeat(0.05, 3)))
-        expo.data['expected_1'] = \
-            expected_table[expo.data.pol_yr - 1]
-        expo.data['expected_2'] = \
-            np.where(expo.data.inc_guar, 0.015, 0.03)
+        expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]
+        expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
 
         exp_res = (expo.
                    groupby('pol_yr').
@@ -830,10 +828,8 @@ class ExpStats():
         expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
                                          np.array([0.2, 0.15]), 
                                          np.repeat(0.05, 3)))
-        expo.data['expected_1'] = \
-            expected_table[expo.data.pol_yr - 1]
-        expo.data['expected_2'] = \
-            np.where(expo.data.inc_guar, 0.015, 0.03)
+        expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]
+        expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
 
         exp_res = (expo.
                    groupby('pol_yr').

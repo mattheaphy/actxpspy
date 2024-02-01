@@ -181,19 +181,18 @@ The following functions are class methods of `ExposedDF()` that target a specifi
 - `ExposedDF.expose_cw()` = exposures by calendar week
 
 
-<!-- ## Split exposures by calendar period and policy year
-TODO - uncomment after expose_split() is added
+## Split exposures by calendar period and policy year
 
 A common technique used in experience studies is to split calendar years into two records: a pre-anniversary record and a post-anniversary record. In actxps, this can be accomplished using the `expose_split()` method. 
 
-Let's continue examining the second policy. `exposed_cal`, which contains calendar year exposures, is passed into `expose_split()`. The resulting data frame now contains 19 records instead of 10. There is one record for 2011 and 2 records for all other years. The year 2011 only has a single record because the policy was issued in this year, so there can only be a post-anniversary record.
+Let's continue examining the second policy. `exposed_cal`, which contains calendar year exposures, is passed into `expose_split()`. The resulting data now contains 19 records instead of 10. There is one record for 2011 and 2 records for all other years. The year 2011 only has a single record because the policy was issued in this year, so there can only be a post-anniversary record.
 
 ```{python}
 #| label: expo-split
-#split = exposed_cal.expose_split()
+split = exposed_cal.expose_split()
 
-#split.data.query('pol_num == 2')[
-#  ['cal_yr', 'cal_yr_end', 'pol_yr', 'exposure_pol', 'exposure_cal']]
+split.data.query('pol_num == 2')[
+    ['cal_yr', 'cal_yr_end', 'pol_yr', 'exposure_pol', 'exposure_cal']]
 ```
 
 The output of `expose_split()` contains two exposure columns.
@@ -212,36 +211,37 @@ Some downstream methods like `exp_stats()` expect `ExposedDF` objects to have a 
 ```{python}
 #| label: split-stats-unclear
 #| eval: False
-#split.exp_stats()
+split.exp_stats()
 ```
 
 
 ```{python}
 #| label: split-stats-unclear-cat
 #| echo: False
-#try:
-    #split.exp_stats()
-#except AssertionError as e:
-    #print(str(e))
+try:
+    split.exp_stats()
+except AssertionError as e:
+    print(str(e))
 ```
 
 
 ```{python}
 #| label: split-stats-clear
-#split.exp_stats(col_exposure="exposure_pol")
+split.exp_stats(col_exposure="exposure_pol")
 ```
 
 `expose_split()` doesn't just work with calendar year exposures. Calendar quarters, months, or weeks can also be split. For periods shorter than a year, a record is only split into pre- and post-anniversary segments if a policy anniversary appears in the middle of the period.
 
 ```{python}
-#| label: split-qtr
-#(xp.ExposedDF.expose_cq(toy_census, "2022-12-31", #target_status="Surrender").
- #   expose_split().
- #   data.query('pol_num == 2')[
- #   ['cal_qtr', 'cal_qtr_end', 'pol_yr', 'exposure_pol', #'exposure_cal']])
+# | label: split-qtr
+(xp.ExposedDF.expose_cq(toy_census, "2022-12-31",
+                        target_status="Surrender").
+    expose_split().
+    data.query('pol_num == 2')[
+    ['cal_qtr', 'cal_qtr_end', 'pol_yr', 'exposure_pol', 'exposure_cal']])
 ```
 
-Note, however, that calendar period exposures will always be expressed in the original units and policy exposures will always be expressed in years. Above, calendar exposures are quarters whereas policy exposures are years. -->
+Note, however, that calendar period exposures will always be expressed in the original units and policy exposures will always be expressed in years. Above, calendar exposures are quarters whereas policy exposures are years.
 
 ## Miscellaneous
 

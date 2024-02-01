@@ -478,6 +478,7 @@ class TrxStats():
 
         Examples
         ----------
+        ```{python}
         # convert pre-aggregated experience into a TrxStats object
         import actxps as xp
 
@@ -497,7 +498,7 @@ class TrxStats():
 
         # summary by policy year
         dat.summary('pol_yr')
-        ```    
+        ```
 
         See Also
         ----------
@@ -843,6 +844,22 @@ class TrxStats():
         ----------
         great_tables.gt.GT
             A formatted HTML table
+            
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status="Surrender")
+        expo.add_transactions(withdrawals)
+
+        trx_res = (expo.groupby('pol_yr').
+                   trx_stats(percent_of='premium'))
+
+        trx_res.table()
+        ```
         """
 
         # set up properties

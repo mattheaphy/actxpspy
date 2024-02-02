@@ -34,6 +34,15 @@ def pol_interval(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     pol_yr, pol_qtr, pol_mth, pol_wk
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.pol_interval(['2024-05-01', '2024-02-01'], 
+                    ['2008-03-14', '2008-03-14'], 
+                    'year')
+    ```
     """
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
 
@@ -86,6 +95,14 @@ def pol_yr(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     pol_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.pol_yr(['2024-05-01', '2024-02-01'], 
+              ['2008-03-14', '2008-03-14'])
+    ```    
     """
     return pol_interval(dates, issue_date, 'year')
 
@@ -111,6 +128,14 @@ def pol_mth(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     pol_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.pol_mth(['2024-05-01', '2024-02-01'], 
+               ['2008-03-14', '2008-03-14'])
+    ```        
     """
     return pol_interval(dates, issue_date, 'month')
 
@@ -136,6 +161,14 @@ def pol_qtr(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     pol_interval
+
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.pol_qtr(['2024-05-01', '2024-02-01'], 
+               ['2008-03-14', '2008-03-14'])
+    ```            
     """
     return pol_interval(dates, issue_date, 'quarter')
 
@@ -161,6 +194,14 @@ def pol_wk(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     pol_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.pol_wk(['2024-05-01', '2024-02-01'], 
+              ['2008-03-14', '2008-03-14'])
+    ```            
     """
     return pol_interval(dates, issue_date, 'week')
 
@@ -210,6 +251,15 @@ def frac_interval(start: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     frac_yr, frac_qtr, frac_mth, frac_wk
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.frac_interval(['2008-03-14', '2008-03-14'],
+                     ['2024-05-01', '2024-02-01'], 
+                     'year')
+    ```            
     """
 
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
@@ -296,6 +346,14 @@ def frac_yr(start: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     frac_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.frac_yr(['2008-03-14', '2008-03-14'],
+               ['2024-05-01', '2024-02-01'])
+    ```                
     """
     return frac_interval(start, end, 'year')
 
@@ -320,6 +378,14 @@ def frac_mth(start: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     frac_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.frac_mth(['2008-03-14', '2008-03-14'],
+                ['2024-05-01', '2024-02-01'])
+    ```                    
     """
     return frac_interval(start, end, 'month')
 
@@ -344,6 +410,14 @@ def frac_qtr(start: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     frac_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.frac_qtr(['2008-03-14', '2008-03-14'],
+                ['2024-05-01', '2024-02-01'])
+    ```                        
     """
     return frac_interval(start, end, 'quarter')
 
@@ -368,6 +442,14 @@ def frac_wk(start: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     frac_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.frac_wk(['2008-03-14', '2008-03-14'],
+               ['2024-05-01', '2024-02-01'])
+    ```                        
     """
     return frac_interval(start, end, 'week')
 
@@ -395,7 +477,7 @@ def add_interval(dates: str | datetime | DatetimeIndex | pd.Series,
     ----------
     dates : str | datetime | DatetimeIndex | pd.Series
         Dates
-    x : pd.Series | np.ndarray
+    x : int | pd.Series | np.ndarray
         Number of periods to add
     dur_length : {'year', 'quarter', 'month', 'week'}
         Duration length
@@ -407,6 +489,13 @@ def add_interval(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     add_yr, add_qtr, add_mth, add_wk
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.add_interval(['2008-03-14', '2008-03-14'], [16, 15], 'year')
+    ```                        
     """
     arg_match('dur_length', dur_length, ['year', 'quarter', 'month', 'week'])
 
@@ -461,7 +550,7 @@ def add_yr(dates: str | datetime | DatetimeIndex | pd.Series,
     ----------
     dates : str | datetime | DatetimeIndex | pd.Series
         Dates
-    x : pd.Series | np.ndarray
+    x : int | pd.Series | np.ndarray
         Number of periods to add
 
     Returns 
@@ -471,6 +560,13 @@ def add_yr(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     add_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.add_yr(['2008-03-14', '2008-03-14'], [16, 15])
+    ```                            
     """
     return add_interval(dates, x, 'year')
 
@@ -484,7 +580,7 @@ def add_qtr(dates: str | datetime | DatetimeIndex | pd.Series,
     ----------
     dates : str | datetime | DatetimeIndex | pd.Series
         Dates
-    x : pd.Series | np.ndarray
+    x : int | pd.Series | np.ndarray
         Number of periods to add
 
     Returns 
@@ -494,6 +590,13 @@ def add_qtr(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     add_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.add_qtr(['2008-03-14', '2008-03-14'], [64, 60])
+    ```                                
     """
     return add_interval(dates, x, 'quarter')
 
@@ -507,10 +610,9 @@ def add_mth(dates: str | datetime | DatetimeIndex | pd.Series,
     ----------
     dates : str | datetime | DatetimeIndex | pd.Series
         Dates
-    x : pd.Series | np.ndarray
+    x : int | pd.Series | np.ndarray
         Number of periods to add
-
-
+        
     Returns 
     ----------
     np.ndarray
@@ -518,6 +620,13 @@ def add_mth(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     add_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.add_mth(['2008-03-14', '2008-03-14'], [192, 180])
+    ```                                
     """
     return add_interval(dates, x, 'month')
 
@@ -531,7 +640,7 @@ def add_wk(dates: str | datetime | DatetimeIndex | pd.Series,
     ----------
     dates : str | datetime | DatetimeIndex | pd.Series
         Dates
-    x : pd.Series | np.ndarray
+    x : int | pd.Series | np.ndarray
         Number of periods to add
 
     Returns 
@@ -541,5 +650,12 @@ def add_wk(dates: str | datetime | DatetimeIndex | pd.Series,
     See Also
     ----------
     add_interval
+    
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+    xp.add_wk(['2008-03-14', '2008-03-14'], [835, 783])
+    ```                                
     """
     return add_interval(dates, x, 'week')

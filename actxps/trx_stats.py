@@ -1,10 +1,33 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
 from functools import singledispatchmethod
+from itertools import product
 from actxps.expose import ExposedDF
-from actxps.tools import _plot_experience
+from actxps.tools import (
+    _plot_experience,
+    _pivot_plot_special,
+    _verify_exposed_df,
+    _conf_int_warning,
+    _data_color,
+    _verify_col_names,
+    _date_str,
+    _qnorm
+)
+from actxps.col_select import (
+    col_contains,
+    col_starts_with
+)
+from actxps.expose_split import _check_split_expose_basis
+from actxps.dates import len2
 from plotnine import aes
+from great_tables import (
+    GT,
+    pct,
+    md
+)
 from matplotlib.colors import Colormap
+from scipy.stats import binom
 
 
 class TrxStats():
@@ -34,13 +57,18 @@ class TrxStats():
         If `False`, the results will contain output rows for each 
         transaction type. If `True`, the results will contain aggregated
         experience across all transaction types.
-    col_exposure : str, default='exposure'
-        Name of the column in the `data` property of `expo` containing exposures
     full_exposures_only : bool, default=True
-        If `True` (default), partially exposed records will be ignored 
+        If `True`, partially exposed records will be ignored 
         in the results.
-        
-        
+    conf_int : bool, default=False 
+        If `True`, the output will include confidence intervals around the
+        observed utilization rate and any `percent_of` output columns.
+    conf_level : float, default=0.95 
+        Confidence level for confidence intervals
+    col_exposure : str, default='exposure'
+        Name of the column in the `data` property of `expo` containing exposures        
+
+
     Attributes
     ----------
 
@@ -60,7 +88,7 @@ class TrxStats():
         - The sum of any columns passed to `percent_of`), `pct_of_{*}_w_trx` 
         (total transactions as a percentage of column `{*}_w_trx`), 
         `pct_of_{*}_all` (total transactions as a percentage of column `{*}`).
-        
+
 
     Notes
     ----------
@@ -90,6 +118,29 @@ class TrxStats():
     containing a maximum benefit amount, utilization rates can be 
     determined.
 
+    **Confidence intervals**
+
+    If `conf_int` is set to `True`, the output will contain lower and upper
+    confidence interval limits for the observed utilization rate and any
+    `percent_of` output columns. The confidence level is dictated
+    by `conf_level`.
+
+    - Intervals for the utilization rate (`trx_util`) assume a binomial
+    distribution.
+    - Intervals for transactions as a percentage of another column with
+    non-zero transactions (`pct_of_{*}_w_trx`) are constructed using a normal
+    distribution
+    - Intervals for transactions as a percentage of another column
+    regardless of transaction utilization (`pct_of_{*}_all`) are calculated
+    assuming that the aggregate distribution is normal with a mean equal to
+    observed transactions and a variance equal to:
+
+        `Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)`,
+
+    Where `S` is the aggregate transactions random variable, `X` is an 
+    individual transaction amount assumed to follow a normal distribution, and 
+    `N` is a binomial random variable for transaction utilization.
+
     **Default removal of partial exposures**
 
     As a default, partial exposures are removed from `data` before 
@@ -103,6 +154,13 @@ class TrxStats():
     expected to take withdrawals 9 months into the year, it's not clear if
     the exposure should be 0.5 years or 0.5 / 0.75 years. To override this 
     treatment, set `full_exposures_only` to `False`.
+
+    **Alternative class constructor**
+
+    `TrxStats.from_DataFrame()` can be used to coerce a data frame containing 
+    pre-aggregated experience into a `TrxStats` object. This is most useful
+    for working with industry study data where individual exposure records are
+    not available.    
     """
     @singledispatchmethod
     def __init__(self,
@@ -110,9 +168,12 @@ class TrxStats():
                  trx_types: list | str = None,
                  percent_of: list | str = None,
                  combine_trx: bool = False,
-                 col_exposure: str = 'exposure',
-                 full_exposures_only: bool = True):
+                 full_exposures_only: bool = True,
+                 conf_int: bool = False,
+                 conf_level: float = 0.95,
+                 col_exposure: str = 'exposure'):
 
+        _verify_exposed_df(expo)
         self.data = None
 
         assert len(expo.trx_types) > 0, \
@@ -127,6 +188,8 @@ class TrxStats():
             assert len(unmatched) == 0, \
                 ("The following transactions do not exist in `expo`: " +
                  ", ".join(unmatched))
+                
+        _check_split_expose_basis(expo, col_exposure)
 
         start_date = expo.start_date
         end_date = expo.end_date
@@ -168,7 +231,7 @@ class TrxStats():
         # split transaction types from kinds
         data.variable = data.variable.str.replace('^trx_', '', regex=True)
         data[['kind', 'trx_type']] = \
-            data.variable.str.split('_', expand=True, n=2)
+            data.variable.str.split('_', expand=True, n=1)
         # pivot wider
         data = (data.
                 pivot(index=['index'] + id_vars + ['trx_type'],
@@ -182,12 +245,17 @@ class TrxStats():
         data.trx_n = data.trx_n.fillna(0)
         data.trx_amt = data.trx_amt.fillna(0)
         data['trx_flag'] = data.trx_n.abs() > 0
+        if conf_int:
+            data['trx_amt_sq'] = data.trx_amt ** 2
 
         for x in percent_of:
             data[x + '_w_trx'] = data[x] * data.trx_flag
 
+        xp_params = {'conf_level': conf_level,
+                     'conf_int': conf_int}
+
         self._finalize(data, trx_types, percent_of,
-                       groups, start_date, end_date)
+                       groups, start_date, end_date, xp_params)
 
     def _finalize(self,
                   data: pd.DataFrame,
@@ -195,7 +263,9 @@ class TrxStats():
                   percent_of,
                   groups,
                   start_date,
-                  end_date):
+                  end_date,
+                  xp_params,
+                  agg: bool = True):
         """
         Internal method for finalizing transaction study summary objects
         """
@@ -203,17 +273,20 @@ class TrxStats():
         # set up properties
         self.groups = groups
         self.trx_types = trx_types
-        self.start_date = start_date
         self.percent_of = percent_of
-        self.end_date = end_date
+        self.start_date = _date_str(start_date)
+        self.end_date = _date_str(end_date)
+        self.xp_params = xp_params
 
         # finish trx stats
-        res = (data.groupby(groups + ['trx_type'], observed=True).
-               apply(self._calc).
-               reset_index().
-               drop(columns=[f'level_{len(groups) + 1}']))
-
-        self.data = res
+        if agg:
+            res = (data.groupby(groups + ['trx_type'], observed=True).
+                   apply(self._calc).
+                   reset_index().
+                   drop(columns=[f'level_{len(groups) + 1}']))
+            self.data = res
+        else:
+            self.data = data
 
         return None
 
@@ -224,8 +297,10 @@ class TrxStats():
         # safe divide by zero that returns infinite without warning
         def div(x, y):
             if y == 0:
-                if x >= 0:
+                if x > 0:
                     return np.Inf
+                elif x == 0:
+                    return np.nan
                 else:
                     return -np.Inf
             else:
@@ -236,6 +311,9 @@ class TrxStats():
                   'trx_flag': sum(data.trx_flag),
                   'trx_amt': sum(data.trx_amt),
                   'exposure': sum(data.exposure)}
+
+        conf_level = self.xp_params['conf_level']
+        conf_int = self.xp_params['conf_int']
 
         fields['avg_trx'] = div(fields['trx_amt'], fields['trx_flag'])
         fields['avg_all'] = div(fields['trx_amt'], fields['exposure'])
@@ -249,10 +327,239 @@ class TrxStats():
             fields[f"pct_of_{x}_all"] = div(fields['trx_amt'], fields[x])
             fields[f"pct_of_{xw}"] = div(fields['trx_amt'], fields[xw])
 
-        # convert dataults to a data frame
+        # confidence interval formulas
+        if conf_int:
+
+            p = [(1 - conf_level) / 2, 1 - (1 - conf_level) / 2]
+
+            fields['trx_util_lower'] = div(
+                binom.ppf(p[0], np.round(fields['exposure']),
+                          fields['trx_util']), fields['exposure'])
+            fields['trx_util_upper'] = div(
+                binom.ppf(p[1], np.round(fields['exposure']),
+                          fields['trx_util']), fields['exposure'])
+
+            if len(self.percent_of) > 0:
+                # standard deviations
+
+                fields['trx_amt_sq'] = sum(data['trx_amt_sq'])
+                sd_trx = (div(fields['trx_amt_sq'], fields['trx_flag']) -
+                          fields['avg_trx'] ** 2) ** 0.5
+                # For binomial N
+                # Var(S) = n * p * (Var(X) + E(X)**2 * (1 - p))
+                sd_all = (fields['trx_flag'] *
+                          (sd_trx ** 2 + fields['avg_trx'] ** 2 *
+                           (1 - fields['trx_util']))) ** 0.5
+
+            for x in self.percent_of:
+
+                xw = x + "_w_trx"
+
+                # confidence intervals with transactions
+                fields[f'pct_of_{xw}_lower'] = div(
+                    _qnorm(p[0], fields['trx_amt'], sd_trx *
+                           fields['trx_flag'] ** 0.5), fields[xw])
+                fields[f'pct_of_{xw}_upper'] = div(
+                    _qnorm(p[1], fields['trx_amt'], sd_trx *
+                           fields['trx_flag'] ** 0.5), fields[xw])
+                # confidence intervals across all records
+                fields[f'pct_of_{x}_all_lower'] = div(
+                    _qnorm(p[0], fields['trx_amt'], sd_all), fields[x])
+                fields[f'pct_of_{x}_all_upper'] = div(
+                    _qnorm(p[1], fields['trx_amt'], sd_all), fields[x])
+
+        # convert data to a data frame
         data = pd.DataFrame(fields, index=range(1))
 
         return data
+
+    @classmethod
+    def from_DataFrame(cls,
+                       data: pd.DataFrame,
+                       conf_int: bool = False,
+                       conf_level: float = 0.95,
+                       col_trx_amt: str = 'trx_amt',
+                       col_trx_n: str = 'trx_n',
+                       col_trx_flag: str = 'trx_flag',
+                       col_exposure: str = "exposure",
+                       col_percent_of: str = None,
+                       col_percent_of_w_trx: str = None,
+                       col_trx_amt_sq: str = "trx_amt_sq",
+                       start_date: datetime | int | str = datetime(1900, 1, 1),
+                       end_date: datetime | int | str = None):
+        """
+        Convert a data frame containing aggregate transaction experience study
+        results to the `TrxStats` class.
+
+        `from_DataFrame()` is most useful for working with aggregate summaries 
+        of experience that were not created by actxps where individual policy
+        information is not available. After converting the data to the 
+        `TrxStats` class, `summary()` can be used to summarize data by any 
+        grouping variables, and `plot()` and `table()` are available for 
+        reporting.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            A DataFrame containing aggregate transaction study results. See the 
+            Notes section for required columns that must be present.
+        conf_int : bool, default=False
+            If `True`, future calls to `summary()` will include confidence 
+            intervals around the observed utilization rates and any
+            `percent_of` output columns.
+        conf_level : float, default=0.95
+            Confidence level used for the Limited Fluctuation credibility method
+            and confidence intervals.
+        col_trx_amt : str, default='trx_amt'
+            Name of the column in `data` containing transaction amounts.
+        col_trx_n : str, default='trx_n'
+            Name of the column in `data` containing transaction counts.
+        col_trx_flag : str, default='trx_flag'
+            Name of the column in `data` containing the number of exposure records
+            with transactions.
+        col_exposure : str, default='exposure'
+            Name of the column in `data` containing exposures.
+        col_percent_of : str, default=None
+            Name of the column in `data` containing a numeric variable to use 
+            in "percent of" calculations.
+        col_percent_of_w_trx : str, default=None
+            Name of the column in `data` containing a numeric variable to use 
+            in "percent of" calculations with transactions.
+        col_trx_amt_sq : str, default='trx_amt_sq'
+            Only required when `col_percent_of` is passed and `conf_int` is 
+            `True`. Name of the column in `data` containing squared transaction 
+            amounts.
+        start_date : datetime | int | str, optional
+            Transaction study start date
+        end_date : datetime | int | str, optional
+            Transaction study end date
+
+        Returns
+        -------
+        TrxStats
+            A `TrxStats` object
+
+
+        Notes
+        ----------
+        At a minimum, the following columns are required:
+
+        - Transaction amounts (`trx_amt`)
+        - Transaction counts (`trx_n`)
+        - The number of exposure records with transactions (`trx_flag`). 
+        This number is not necessarily equal to transaction counts. If multiple 
+        transactions are allowed per exposure period, `trx_flag` will be less 
+        than `trx_n`.
+        - Exposures (`exposure`)
+
+        If transaction amounts should be expressed as a percentage of another
+        variable (i.e. to calculate utilization rates or actual-to-expected 
+        ratios), additional columns are required:
+
+        - A denominator "percent of" column. For example, the sum of account 
+        values.
+        - A denominator "percent of" column for exposure records with
+        transactions. For example, the sum of account values across all records
+        with non-zero transaction amounts.
+
+        If confidence intervals are desired and "percent of" columns are passed,
+        an additional column for the sum of squared transaction amounts 
+        (`trx_amt_sq`) is also required.
+
+        The names in parentheses above are expected column names. If the data
+        frame passed to `from_DataFrame()` uses different column names, these 
+        can be specified using the `col_*` arguments.
+
+        `start_date`, and `end_date` are optional arguments that are
+        only used for printing the resulting `TrxStats` object.
+
+        Unlike `ExposedDF.trx_stats()`, `from_DataFrame()` only permits a 
+        single transaction type and a single `percent_of` column.
+
+        Examples
+        ----------
+        ```{python}
+        # convert pre-aggregated experience into a TrxStats object
+        import actxps as xp
+
+        agg_sim_dat = xp.load_agg_sim_dat()
+        dat = xp.TrxStats.from_DataFrame(
+            agg_sim_dat,
+            col_exposure="n",
+            col_trx_amt="wd",
+            col_trx_n="wd_n",
+            col_trx_flag="wd_flag",
+            col_percent_of="av",
+            col_percent_of_w_trx="av_w_wd",
+            col_trx_amt_sq="wd_sq",
+            start_date=2005, end_date=2019,
+            conf_int=True)
+        dat
+
+        # summary by policy year
+        dat.summary('pol_yr')
+        ```
+
+        See Also
+        ----------
+        `ExposedDF.trx_stats()` for information on how `TrxStats` objects are 
+        typically created from individual exposure records.
+        """
+
+        assert isinstance(data, pd.DataFrame), \
+            '`data` must be a Pandas DataFrame'
+
+        # column name alignment
+        rename_dict = {col_trx_amt: 'trx_amt',
+                       col_trx_n: 'trx_n',
+                       col_trx_flag: 'trx_flag',
+                       col_exposure: "exposure"}
+
+        req_names = {"exposure", "trx_amt", "trx_n", "trx_flag"}
+
+        if conf_int and col_percent_of is not None:
+            req_names.update(["trx_amt_sq"])
+            rename_dict.update({col_trx_amt_sq: "trx_amt_sq"})
+
+        if col_percent_of is not None:
+            req_names.update([col_percent_of, col_percent_of + "_w_trx"])
+
+        if col_percent_of_w_trx is not None:
+            assert col_percent_of is not None, \
+                "`col_percent_of_w_trx` was supplied without passing " + \
+                "anything to `col_percent_of`"
+            rename_dict.update(
+                {col_percent_of_w_trx: col_percent_of + "_w_trx"})
+
+        data = data.rename(columns=rename_dict)
+        data['trx_type'] = col_trx_amt
+
+        # check required columns
+        _verify_col_names(data.columns, req_names)
+
+        if col_percent_of is None:
+            col_percent_of = []
+        else:
+            col_percent_of = [col_percent_of]
+
+        return TrxStats(data,
+                        trx_types=[col_trx_amt],
+                        percent_of=col_percent_of,
+                        groups=[],
+                        start_date=start_date,
+                        end_date=end_date,
+                        xp_params={'conf_int': conf_int,
+                                   'conf_level': conf_level},
+                        agg=False)
+
+    @ __init__.register(pd.DataFrame)
+    def _special_init(self, data: pd.DataFrame, **kwargs):
+        """
+        Special constructor for the TrxStats class. This constructor is used
+        by the `from_DataFrame()` class method to create new TrxStats objects 
+        from pre-aggregated data frames.
+        """
+        self._finalize(data, **kwargs)
 
     def summary(self, *by):
         """
@@ -268,6 +575,11 @@ class TrxStats():
             the re-summarized object. Passing nothing is acceptable and will
             produce a 1-row experience summary.
 
+        Returns
+        ----------
+        TrxStats
+            A new `TrxStats` object with rows for all the unique groups in `*by`
+
         Examples
         ----------
         ```{python}
@@ -275,42 +587,33 @@ class TrxStats():
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
         expo = xp.ExposedDF.expose_py(census, "2019-12-31",
-                                      target_status = "Surrender")
+                                      target_status="Surrender")
         expo.add_transactions(withdrawals)
 
         trx_res = (expo.groupby('inc_guar', 'pol_yr').
-                   trx_stats(percent_of = "premium"))
+                   trx_stats(percent_of='premium'))
         trx_res.summary('inc_guar')
-        ```
+        ```            
+        """
+        return TrxStats(by, self)
 
-        Returns
-        ----------
-        TrxStats
-            A new `TrxStats` object with rows for all the unique groups in `*by`
+    @ __init__.register(tuple)
+    def _special_init(self, by: tuple, old_self):
+        """
+        Special constructor for the TrxStats class. This constructor is used
+        by the `summary()` class method to create new summarized instances.
         """
 
         by = list(by)
 
         if len(by) > 0:
-            assert all(pd.Series(by).isin(self.data.columns)), \
-                "All grouping variables passed to `*by` must be in the`.data` property."
+            assert all(pd.Series(by).isin(old_self.data.columns)), \
+                "All grouping variables passed to `*by` must be in the " + \
+                "`.data` property."
 
-        self.groups = by
-
-        return TrxStats('from_summary', self)
-
-    @ __init__.register(str)
-    def _special_init(self,
-                      style: str,
-                      old_self):
-        """
-        Special constructor for the TrxStats class. This constructor is used
-        by the `summary()` class method to create new summarized instances.
-        """
-        assert style == "from_summary"
-        self.data = None
         self._finalize(old_self.data, old_self.trx_types, old_self.percent_of,
-                       old_self.groups, old_self.start_date, old_self.end_date)
+                       by, old_self.start_date, old_self.end_date,
+                       old_self.xp_params)
 
     def __repr__(self):
         repr = "Transaction study results\n\n"
@@ -318,7 +621,7 @@ class TrxStats():
         if len(self.groups) > 0:
             repr += f"Groups: {', '.join([str(i) for i in self.groups])}\n"
 
-        repr += f"Study range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}\n"
+        repr += f"Study range: {self.start_date} to {self.end_date}\n"
 
         repr += f"Transaction types: {', '.join([str(i) for i in self.trx_types])}\n"
 
@@ -340,7 +643,9 @@ class TrxStats():
              mapping: aes = None,
              scales: str = "fixed",
              geoms: str = "lines",
-             y_labels: callable = lambda l: [f"{v * 100:.1f}%" for v in l]):
+             y_labels: callable = lambda l: [f"{v * 100:.1f}%" for v in l],
+             y_log10: bool = False,
+             conf_int_bars: bool = False):
         """
         Plot transaction study results
 
@@ -366,11 +671,19 @@ class TrxStats():
             is supplied, the `x`, `y`, and `color` arguments will be ignored.
         scales : str, default='fixed'
             The `scales` argument passed to `plotnine.facet_wrap()`.
-        geoms : {'lines', 'bars'}
+        geoms : {'lines', 'bars', 'points}
             Type of geometry. If "lines" is passed, the plot will display lines
-            and points. If "bars", the plot will display bars.
+            and points. If "bars", the plot will display bars. If "points",
+            the plot will display points only.
         y_labels : callable, default=lambda l: [f"{v * 100:.1f}%" for v in l]
             Label function passed to `plotnine.scale_y_continuous()`.
+        y_log10 : bool, default=False
+            If `True`, the y-axes are plotted on a log-10 scale.
+        conf_int_bars: bool, default=False
+            If `True`, confidence interval error bars are included in the plot.
+            This option is only available for utilization rates and any 
+            `pct_of` columns.
+
 
         Notes
         ----------
@@ -382,6 +695,23 @@ class TrxStats():
         If no faceting variables are supplied, the plot will use grouping
         variables 3 and up as facets. These variables are passed into
         `plotnine.facet_wrap()`.
+
+
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status="Surrender")
+        expo.add_transactions(withdrawals)
+
+        trx_res = (expo.groupby('pol_yr').
+                   trx_stats(percent_of='premium'))
+
+        trx_res.plot()
+        ```        
         """
 
         if facets is None:
@@ -389,15 +719,79 @@ class TrxStats():
         facets = ['trx_type'] + np.atleast_1d(facets).tolist()
 
         return _plot_experience(self, x, y, color, mapping, scales,
-                                geoms, y_labels, facets)
+                                geoms, y_labels, facets, y_log10,
+                                conf_int_bars)
+
+    def plot_utilization_rates(self, **kwargs):
+        """
+        Plot transaction frequency and severity. 
+
+        Frequency is represented by utilization rates (`trx_util`). Severity is
+        represented by transaction amounts as a percentage of one or more other
+        columns in the data (`{*}_w_trx`). All severity series begin with the 
+        prefix "pct_of_" and end with the suffix "_w_trx". The suffix refers to 
+        the fact that the denominator only includes records with non-zero 
+        transactions. Severity series are based on column names passed to the 
+        `percent_of` argument in `trx_stats()`. If no "percentage of" columns
+        exist, this function will only plot utilization rates.
+
+        Parameters
+        ----------
+        **kwargs
+            Additional arguments passed to `plot()`
+
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        account_vals = xp.load_account_vals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status="Surrender")
+        expo.add_transactions(withdrawals)
+        expo.data = expo.data.merge(account_vals, how='left',
+                                    on=["pol_num", "pol_date_yr"])        
+
+        trx_res = (expo.groupby('pol_yr').
+                   trx_stats(percent_of='av_anniv', combine_trx=True))
+
+        trx_res.plot_utilization_rates()
+        ```                    
+        """
+        piv_cols = ["trx_util"]
+        piv_cols.extend(np.intersect1d(
+            [f"pct_of_{x}_w_trx" for x in self.percent_of],
+            self.data.columns))
+
+        if len2(self.groups) == 1:
+            kwargs.update({'color': '_no_color'})
+
+        if 'facets' not in kwargs:
+            facets = self.groups[2:]
+        else:
+            facets = []
+        facets = ['trx_type'] + np.atleast_1d(facets).tolist() + ['Series']
+
+        piv_data = _pivot_plot_special(self, piv_cols)
+
+        return _plot_experience(self, y="Rate",
+                                facets=facets,
+                                alt_data=piv_data,
+                                scales="free_y",
+                                group_insert=999,
+                                **kwargs)
 
     def table(self,
               fontsize: int = 100,
               decimals: int = 1,
               colorful: bool = True,
-              color_util: str | Colormap = "GnBu",
-              color_pct_of: str | Colormap = "RdBu_r",
-              rename_cols: dict = None):
+              color_util: str = "GnBu",
+              color_pct_of: str = "RdBu_r",
+              show_conf_int: bool = False,
+              decimals_amt: int = 0,
+              suffix_amt: bool = False,
+              **rename_cols: str):
         """
         Tabular transaction study summary
 
@@ -415,142 +809,174 @@ class TrxStats():
             If `True`, color will be added to the the observed utilization rate
             and "percentage of" columns.
 
-        color_util : str or colormap, default='GnBu'
+        color_util : str, default='GnBu'
             Matplotlib colormap used for the observed utilization rate.
 
-        color_pct_of : str or colormap, default='RdBu_r'
+        color_pct_of : str, default='RdBu_r'
             Matplotlib colormap used for "percentage of" columns.
 
-        rename_cols : dict, default=None
-            An optional dictionaryof key-value pairs where keys are column names
-            and values are labels that will appear on the output table. This
-            parameter is useful for renaming grouping variables that will 
-            appear under their original variable names if left unchanged.
+        show_conf_int: bool, default=False 
+            If `True` any confidence intervals will be displayed.
+
+        decimals_amt: bool, default=0
+            Number of decimals to display for amount columns (transaction 
+            counts, total transactions, and average transactions)
+
+        suffix_amt: bool, default=False
+            This argument has the same meaning as the `compact` argument in 
+            great_tables.gt.GT.fmt_number() for amount columns. If `False`,
+            no scaling or suffixing are applied to amount columns. If `True`, 
+            all amount columns are automatically scaled and suffixed by "K" 
+            (thousands), "M" (millions), "B" (billions), or "T" (trillions).
+
+        rename_cols : str, default=None
+            Key-value pairs where keys are column names and values are labels
+            that will appear on the output table. This parameter is useful for
+            renaming grouping variables that will appear under their original
+            variable names if left unchanged.
 
         Notes
         ----------
-        Further customizations can be added using Pandas Styler functions. See 
-        `pandas.DataFrame.style` for more information.
+        Further customizations can be added using great_tables.gt.GT methods. 
+        See the `great_tables` package documentation for more information.
 
         Returns
         ----------
-        pd.io.formats.style.Styler
-            A formatted HTML table of the Pandas styler class
+        great_tables.gt.GT
+            A formatted HTML table
+            
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status="Surrender")
+        expo.add_transactions(withdrawals)
+
+        trx_res = (expo.groupby('pol_yr').
+                   trx_stats(percent_of='premium'))
+
+        trx_res.table()
+        ```
         """
 
         # set up properties
-        data = (self.data.copy().
-                rename(columns={'trx_type': 'Type'}).
-                set_index(['Type'] + self.groups).
-                sort_index())
+        data = self.data.copy()
         percent_of = self.percent_of
         trx_types = self.trx_types
-        start_date = self.start_date.strftime('%Y-%m-%d')
-        end_date = self.end_date.strftime('%Y-%m-%d')
+        start_date = self.start_date
+        end_date = self.end_date
+        conf_int = self.xp_params['conf_int']
 
-        # display column names
-        trx_n = "Total"
-        trx_flag = "Periods"
-        trx_amt = "Amount"
-        avg_trx = "<em>w/ trx</em>"
-        avg_all = "<em>all</em>"
-        trx_freq = "Frequency"
-        trx_util = "Utilization"
+        # remove unnecessary columns
+        if len(percent_of) > 0:
+            data.drop(columns=percent_of + [x + "_w_trx" for x in percent_of],
+                      inplace=True)
+        if conf_int:
+            data.drop(columns=['trx_amt_sq'], inplace=True)
 
-        # rename and drop unnecessary columns
-        if rename_cols is None:
-            rename_cols = {}
+        ci_cols = col_contains(data, '_(?:upp|low)er$')
+        if show_conf_int and not conf_int:
+            _conf_int_warning()
+        elif conf_int and not show_conf_int:
+            data.drop(columns=ci_cols, inplace=True)
+            ci_cols = []
+        conf_int = show_conf_int and conf_int
 
-        drop_pct_of = percent_of + [x + '_w_trx' for x in percent_of]
-
-        rename_cols.update({'trx_n': trx_n,
-                            'trx_flag': trx_flag,
-                            'trx_amt': trx_amt,
-                            'avg_trx': avg_trx,
-                            'avg_all': avg_all,
-                            'trx_freq': trx_freq,
-                            'trx_util': trx_util})
-
+        # set up index and groups
         data = (data.
-                drop(columns=drop_pct_of + ['exposure']).
-                rename(columns=rename_cols)
-                )
-
-        if len(percent_of) == 0:
-            l1 = ['' for x in data.columns]
-            l2 = data.columns
+                drop(columns=['exposure']).
+                sort_values(['trx_type'] + self.groups).
+                reset_index())
+        if len(self.groups) > 0:
+            rowname_col = self.groups[0]
+            data = data.drop(columns='index')
         else:
-            l1 = data.columns.str.extract(
-                f"^pct_of_({'|'.join(percent_of)})").fillna('')[0]
-            l2 = data.columns.str.replace(
-                f"^pct_of_({'|'.join(percent_of)})", "", regex=True)
-        l2 = np.where(l2 == '_all', '<em>all</em>', l2)
-        l2 = np.where(l2 == '_w_trx', '<em>w/ trx</em>', l2)
+            rowname_col = 'index'
 
-        for i, x in enumerate(l2):
-            if l1[i] != '':
-                l1[i] = "% of " + l1[i]
-            if x in [trx_n, trx_flag] and l1[i] == "":
-                l1[i] = "Counts"
-            if x in [avg_trx, avg_all] and l1[i] == "":
-                l1[i] = "Averages"
+        # TODO - once implemented, add `sub_missing()`
+        tab = (GT(data,
+                  groupname_col='trx_type',
+                  rowname_col=rowname_col).
+               fmt_number(['trx_n', 'trx_amt', 'trx_flag',
+                           'avg_trx', 'avg_all'],
+                          decimals=decimals_amt,
+                          compact=suffix_amt).
+               fmt_number('trx_freq', decimals=1).
+               fmt_percent(col_starts_with(data, "trx_util") +
+                           col_starts_with(data, "pct_of_"),
+                           decimals=decimals).
+               # sub_missing().
+               tab_options(table_font_size=pct(fontsize),
+                           row_striping_include_table_body=True,
+                           column_labels_font_weight='bold').
+               tab_spanner(md("**Counts**"), ["trx_n", "trx_flag"]).
+               tab_spanner(md("**Averages**"), ["avg_trx", "avg_all"]).
+               cols_label(trx_n="Total",
+                          trx_flag="Periods",
+                          trx_amt="Amount",
+                          avg_trx=md("*w/ trx*"),
+                          avg_all=md("*all*"),
+                          trx_freq="Frequency",
+                          trx_util="Utilization",
+                          **rename_cols).
+               tab_header(title="Transaction Study Results",
+                          subtitle=f"Transaction type{'s' if len(trx_types) > 1 else ''}: {', '.join(trx_types)}").
+               tab_source_note(f"Study range: {start_date} to {end_date}")
+               )
 
-        # set up spanners by creating a multi-index and relocating columns
-        data.columns = pd.MultiIndex.from_arrays([l1, l2])
+        # TODO add this once great_tables supports cols_merge_range
+        # merge confidence intervals into a single range column
+        if conf_int:
+            tab = (tab.
+                   tab_spanner(md("**Utilization**"),
+                               ['trx_util', 'trx_util_lower', 'trx_util_upper']).
+                   cols_label(trx_util=md("*Rate*"),
+                              trx_util_lower=md("*CI*"),
+                              trx_util_upper=""))
+            # TODO merge pct_of columns
+            # for i in percent_of:
+            #     pass
 
-        # TODO - remove after confirming columns are alread in the right order
-        # if expected != [None]:
-        #     data = data[[''] + expected]
-        # if cred:
-        #     z = data.pop(('', credibility))
-        #     data[('', credibility)] = z
+        for i in percent_of:
+            tab = _span_percent_of(tab, i, conf_int)
 
-        # identify percentage and A/E columns for formatting
-        pct_of_cols = [(x, y) for x, y in zip(l1, l2)
-                       if x.startswith("% of ")]
-        pct_cols = [('', trx_util)] + pct_of_cols
-
-        # apply all styling except colors
-        tab = (
-            data.
-            style.
-            # TODO can we do a groupname column?
-            format('{:,.0f}', subset=[("Counts", trx_n),
-                                      ("Counts", trx_flag),
-                                      ("", trx_amt),
-                                      ("Averages", avg_trx),
-                                      ("Averages", avg_all)]).
-            format('{:,.1f}', subset=[("", trx_freq)]).
-            format('{:.' + str(decimals) + '%}', subset=pct_cols).
-            set_table_styles([{'selector': 'th',
-                               'props': [('font-weight', 'bold'),
-                                         ('font-size', str(fontsize) + '%')]},
-                              {'selector': 'tr',
-                             'props': [('font-size', str(fontsize) + '%')]},
-                              {'selector': 'caption',
-                               'props': f'font-size: {fontsize}%;'},
-                              {'selector': 'th.col_heading',
-                               'props': 'text-align: center;'},
-                              {'selector': 'th.col_heading.level0',
-                               'props': 'font-size: 1.1em;'},
-                              {'selector': 'caption',
-                               'props': 'caption-side: top;'
-                               }]).
-            set_caption('<h1>Transaction Study Results</h1>' +
-                        f"Transaction type{'s' if len(trx_types) > 1 else ''}: " +
-                        f"{', '.join(trx_types)}<br>" +
-                        f"Study range: {start_date} to "
-                        f"{end_date}")
-        )
-
-        tab.columns.names = [None, None]
-
-        # apply colors
+        # TODO - replace _data_color with a great_tables function in the future
         if colorful:
-            tab = (
-                tab.
-                background_gradient(subset=[("", trx_util)], cmap=color_util).
-                background_gradient(subset=pct_of_cols, cmap=color_pct_of)
-            )
+            tab = _data_color(tab, ['trx_util'], color_util)
+
+            if len(percent_of) > 0:
+                pct_of_cols = [f"pct_of_{x}_w_trx" for x in percent_of] + \
+                    [f"pct_of_{x}_all" for x in percent_of]
+                tab = _data_color(tab, pct_of_cols, color_pct_of)
 
         return tab
+
+
+def _span_percent_of(tab: GT, pct_of, conf_int):
+
+    pct_names = [f"pct_of_{pct_of}{x}" for x in ["_w_trx", "_all"]]
+    if conf_int:
+        pct_names = pct_names + [x + y for x, y in
+                                 product(pct_names, ['_lower', '_upper'])]
+
+    rename_dict = {
+        pct_names[0]: md("*w/ trx*"),
+        pct_names[1]: md("*all*")
+    }
+
+    if conf_int:
+        rename_dict.update({
+            pct_names[2]: md("*w/ trx CI*"),
+            pct_names[3]: "",
+            pct_names[4]: md("*all CI*"),
+            pct_names[5]: "",
+        })
+
+    tab = (tab.
+           tab_spanner(md(f"**% of {pct_of}**"), pct_names).
+           cols_label(**rename_dict))
+
+    return tab

@@ -1,7 +1,8 @@
 from actxps.expose import *
 from actxps.datasets import *
+from actxps.expose_split import SplitExposedDF
 import pandas as pd
-import numpy as np
+from pandas.tseries.offsets import Day
 import pytest
 
 toy_census = load_toy_census()
@@ -19,6 +20,7 @@ class TestExposeInit():
             ExposedDF(toy_census, '2022-12-31', expo_length='quantum')
 
 
+# Policy year exposure checks
 class TestPolExpo():
 
     def test_min_expo(self):
@@ -31,9 +33,11 @@ class TestPolExpo():
         assert study_py.data.exposure.isna().sum() == 0
 
     def test_full_expo_targ(self):
-        assert all(study_py.data.loc[study_py.data.status == "Surrender"] == 1)
+        assert all(study_py.data.loc[study_py.data.status == "Surrender",
+                                     "exposure"] == 1)
 
 
+# Calendar year exposure checks
 class TestCalExpo():
 
     def test_min_expo(self):
@@ -46,7 +50,8 @@ class TestCalExpo():
         assert study_cy.data.exposure.isna().sum() == 0
 
     def test_full_expo_targ(self):
-        assert all(study_cy.data.loc[study_cy.data.status == "Surrender"] == 1)
+        assert all(study_cy.data.loc[study_cy.data.status == "Surrender",
+                                     "exposure"] == 1)
 
 
 check_period_end_pol = (ExposedDF.expose_pw(toy_census, "2020-12-31",
@@ -74,6 +79,7 @@ check_period_end_cal = check_period_end_cal.\
         check_period_end_cal.cal_mth_end + Day(1)].shape[0]
 
 
+# Period start and end dates roll
 class TestRollDates():
 
     def test_beg_lt_end1(self):
@@ -106,6 +112,7 @@ march_1 = pd.DataFrame({'pol_num': 1,
 march_1_expose = ExposedDF.expose_pm(march_1, end_date="2020-02-29")
 
 
+# Test leap day stability
 class TestLeapStability():
 
     def test_leap(self):
@@ -122,6 +129,7 @@ with_start_date = ExposedDF.expose_py(
 )
 
 
+# Start and end dates work
 class TestStartEnd():
 
     def test_min_date(self):
@@ -138,6 +146,7 @@ exposed_dates = ExposedDF(toy_census, pd.to_datetime("2020-12-31"),
                           pd.to_datetime("2016-04-01"))
 
 
+# Expose date arguments can be passed strings
 class TestDateArgString:
 
     def test_same(self):
@@ -151,6 +160,7 @@ renamer = {"pol_num": "a",
 toy_census2 = toy_census.rename(columns=renamer)
 
 
+# Renaming and name conflict warnings work
 class TestRenames():
 
     def test_name_error(self):
@@ -199,6 +209,7 @@ expo4 = expo3.rename(columns={'status': 'stat',
                               'pol_date_yr_end': 'end'})
 
 
+# .from_DataFrame method
 class TestFromDataFrame():
 
     def test_wrong_format(self):
@@ -253,6 +264,7 @@ expo7 = expo6.copy().rename(columns={
 })
 
 
+# .from_DataFrame method with transactions
 class TestFromDataFrameTrx():
 
     def test_from_df_w_trx_works(self):
@@ -277,3 +289,107 @@ class TestFromDataFrameTrx():
                                                 "2022-12-31", trx_types=['A', 'B'],
                                                 col_trx_amt_='amt_', col_trx_n_='n_'),
                        ExposedDF)
+
+
+# from_DataFrame default_status works
+class TestDefaultStatus():
+
+    def test_default(self):
+        assert ExposedDF.from_DataFrame(expo2, "2022-12-31").default_status == \
+            'Active'
+
+    def test_default_override(self):
+        assert ExposedDF.from_DataFrame(
+            expo2, "2022-12-31", default_status='Inforce').default_status == \
+            'Inforce'
+
+    def test_default2(self):
+        assert expo.default_status == 'Active'
+
+
+# split exposure tests
+
+# expose_split() fails when passed non-calendar ExposedDF's
+class TestSplitTypeErrors():
+
+    def test_int(self):
+        with pytest.raises(AssertionError,
+                           match="An `ExposedDF` object is required"):
+            SplitExposedDF(1)
+
+    def test_pol_expo(self):
+        with pytest.raises(AssertionError,
+                           match="has calendar exposures"):
+            ExposedDF.expose_py(toy_census, "2022-12-31").expose_split()
+
+    def test_cal_expo(self):
+        assert isinstance(
+            ExposedDF.expose_cy(toy_census, "2022-12-31").expose_split(),
+            SplitExposedDF)
+
+
+withdrawals = load_withdrawals()
+study_split = study_cy.expose_split().add_transactions(withdrawals)
+study_cy = study_cy.add_transactions(withdrawals)
+
+
+# expose_split() is consistent with expose_cy()
+class TestSplitEquivalence():
+
+    def test_expo(self):
+        assert abs(sum(study_cy.data.exposure) -
+                   sum(study_split.data.exposure_cal)) < 1E-8
+
+    def test_term_count(self):
+        assert sum(study_cy.data.status != "Active") == \
+            sum(study_split.data.status != "Active")
+
+    def test_trx_amt_1(self):
+        assert sum(study_cy.data.trx_amt_Base) == \
+            sum(study_split.data.trx_amt_Base)
+
+    def test_trx_amt_2(self):
+        assert sum(study_cy.data.trx_amt_Rider) == \
+            sum(study_split.data.trx_amt_Rider)
+
+
+# expose_split() warns about transactions attached too early
+class TestSplitErrorsWarnings():
+    def test_dup_trx_warning(self):
+        with pytest.warns(UserWarning,
+                          match="This will lead to duplication of transactions"):
+            study_cy.expose_split()
+
+    def test_unclear_expo_exp_stats(self):
+        with pytest.raises(AssertionError,
+                           match="A `SplitExposedDF` was passed without"):
+            study_split.exp_stats()
+
+    def test_unclear_expo_trx_stats(self):
+        with pytest.raises(AssertionError,
+                           match="A `SplitExposedDF` was passed without"):
+            study_split.trx_stats()
+
+
+split_dat = (
+    ExposedDF.expose_cy(
+        toy_census, "2020-12-31", target_status="Surrender").
+    expose_split().
+    data[["pol_num", "cal_yr", "cal_yr_end"]])
+split_dat['x'] = split_dat.groupby('pol_num')['cal_yr'].shift(-1)
+split_dat = split_dat.dropna()
+
+check_period_end_split = (split_dat[
+    split_dat.x != split_dat.cal_yr_end + Day(1)].
+    shape[0]
+)
+
+
+# Split period start and end dates roll"
+class TestSplitDateRoll():
+
+    def test_study_split_roll_1(self):
+        assert all(study_split.data.cal_yr <= study_split.data.cal_yr_end)
+
+    def test_study_split_roll_2(self):
+        assert check_period_end_split == 0

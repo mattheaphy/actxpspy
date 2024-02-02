@@ -2,9 +2,306 @@
 title: "Transaction studies"
 ---
 
+```{python}
+#| label: setup
+#| include: false
+import pandas as pd
+pd.options.display.max_rows = 10
+from actxps.tools import _set_actxps_plot_theme
+_set_actxps_plot_theme()
+```
+
 This article walks through an example of creating a **transaction study** using the actxps package. Unlike a termination study, transaction studies track events that can occur multiple times over the life of a policy. Often, transactions are expected to reoccur; for example, the utilization of a guaranteed income stream.
 
+Key questions to answer in a transaction study are:
+
+- What types of transactions occurred?
+- What is the count, amount, and average size of observed transactions?
+- What percentage of policies have transactions each exposure period?
+- How do transactions compare to expectations?
+- What is the rate of transaction amounts as a percentage of another value?
+
+The example below walks through preparing data by adding transaction information to an `ExposedDF` object using the `add_transactions()` method. Next, study results are summarized using the `trx_stats()` method.
+
+## Simulated transaction and account value data
+
+In this example, we'll be using the `census_dat`, `withdrawals`, and `account_vals` data sets. Each data set is based on a theoretical block of deferred annuity business with a guaranteed lifetime income benefit.
+
+- `census_dat` contains census-level information with one row per policy
+- `withdrawals` contains withdrawal transactions. There are 2 types of transactions in the data: "Base" (ordinary withdrawals) and "Rider" (guaranteed income payments).
+- `account_vals` contains historical account values on policy anniversaries. This data will be used to calculate withdrawal rates as a percentage of account values.
+
+## The `add_transactions()` method
+
+The `add_transactions()` method attaches transactions to an `ExposedDF` object, which contains a data frame with exposure-level records. For our example, we first need to convert `census_dat` into exposure records using `ExposedDF()`.^[See [Exposures](exposures.qmd) for more information on creating `ExposedDF` objects.] This example will use policy year exposures.
 
 ```{python}
-#TODO
+#| label: packages
+import actxps as xp
+
+census_dat = xp.load_census_dat()
+exposed_data = xp.ExposedDF(census_dat, "2019-12-31",
+                            target_status="Surrender")
+exposed_data
 ```
+
+The `withdrawals` data has 4 columns that are required for attaching transactions:
+
+- `pol_num`: policy number
+- `trx_date`: transaction date
+- `trx_type`: transaction type
+- `trx_amt`: transaction amount
+
+```{python}
+#| label: wd-head
+withdrawals = xp.load_withdrawals()
+withdrawals
+```
+
+The grain of this data is one row per policy per transaction. The expectation is that the number of records in the transaction data will not match the number of rows in the exposure data. That is because policies could have zero or several transactions in a given exposure period.
+
+The `add_transactions()` method uses a non-equivalent join to associate each transaction with a policy number and a date interval found in the exposure data. Then, transaction counts and amounts are summarized such that there is one row per exposure period. In the event there are multiple transaction types found in the data, separate columns are created for each transaction type.
+
+Using our example, we pass both the exposure and withdrawals data to `add_transactions()`. The resulting data has the same number of rows as original exposure data and 4 new columns:
+
+- `trx_amt_Base`: the sum of "Base" withdrawal transactions
+- `trx_amt_Rider`: the sum of "Rider" withdrawal transactions
+- `trx_n_Base`: the number of "Base" withdrawal transactions
+- `trx_n_Rider`: the number of "Rider" withdrawal transactions
+
+```{python}
+#| label: add-trx
+exposed_data.add_transactions(withdrawals)
+exposed_data.data.info()
+```
+
+If we print `exposed_data`, we can see that it has an additional attribute for transaction types that have been attached.
+
+```{python}
+#| label: print-trx-types
+exposed_data
+```
+
+
+## The `trx_stats()` method
+
+The actxps package's workhorse function for summarizing transaction experience is the `trx_stats()` method of the `ExposedDF` class. This function returns a `TrxStats` object, which is a type of data frame containing additional attributes about the transaction study.
+
+At a minimum, a `TrxStats` includes the following for each transaction type (`trx_type`):
+
+- The number of transactions (`trx_n`)
+- The number of exposure periods with a transaction (`trx_flag`)
+- The sum of transactions (`trx_amt`)
+- The total exposure (`exposure`)
+- The average transaction amount when a transaction occurs (`avg_trx`)
+- The average transaction amount across all records (`avg_all`)
+- The transaction frequency when a transaction occurs (`trx_freq = trx_n / trx_flag`)
+- The transaction utilization (`trx_util = trx_flag / exposure`)
+
+Optionally, a `TrxStats` can also include:
+
+- Any grouping variables attached to the input data
+- Transaction amounts as a percentage of another value when a transaction occurs (`pct_of_*_w_trx`)
+- Transaction amounts as a percentage of another value across all records (`pct_of_*_all`)
+
+To use `trx_stats()`, we simply need to call the method from an `ExposedDF` object with transactions attached.
+
+```{python}
+#| label: trx-basic
+exposed_data.trx_stats()
+```
+
+The results show us that we specified no groups, which is why the output data contains a single row for each transaction type.
+
+### Grouped data
+
+If the data is grouped using the `groupby()` method, future calls to `exp_stats()` will contain one record for each unique group.
+
+If the data is grouped using the `groupby()` method, future calls to `trx_stats()` will contain one record for each unique group.
+
+In the following, `exposed_data` is grouped by the presence of an income guarantee (`inc_guar`) before being passed to `trx_stats()`. This results in four rows because we have two types of transactions and two distinct values of `inc_guar`.
+
+```{python}
+#| label: grouped-1
+(exposed_data.
+    groupby('inc_guar').
+    trx_stats())
+```
+
+Multiple grouping variables are allowed. Below, policy year (`pol_yr`) is added as a second grouping variable.
+
+```{python}
+#| label: grouped-2
+(exposed_data.
+    groupby('inc_guar', 'pol_yr').
+    trx_stats())
+```
+
+## Expressing transactions as a percentage of another value
+
+In a transaction study, we often want to express transaction amounts as a percentage of another value. For example, in a withdrawal study, withdrawal amounts divided by account values provides a withdrawal rate. In a study of benefit utilization, transactions can be divided by a maximum benefit amount to derive a benefit utilization rate. In addition, actual-to-expected rates can be calculated by dividing transactions by expected values.
+
+If column names are passed to the `percent_of` argument of `trx_stats()`, the output will contain 4 additional columns for each "percent of" variable:
+
+- The sum of each "percent of" variable
+- The sum of each "percent of" variable when a transaction occurs. These columns include the suffix `_w_trx`.
+- Transaction amounts divided by each "percent of" variable (`pct_of_{*}_all`)
+- Transaction amounts divided by each "percent of" variable when a transaction occurs (`pct_of_{*}_w_trx`)
+
+For our example, let's assume we're interested in examining withdrawal transactions as a percentage of account values, which are available in the `account_vals` data frame in the column `av_anniv`.
+
+```{python}
+# | label: pct-of
+# attach account values data
+account_vals = xp.load_account_vals()
+exposed_data.data = \
+    exposed_data.data.merge(account_vals,
+                            on=['pol_num', 'pol_date_yr'],
+                            how='left')
+
+trx_res = (exposed_data.
+           groupby('pol_yr', 'inc_guar').
+           trx_stats(percent_of="av_anniv"))
+
+trx_res.data.info()
+```
+
+## Confidence intervals
+
+If `conf_int` is set to `True`, `trx_stats()` will produce lower and upper confidence interval limits for the observed utilization rate. Confidence intervals are constructed assuming a binomial distribution.
+
+```{python}
+#| label: trx-conf1
+(exposed_data.
+    groupby('pol_yr').
+    trx_stats(conf_int=True).
+    data[['pol_yr', 'trx_util', 'trx_util_lower', 'trx_util_upper']])
+```
+
+The default confidence level is 95%. This can be changed using the `conf_level` argument. Below, tighter confidence intervals are constructed by decreasing the confidence level to 90%.
+
+```{python}
+#| label: trx-conf2
+(exposed_data.
+    groupby('pol_yr').
+    trx_stats(conf_int=True, conf_level=0.9).
+    data[['pol_yr', 'trx_util', 'trx_util_lower', 'trx_util_upper']])
+```
+
+If any column names are passed to `percent_of`, `trx_stats()` will produce additional confidence intervals:
+
+- Intervals for transactions as a percentage of another column when transactions occur (`pct_of_{*}_w_trx`) are constructed using a normal distribution.
+- Intervals for transactions as a percentage of another column regardless of transaction utilization (`pct_of_{*}_all`) are calculated assuming that the aggregate distribution is normal with a mean equal to observed transactions and a variance equal to:
+
+$$
+     Var(S) = E(N) \times Var(X) + E(X)^2 \times Var(N),
+$$
+Where `S` is the aggregate transactions random variable, `X` is an individual transaction amount assumed to follow a normal distribution, and `N` is a binomial random variable for transaction utilization.
+
+```{python}
+#| label: trx-conf3
+(exposed_data.
+    groupby('pol_yr').
+    trx_stats(conf_int=True, percent_of="av_anniv").
+    data[['pol_yr', 'pct_of_av_anniv_all', 'pct_of_av_anniv_w_trx',
+          'pct_of_av_anniv_w_trx_lower', 'pct_of_av_anniv_w_trx_upper',
+          'pct_of_av_anniv_all_lower', 'pct_of_av_anniv_all_upper']].
+    info())
+```
+
+## `plot()` and `table()`
+
+The `plot()` and `table()` methods create visualizations and summary tables from `TrxStats` objects. See See [Visualizations](visualizations.qmd) for full details on these functions.
+
+```{python}
+#| label: trx-plot
+#| warning: false
+trx_res.plot(y='pct_of_av_anniv_w_trx')
+```
+
+```{python}
+#| label: trx-table
+#| eval: false
+# first 10 rows showed for brevity
+trx_res.table()
+```
+
+<center><img src="../images/trx_gt.png" width="65%" height="65%" /></center>
+
+## Miscellaneous
+
+### Selecting and combining transaction types
+
+The `trx_types` argument of `trx_stats()` selects a subset of transaction types that will appear in the output.
+
+```{python}
+#| label: select-trx-type
+exposed_data.trx_stats(trx_types="Base")
+```
+
+If the `combine_trx` argument is set to `True`, all transaction types will be combined in a group called "All" in the output.
+
+```{python}
+#| label: combine-trx
+exposed_data.trx_stats(combine_trx=True)
+```
+
+
+### Partial exposures are removed as a default
+
+As a default, `trx_stats()` removes partial exposures before summarizing results. This is done to avoid complexity associated with a lopsided skew in the timing of transactions. For example, if transactions can occur on a monthly basis or annually at the beginning of each policy year, partial exposures may not be appropriate. If a policy had an exposure of 0.5 years and was taking withdrawals annually at the beginning of the year, an argument could be made that the exposure should instead be 1 complete year. If the same policy was expected to take withdrawals 9 months into the year, it's not clear if the exposure should be 0.5 years or 0.5 / 0.75 years. To override this treatment, set the `full_exposures_only` argument to `False`.
+
+```{python}
+#| label: partial-expo-ok
+exposed_data.trx_stats(full_exposures_only=False)
+```
+
+### Summary method
+
+As noted above, the result of `trx_stats()` is a `TrxStats` object. If the `summary()` function is applied to a `TrxStats` object, the data will be summarized again and return a higher level `TrxStats` object.
+
+If no additional arguments are passed, `summary()` returns a single row of aggregate results for each transaction type.
+
+```{python}
+#| label: summary1
+trx_res.summary()
+```
+
+If additional variable names are passed to the `summary()` function, then the output will group the data by those variables. In our example, if `pol_yr` is passed to `summary()`, the output will contain one row per policy year for each transaction type.
+
+```{python}
+#| label: summary2
+trx_res.summary('pol_yr')
+```
+
+Similarly, if `inc_guar` is passed to `summary()`, the output will contain a row for each transaction type and unique value in `inc_guar`.
+
+```{python}
+#| label: summary3
+trx_res.summary('inc_guar')
+```
+
+### Column names
+
+As a default, `add_transactions()` assumes the transaction data frame (`trx_data`) uses the following naming conventions:
+
+- The policy number column is called `pol_num`
+- The transaction date column is called `trx_date`
+- The transaction type column is called `trx_type`
+- The transaction amount column is called `trx_amt`
+
+These default names can be overridden using the `col_pol_num`, `col_trx_date`, `col_trx_type`, and `col_trx_amt` arguments. 
+
+For example, if the transaction type column was called `transaction_code` in our data, we could write:
+
+```{python}
+#| label: col-names-1
+#| eval: false
+exposed_data.add_transactions(withdrawals, col_trx_type="transaction_code")
+```
+
+Similarly, `trx_stats()` assumes the input data uses the name `exposure` for exposures. This default can be overridden using the argument `col_exposure`.
+
+### Limitations
+
+The `trx_stats()` function does not produce any calculations related to the persistence of transactions from exposure period to exposure period.

@@ -2,12 +2,14 @@ import pandas as pd
 from pandas.tseries.offsets import Day
 import numpy as np
 from datetime import datetime
-from actxps.tools import arg_match
+from actxps.tools import (
+    arg_match,
+    _verify_col_names
+)
 from actxps.dates import frac_interval, add_interval
 from warnings import warn
 from functools import singledispatchmethod
 from itertools import product
-from actxps.exp_shiny import _exp_shiny
 
 
 class ExposedDF():
@@ -42,7 +44,8 @@ class ExposedDF():
     col_term_date str, default='term_date'
         name of the column in `data` containing the termination date
     default_status : str, default=`None`
-        Default active status code
+        Default active status code. If `None`, the most common status is
+        assumed.
 
 
     Attributes
@@ -58,7 +61,7 @@ class ExposedDF():
         Columns beginning with (`pol_`) are integer policy periods. Columns
         beginning with (`pol_date_`) are calendar dates representing
         anniversary dates, monthiversary dates, etc.
-    end_date, start_date, target_status, cal_expo, expo_length :
+    end_date, start_date, target_status, cal_expo, expo_length, default_status :
         Values passed on class instantiation. See Parameters for definitions.
     exposure_type : str
         A description of the exposure type that combines the `cal_expo` and
@@ -91,7 +94,7 @@ class ExposedDF():
 
     `default_status` is used to indicate the default active status that
     should be used when exposure records are created. If `None`, then the
-    first status level will be assumed to be the default active status.
+    most common status will be assumed.
 
     **Alternative class constructors**
 
@@ -114,7 +117,7 @@ class ExposedDF():
 
     - `from_DataFrame()`
         Convert a data frame that already has exposure-level records into an 
-        `ExposedDF` object.    
+        `ExposedDF` object.
 
 
     References
@@ -122,6 +125,15 @@ class ExposedDF():
     Atkinson and McGarry (2016). Experience Study Calculations
 
     https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf
+
+    Examples
+    ----------
+    ```{python}
+    import actxps as xp
+
+    xp.ExposedDF(xp.load_toy_census(), "2020-12-31", 
+                 target_status='Surrender')
+    ```
     """
 
     # helper dictionary for abbreviations
@@ -207,7 +219,7 @@ class ExposedDF():
         status_levels = data.status.unique()
         if default_status is None:
             default_status = pd.Categorical(
-                [status_levels[0]],
+                [_most_common(data.status)],
                 categories=status_levels)
         else:
             status_levels = np.union1d(status_levels, default_status)
@@ -261,7 +273,7 @@ class ExposedDF():
 
             def cal_frac(x):
                 """
-                Faster function per_frac for computing the distance
+                Faster function than per_frac for computing the distance
                 between two calendar dates. Only works for partial periods
                 less than 1 full period.
                 """
@@ -270,7 +282,7 @@ class ExposedDF():
 
             # partial exposure calculations
             expo_cond = [
-                data.status.isin in target_status,
+                data.status.isin(target_status),
                 data.first_per & data.last_per,
                 data.first_per,
                 data.last_per
@@ -325,13 +337,14 @@ class ExposedDF():
 
         # set up other properties
         self._finalize(data, end_date, start_date, target_status,
-                       cal_expo, expo_length)
+                       cal_expo, expo_length, default_status=default_status[0])
 
         return None
 
     def _finalize(self,
                   data, end_date, start_date, target_status,
-                  cal_expo, expo_length, trx_types=None):
+                  cal_expo, expo_length, trx_types=None,
+                  default_status=None, split=False):
         """
         This internal function finalizes class construction for `ExposedDF`
         objects.
@@ -341,10 +354,16 @@ class ExposedDF():
         self.end_date = end_date
         self.start_date = start_date
         self.target_status = target_status
+        self.default_status = default_status
         self.cal_expo = cal_expo
         self.expo_length = expo_length
-        self.exposure_type = ('calendar' if (cal_expo) else 'policy') + \
-            '_' + expo_length
+        if split:
+            self.exposure_type = 'split'
+        elif cal_expo:
+            self.exposure_type = 'calendar'
+        else:
+            self.exposure_type = 'policy'
+        self.exposure_type = self.exposure_type + '_' + expo_length
         self.date_cols = ExposedDF._make_date_col_names(cal_expo, expo_length)
         if trx_types is None:
             self.trx_types = []
@@ -426,7 +445,8 @@ class ExposedDF():
                        col_pol_per: str = None,
                        cols_dates: str = None,
                        col_trx_n_: str = "trx_n_",
-                       col_trx_amt_: str = "trx_amt_"):
+                       col_trx_amt_: str = "trx_amt_",
+                       default_status: str = None):
         """
         Coerce a data frame to an `ExposedDF` object
 
@@ -481,11 +501,13 @@ class ExposedDF():
             Prefix to use for columns containing transaction counts.
         col_trx_amt_ : str, default="trx_amt_"
             Prefix to use for columns containing transaction amounts.
+        default_status : str, default=`None`
+            Default active status code
 
 
         Returns
         ----------
-        `ExposedDF`
+        ExposedDF
             An `ExposedDF` object.
         """
 
@@ -530,7 +552,7 @@ class ExposedDF():
 
         # minimum required columns - pol_num, status, exposure,
         #  policy period (policy expo only)
-        unmatched = {"pol_num", "status", "exposure", exp_col_pol_per}
+        req_names = {"pol_num", "status", "exposure", exp_col_pol_per}
 
         # check transaction types
         if trx_types != None:
@@ -544,21 +566,17 @@ class ExposedDF():
             trx_types = np.unique(trx_types).tolist()
             exp_cols_trx = [x + y for x, y in product(["trx_n_", "trx_amt_"],
                                                       trx_types)]
-            unmatched.update(exp_cols_trx)
+            req_names.update(exp_cols_trx)
 
         # check required columns
-        unmatched.update(exp_cols_dates)
-        unmatched = unmatched.difference(data.columns)
+        _verify_col_names(data.columns, req_names)
 
-        assert len(unmatched) == 0, \
-            ("The following columns are missing from `data`: "
-                f"{', '.join(unmatched)}.\nHint: create these columns or use "
-                "the `col_*` arguments to specify existing columns that "
-                "should be mapped to these elements.")
+        if default_status is None:
+            default_status = _most_common(data.status)
 
         return cls('already_exposed',
                    data, end_date, start_date, target_status, cal_expo,
-                   expo_length, trx_types)
+                   expo_length, trx_types, default_status)
 
     @__init__.register(str)
     def _special_init(self,
@@ -569,7 +587,8 @@ class ExposedDF():
                       target_status: str = None,
                       cal_expo: bool = False,
                       expo_length: str = 'year',
-                      trx_types: list = None):
+                      trx_types: list = None,
+                      default_status: str = None):
         """
         Special constructor for the ExposedDF class. This constructor is used
         by the `from_DataFrame()` class method to create new classes from
@@ -580,13 +599,60 @@ class ExposedDF():
             "`style` must be 'already_exposed'"
 
         self._finalize(data, end_date, start_date, target_status,
-                       cal_expo, expo_length, trx_types)
+                       cal_expo, expo_length, trx_types, default_status)
 
     @staticmethod
     def _make_date_col_names(cal_expo: bool, expo_length: str):
         abbrev = ExposedDF.abbr_period[expo_length]
         x = ("cal_" if cal_expo else "pol_date_") + abbrev
         return x, x + "_end"
+
+    def expose_split(self):
+        """
+        Split calendar exposures by policy year
+
+        Split calendar period exposures that cross a policy anniversary
+        into a pre-anniversary record and a post-anniversary record.
+
+        Returns
+        -------
+        SplitExposedDF
+            A subclass of ExposedDF with calendar period exposures split by 
+            policy year.
+
+        Notes
+        ----------
+        The `ExposedDF` must have calendar year, quarter, month, or week 
+        exposure records. Calendar year exposures are created by passing 
+        `cal_expo = True` to `ExposedDF` (or alternatively, with the class 
+        methods `ExposedDF.expose_cy()`, `ExposedDF.expose_cq()`, 
+        `ExposedDF.expose_cm()`, and `ExposedDF.expose_cw()`).
+
+        After splitting, the resulting data will contain both calendar exposures
+        and policy year exposures. These columns will be named 'exposure_cal' 
+        and 'exposure_pol', respectively. Calendar exposures will be in the 
+        original units passed to `SplitExposedDF()`. Policy exposures will 
+        always be expressed in years. Downstream functions like `exp_stats()` 
+        and `exp_shiny()` will require clarification as to which exposure basis 
+        should be used to summarize results.    
+
+        After splitting, the column 'pol_yr' will contain policy years.
+
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        toy_census = xp.load_toy_census()
+        expo = xp.ExposedDF.expose_cy(toy_census, "2022-12-31")
+        expo.expose_split()
+        ```        
+
+        See Also
+        --------
+        `SplitExposedDF()` for full information on `SplitExposedDF` class.
+        """
+        from actxps.expose_split import SplitExposedDF
+        return SplitExposedDF(self)
 
     def __repr__(self) -> str:
         repr = ("Exposure data\n\n" +
@@ -643,9 +709,11 @@ class ExposedDF():
                   target_status: str | list | np.ndarray = None,
                   expected: str | list | np.ndarray = None,
                   wt: str = None,
+                  conf_int: bool = False,
                   credibility: bool = False,
-                  cred_p: float = 0.95,
-                  cred_r: float = 0.05):
+                  conf_level: float = 0.95,
+                  cred_r: float = 0.05,
+                  col_exposure: str = 'exposure'):
         """
         Summarize experience study records
 
@@ -663,13 +731,19 @@ class ExposedDF():
             Name of the column in the `data` property containing
             weights to use in the calculation of claims, exposures, and
             partial credibility.
+        conf_int: bool, default=False
+            If `True`, the output will include confidence intervals around the
+            observed termination rates and any actual-to-expected ratios.            
         credibility : bool, default=False
             Whether the output should include partial credibility weights and
             credibility-weighted decrement rates.
-        cred_p : float, default=0.95
+        conf_level : float, default=0.95
             Confidence level under the Limited Fluctuation credibility method
         cred_r : float, default=0.05
             Error tolerance under the Limited Fluctuation credibility method
+        col_exposure : str, default='exposure'
+            Name of the column in `data` containing exposures. Only necessary 
+            for `SplitExposedDF` objects.
 
         Notes
         ----------
@@ -688,6 +762,27 @@ class ExposedDF():
         the `data` property containing expected experience. More than one
         expected basis can be provided.
 
+        **Confidence intervals**
+
+        If `conf_int` is set to `True`, the output will contain lower and upper
+        confidence interval limits for the observed termination rate and any
+        actual-to-expected ratios. The confidence level is dictated
+        by `conf_level`. If no weighting variable is passed to `wt`, confidence
+        intervals will be constructed assuming a binomial distribution of 
+        claims. Otherwise, confidence intervals will be calculated assuming that
+        the aggregate claims distribution is normal with a mean equal to 
+        observed claims and a variance equal to:
+
+        `Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)`,
+
+        Where `S` is the aggregate claim random variable, `X` is the weighting
+        variable assumed to follow a normal distribution, and `N` is a binomial
+        random variable for the number of claims.
+
+        If `credibility` is `True` and expected values are passed to `expected`,
+        the output will also contain confidence intervals for any
+        credibility-weighted termination rates.
+
         **Credibility**
 
         If `credibility` is set to `True`, the output will contain a
@@ -698,21 +793,44 @@ class ExposedDF():
         Returns
         ----------
         `ExpStats`
-            An `ExpStats` object with a `data` property that includes columns for
-            any grouping variables, claims, exposures, and observed decrement rates
-            (`q_obs`). If any values are passed to `expected`, additional columns
-            will be added for expected decrements and actual-to-expected ratios. If
-            `credibility` is set to `True`, additional columns are added for partial
-            credibility and credibility-weighted decrement rates (assuming values
-            are passed to `expected`).
+            An `ExpStats` object with a `data` property that includes columns 
+            for any grouping variables, claims, exposures, and observed 
+            decrement rates (`q_obs`). If any values are passed to `expected`, 
+            additional columns will be added for expected decrements and 
+            actual-to-expected ratios. If `credibility` is set to `True`, 
+            additional columns are added for partial credibility and
+            credibility-weighted decrement rates (assuming values are passed to
+            `expected`). If `conf_int` is set to `True`, additional columns are
+            added for lower and upper confidence interval limits around the 
+            observed termination rates and any actual-to-expected ratios. 
+            Additionally, if `credibility` is `True` and expected values are 
+            passed to `expected`, the output will contain confidence intervals
+            around credibility-weighted termination rates. Confidence interval
+            columns include the name of the original output column suffixed by
+            either `_lower` or `_upper`. If a value is passed to `wt`, 
+            additional columns are created containing the the sum of weights 
+            (`.weight`), the sum of squared weights (`.weight_qs`), and the 
+            number of records (`.weight_n`).
 
         References
         ----------
         Herzog, Thomas (1999). Introduction to Credibility Theory
+
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+
+        (xp.ExposedDF(xp.load_census_dat(),
+                      "2019-12-31", 
+                      target_status="Surrender").
+                   groupby('pol_yr', 'inc_guar').
+                   exp_stats(conf_int=True))
+        ```        
         """
         from actxps.exp_stats import ExpStats
-        return ExpStats(self, target_status, expected, wt,
-                        credibility, cred_p, cred_r)
+        return ExpStats(self, target_status, expected, wt, conf_int,
+                        credibility, conf_level, cred_r, col_exposure)
 
     def add_transactions(self,
                          trx_data: pd.DataFrame,
@@ -833,8 +951,10 @@ class ExposedDF():
                   trx_types: list | str = None,
                   percent_of: list | str = None,
                   combine_trx: bool = False,
-                  col_exposure: str = 'exposure',
-                  full_exposures_only: bool = True):
+                  full_exposures_only: bool = True,
+                  conf_int: bool = False,
+                  conf_level: float = 0.95,
+                  col_exposure: str = 'exposure'):
         """
         Summarize transactions and utilization rates
 
@@ -855,11 +975,18 @@ class ExposedDF():
             If `False` (default), the results will contain output rows for each 
             transaction type. If `True`, the results will contains aggregated
             results across all transaction types.
-        col_exposure: str, default='exposure'
-            Name of the column in the `data` property containing exposures
         full_exposures_only : bool, default=True
             If `True` (default), partially exposed records will be ignored 
             in the results.
+        conf_int : bool, default=False 
+            If `True`, the output will include confidence intervals around the
+            observed utilization rate and any `percent_of` output columns.
+        conf_level : float, default=0.95 
+            Confidence level for confidence intervals
+        col_exposure : str, default='exposure'
+            Name of the column in the `data` property containing exposures. 
+            Only necessary for `SplitExposedDF` objects.            
+
 
         Notes
         ----------
@@ -889,6 +1016,29 @@ class ExposedDF():
         containing a maximum benefit amount, utilization rates can be 
         determined.
 
+        **Confidence intervals**
+
+        If `conf_int` is set to `True`, the output will contain lower and upper
+        confidence interval limits for the observed utilization rate and any
+        `percent_of` output columns. The confidence level is dictated
+        by `conf_level`.
+
+        - Intervals for the utilization rate (`trx_util`) assume a binomial
+        distribution.
+        - Intervals for transactions as a percentage of another column with
+        non-zero transactions (`pct_of_{*}_w_trx`) are constructed using a 
+        normal distribution
+        - Intervals for transactions as a percentage of another column
+        regardless of transaction utilization (`pct_of_{*}_all`) are calculated
+        assuming that the aggregate distribution is normal with a mean equal to
+        observed transactions and a variance equal to:
+
+            `Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)`,
+
+        Where `S` is the aggregate transactions random variable, `X` is an 
+        individual transaction amount assumed to follow a normal distribution, 
+        and `N` is a binomial random variable for transaction utilization.
+
         **Default removal of partial exposures**
 
         As a default, partial exposures are removed from `data` before 
@@ -903,20 +1053,6 @@ class ExposedDF():
         the exposure should be 0.5 years or 0.5 / 0.75 years. To override this 
         treatment, set `full_exposures_only` to `False`.
 
-        Examples
-        ----------
-        ```{python}
-        import actxps as xp
-        census = xp.load_census_dat()
-        withdrawals = xp.load_withdrawals()
-        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
-                                      target_status = "Surrender")
-        expo.add_transactions(withdrawals)
-
-        expo.groupby('inc_guar').trx_stats(percent_of = "premium")
-        expo.groupby('inc_guar').trx_stats(percent_of = "premium",
-                                           combine_trx = True)
-        ```
 
         Returns
         ----------
@@ -945,10 +1081,34 @@ class ExposedDF():
             - `pct_of_{*}_w_trx`: total transactions as a percentage of column
             `{*}_w_trx`
             - `pct_of_{*}_all`: total transactions as a percentage of column `{*}`
+
+            If `conf_int` is set to `True`, additional columns are added for 
+            lower and upper confidence interval limits around the observed 
+            utilization rate and any `percent_of` output columns. Confidence 
+            interval columns include the name of the original output column
+            suffixed by either `_lower` or `_upper`. If values are passed to 
+            `percent_of`, an additional column is created containing the the sum
+            of squared transaction amounts (`trx_amt_sq`).
+
+        Examples
+        ----------
+        ```{python}
+        import actxps as xp
+        census = xp.load_census_dat()
+        withdrawals = xp.load_withdrawals()
+        expo = xp.ExposedDF.expose_py(census, "2019-12-31",
+                                      target_status="Surrender")
+        expo.add_transactions(withdrawals)
+
+        expo.groupby('inc_guar').trx_stats(percent_of="premium",
+                                           combine_trx=True,
+                                           conf_int=True)
+        ```            
         """
         from actxps.trx_stats import TrxStats
         return TrxStats(self, trx_types, percent_of, combine_trx,
-                        col_exposure, full_exposures_only)
+                        full_exposures_only,
+                        conf_int, conf_level, col_exposure)
 
     def exp_shiny(self,
                   predictors=None,
@@ -1077,4 +1237,22 @@ class ExposedDF():
         app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
         ```
         """
+        from actxps.exp_shiny import _exp_shiny
         return _exp_shiny(self, predictors, expected, distinct_max)
+
+
+def _most_common(x: pd.Series):
+    """
+    Determine the most common status
+
+    Parameters
+    ----------
+    x : pd.Series
+        A Series of policy statuses
+
+    Returns
+    ----------
+    str
+        Label of the most common policy status
+    """
+    return x.value_counts(sort=True).index[0]

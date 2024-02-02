@@ -147,7 +147,7 @@ exp_res.plot()
 exp_res.table()
 ```
 
-<center><img src="../man/figures/exp_gt.png" width="55%" height="55%" /></center>
+<center><img src="../images/exp_gt.png" width="55%" height="55%" /></center>
 
 ### `summary()`
 
@@ -175,4 +175,4 @@ exp_res.summary('inc_guar')
 exposed_data.exp_shiny()
 ```
 
-<img src="../man/figures/exp_shiny.png" width="100%" />
+<img src="../images/exp_shiny.png" width="100%" />

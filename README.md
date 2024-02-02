@@ -227,7 +227,7 @@ Launch a shiny app to interactively explore experience data.
 exposed_data.exp_shiny()
 ```
 
-<img src="https://raw.githubusercontent.com/mattheaphy/actxpspy/main/docs/images/exp_shiny.png" width="100%" />
+<img src="docs/images/exp_shiny.png" width="100%" />
 
 <br> **Logo**
 

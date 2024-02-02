@@ -1,5 +1,8 @@
----
-title: actxps
----
+```{python}
+#| label: img_path
+#| include: false
 
-{{< include ../README.md >}}
+img_path = "images"
+```
+
+{{< include ../_README_body.qmd >}}

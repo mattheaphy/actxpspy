@@ -718,6 +718,24 @@ files = [
 tests = ["asttokens (>=2.1.0)", "coverage", "coverage-enable-subprocess", "ipython", "littleutils", "pytest", "rich"]
 
 [[package]]
+name = "faicons"
+version = "0.2.2"
+description = "An interface to Font-Awesome for use in Shiny."
+optional = true
+python-versions = ">=3.8"
+files = [
+    {file = "faicons-0.2.2-py3-none-any.whl", hash = "sha256:d45d7c2635b53582a3375c67d7e975a28a91d2c16ef5f6b5033b5cdd507224b6"},
+    {file = "faicons-0.2.2.tar.gz", hash = "sha256:6b7d7b19180179b6b83783f91bf6c9311c0f00ae0f97d41be1d24d9942361659"},
+]
+
+[package.dependencies]
+htmltools = ">=0.1.4.9002"
+
+[package.extras]
+dev = ["black (>=23.1.0)", "flake8 (==3.9.2)", "flake8 (>=6.0.0)", "wheel"]
+test = ["pytest (>=6.2.4)"]
+
+[[package]]
 name = "fastjsonschema"
 version = "2.19.0"
 description = "Fastest Python implementation of JSON schema"
@@ -3796,4 +3814,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "271bed1f110bb8e653df7fb0fb7b3e56dc6ef46b409e9ec7556a7197b337cc7b"
+content-hash = "4a0e7cc92232e51f7e573e333986506a2dd56e193389f9d8fe1dd78f27e2564d"

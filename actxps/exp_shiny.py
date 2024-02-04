@@ -149,7 +149,7 @@ def exp_shiny(self,
         raise ModuleNotFoundError("The 'shiny' package is required to " + 
                                   "use this function")
     try:
-        from shinyswatch import theme
+        from shinyswatch import theme as theme_swatch
     except ModuleNotFoundError:
         raise ModuleNotFoundError("The 'shinyswatch' package is required to " +
                                   "use this function")        

@@ -20,6 +20,7 @@ scipy = ">=1.11.4"
 matplotlib = ">=3.8.2"
 shiny = {version = ">=0.7.0", optional = true}
 great-tables = ">=0.2.0"
+shinyswatch = {version = ">=0.4.2", optional = true}
 
 [tool.poetry.dev-dependencies]
 

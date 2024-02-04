@@ -145,8 +145,13 @@ def exp_shiny(self,
     try:
         from shiny import ui, render, reactive, App
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("The 'shiny' package is required to use " +
-                                  "this function")
+        raise ModuleNotFoundError("The 'shiny' package is required to " + 
+                                  "use this function")
+    try:
+        from shinyswatch import theme
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError("The 'shinyswatch' package is required to " +
+                                  "use this function")        
 
     from actxps import SplitExposedDF
     from actxps.expose_split import _check_split_expose_basis
@@ -206,6 +211,7 @@ def exp_shiny(self,
     preds['dtype'] = dat[preds.predictors].dtypes.to_numpy()
     preds['dtype'] = preds['dtype'].apply(str)
     preds['is_number'] = preds.dtype.str.contains('(?:int|float)')
+    preds['is_integer'] = preds.dtype.str.contains('(?:int)')
 
     dtype_cond = [
         preds.dtype.str.contains('date'),
@@ -219,6 +225,15 @@ def exp_shiny(self,
     preds['n_unique'] = preds.predictors.apply(
         lambda x: len(dat[x].unique())
     )
+    
+    def calc_scope(p, c):
+        if (c in ['date', 'number']):
+            return min(dat[p]), max(dat[p])
+        else:
+            return dat[p].unique()
+    preds['scope'] = preds[['predictors', 'dtype']].\
+        apply(lambda x: calc_scope(x['predictors'], x['dtype']), axis = 1)
+    
     preds = (preds.
              sort_values('order').
              drop(columns='order').
@@ -230,11 +245,8 @@ def exp_shiny(self,
     if has_trx:
         yVar_trx = ["trx_util", "trx_freq", "trx_n", "trx_flag",
                     "trx_amt", "avg_trx", "avg_all"]
-        available_studies = {"Termination study": "exp",
-                             "Transaction study": "trx"}
     else:
         yVar_trx = None
-        available_studies = {"Termination study": "exp"}
 
     # function to make input widgets
     def widget(x, checkbox_limit=8):
@@ -244,26 +256,28 @@ def exp_shiny(self,
         assert x in dat.columns, \
             f"Error creating an input widget for {x}. " + \
             f"{x} does not exist in the input data."
+            
+        info = preds.loc[x]
+        choices = info['scope']
 
-        if preds.loc[x]['dtype'] == "number":
-
-            min_val = dat[x].min()
-            max_val = dat[x].max()
+        if info['dtype'] == "number":
 
             inp = ui.input_slider(
                 inputId, ui.strong(x),
-                min=min_val,
-                max=max_val,
-                value=(min_val, max_val)
+                min=choices[0],
+                max=choices[1],
+                value=choices,
+                step = 1 if info['is_integer'] and info['n_unique'] < 100 \
+                    else None
             )
 
-        elif preds.loc[x]['dtype'] == "date":
+        elif info['dtype'] == "date":
 
             def fmt_date(x):
                 return datetime.strftime(x, "%Y-%m-%d")
 
-            min_val = fmt_date(dat[x].min())
-            max_val = fmt_date(dat[x].max())
+            min_val = fmt_date(choices[0])
+            max_val = fmt_date(choices[1])
 
             inp = ui.input_date_range(
                 inputId, ui.strong(x),
@@ -274,9 +288,9 @@ def exp_shiny(self,
                 startview="year"
             )
 
-        elif preds.loc[x]['dtype'] == 'category':
+        elif info['dtype'] == 'category':
 
-            choices = dat[x].unique().tolist()
+            choices = choices.tolist()
 
             if len(choices) > checkbox_limit:
                 inp = ui.input_select(

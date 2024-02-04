@@ -3178,6 +3178,28 @@ doc = ["griffe (==0.33.0)", "jupyter", "jupyter-client (<8.0.0)", "pydantic (==1
 test = ["astropy", "bokeh", "coverage", "duckdb", "folium", "geodatasets", "geopandas", "holoviews", "ipyleaflet", "missingno", "plotly", "plotnine", "psutil", "pytest (>=6.2.4)", "pytest-asyncio (>=0.17.2)", "pytest-cov", "pytest-playwright (>=0.3.0)", "pytest-rerunfailures", "pytest-timeout", "pytest-xdist", "rsconnect-python", "scikit-learn", "seaborn", "shinywidgets", "suntime", "syrupy", "timezonefinder", "xarray"]
 
 [[package]]
+name = "shinyswatch"
+version = "0.4.2"
+description = "Bootswatch + Bootstrap 5 themes for Shiny."
+optional = true
+python-versions = ">=3.8"
+files = [
+    {file = "shinyswatch-0.4.2-py3-none-any.whl", hash = "sha256:4788b3bb64b53c7114c4b95d411f4aea44285c60776f1382f3901ec8334c581f"},
+    {file = "shinyswatch-0.4.2.tar.gz", hash = "sha256:df814afd5741a4fb5a7bd05dfa2976bc7101df5366414b0e812541ba64a930db"},
+]
+
+[package.dependencies]
+htmltools = ">=0.2.0"
+packaging = ">=20.9"
+shiny = ">=0.6.0"
+typing-extensions = ">=3.10.0.0"
+
+[package.extras]
+dev = ["Jinja2", "black (>=23.1.0)", "flake8 (>=6.0.0)", "isort (>=5.11.2)", "pandas", "pre-commit (>=2.15.0)", "pyright (>=1.1.301)", "wheel"]
+docs = ["griffe (==0.32.3)", "plum-dispatch", "quartodoc (==0.4.2)", "shinylive"]
+test = ["pytest (>=6.2.4)"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -3774,4 +3796,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "05b35fd7dec15e6709dadf6de6eb2000e4d2af0ec8fe1c7d99fe95ca4e22153a"
+content-hash = "271bed1f110bb8e653df7fb0fb7b3e56dc6ef46b409e9ec7556a7197b337cc7b"

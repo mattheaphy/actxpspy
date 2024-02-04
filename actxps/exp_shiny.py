@@ -146,13 +146,18 @@ def exp_shiny(self,
     try:
         from shiny import ui, render, reactive, App
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("The 'shiny' package is required to " + 
+        raise ModuleNotFoundError("The 'shiny' package is required to " +
                                   "use this function")
     try:
         from shinyswatch import theme as theme_swatch
     except ModuleNotFoundError:
         raise ModuleNotFoundError("The 'shinyswatch' package is required to " +
-                                  "use this function")        
+                                  "use this function")
+    try:
+        from faicons import icon_svg
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError("The 'faicons' package is required to " +
+                                  "use this function")
 
     from actxps import SplitExposedDF
     from actxps.expose_split import _check_split_expose_basis
@@ -226,15 +231,15 @@ def exp_shiny(self,
     preds['n_unique'] = preds.predictors.apply(
         lambda x: len(dat[x].unique())
     )
-    
+
     def calc_scope(p, c):
         if (c in ['date', 'number']):
             return min(dat[p]), max(dat[p])
         else:
             return dat[p].unique()
     preds['scope'] = preds[['predictors', 'dtype']].\
-        apply(lambda x: calc_scope(x['predictors'], x['dtype']), axis = 1)
-    
+        apply(lambda x: calc_scope(x['predictors'], x['dtype']), axis=1)
+
     preds = (preds.
              sort_values('order').
              drop(columns='order').
@@ -257,7 +262,7 @@ def exp_shiny(self,
         assert x in dat.columns, \
             f"Error creating an input widget for {x}. " + \
             f"{x} does not exist in the input data."
-            
+
         info = preds.loc[x]
         choices = info['scope']
 
@@ -268,8 +273,8 @@ def exp_shiny(self,
                 min=choices[0],
                 max=choices[1],
                 value=choices,
-                step = 1 if info['is_integer'] and info['n_unique'] < 100 \
-                    else None
+                step=1 if info['is_integer'] and info['n_unique'] < 100
+                else None
             )
 
         elif info['dtype'] == "date":
@@ -327,11 +332,15 @@ def exp_shiny(self,
     selectPred = widgetPred(ui.input_select)
     checkboxGroupPred = widgetPred(ui.input_checkbox_group)
 
+    # create a tooltip with an info icon
+    def info_tooltip(*args):
+        ui.tooltip(icon_svg("circle-info"), *args)
+
     # expected values set up
     if len(expected) > 0:
         has_expected = True
         expected_widget = checkboxGroupPred(
-            "ex_checks", "Expected values:", 4,
+            "ex_checks", "Expected values:", 6,
             choices=expected,
             selected=expected)
     else:
@@ -343,8 +352,12 @@ def exp_shiny(self,
 
         percent_of_choices = preds.loc[preds.is_number].index.to_list()
 
-        trx_tab = ui.nav(
-            "Transaction study",
+        trx_tab = ui.nav_panel(
+            ["Transaction study",
+             info_tooltip(
+                 'Choose transaction types and "percent of" variables that appear in \
+                     the plot and table outputs. If desired, combine all transaction types \
+                         into a single group.')],
             ui.row(
                 checkboxGroupPred(
                     "trx_types_checks",
@@ -358,9 +371,9 @@ def exp_shiny(self,
                     multiple=True),
                 ui.column(
                     4,
-                    ui.input_checkbox("trx_combine",
-                                      ui.strong("Combine transactions?"),
-                                      False)
+                    ui.input_switch("trx_combine",
+                                    ui.strong("Combine transactions?"),
+                                    False)
                 )
             ),
             value="trx"

@@ -11,6 +11,7 @@ from plotnine import (aes,
                       element_rect)
 from actxps.col_select import col_contains
 import io
+import great_tables.shiny as gts
 
 
 def exp_shiny(self,
@@ -643,11 +644,9 @@ def exp_shiny(self,
                     )
 
         @output
-        @render.table
+        @gts.render_gt()
         def xpTable():
-            return (rxp().
-                    table().
-                    set_table_attributes('class="dataframe table shiny-table w-auto"'))
+            return (rxp().table())
 
         # filter information
         @output

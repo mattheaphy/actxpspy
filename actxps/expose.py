@@ -143,6 +143,8 @@ class ExposedDF():
         "month": "mth",
         "week": "wk"
     }
+    
+    from actxps.exp_shiny import exp_shiny
 
     @singledispatchmethod
     def __init__(self,
@@ -1109,137 +1111,6 @@ class ExposedDF():
         return TrxStats(self, trx_types, percent_of, combine_trx,
                         full_exposures_only,
                         conf_int, conf_level, col_exposure)
-
-    def exp_shiny(self,
-                  predictors=None,
-                  expected=None,
-                  distinct_max=25):
-        """
-        Interactively explore experience data
-
-        Launch a shiny application to interactively explore drivers of
-        experience.
-
-        Parameters
-        ----------
-        predictors : str | list | np.ndarray, default=`None`
-            A character vector of independent variables in the `data` property 
-            to include in the shiny app.
-        expected : str | list | np.ndarray, default=`None`
-            A character vector of expected values in the `data` property to
-            include in the shiny app.
-        distinct_max : int
-            Maximum number of distinct values allowed for `predictors`
-            to be included as "Color" and "Facets" grouping variables. This 
-            input prevents the drawing of overly complex plots. Default 
-            value = 25.
-
-        Notes
-        ----------
-        If transactions have been attached to the `ExposedDF` object, the app
-        will contain features for both termination and transaction studies.
-        Otherwise, the app will only support termination studies.
-
-        If nothing is passed to `predictors`, all columns names in `dat` will be
-        used (excluding the policy number, status, termination date, exposure,
-        transaction counts, and transaction amounts columns).
-
-        The `expected` argument is optional. As a default, any column names
-        containing the word "expected" are used.
-
-        **Layout**
-
-        *Filters*
-
-        The sidebar contains filtering widgets for all variables passed
-        to the `predictors` argument.
-
-        *Study options*
-
-        Grouping variables
-
-        This box includes widgets to select grouping variables for summarizing
-        experience. The "x" widget is also used as the x variable in the plot
-        output. Similarly, the "Color" and "Facets" widgets are used for color
-        and facets in the plot. Multiple faceting variables are allowed. For 
-        the table output, "x", "Color", and "Facets" have no particular meaning 
-        beyond the order in which of grouping variables are displayed.
-
-        Study type
-
-        This box also includes a toggle to switch between termination studies 
-        and transaction studies (if available).
-
-        - Termination studies:
-        The expected values checkboxes are used to activate and deactivate
-        expected values passed to the `expected` argument. This impacts the
-        table output directly and the available "y" variables for the plot. If
-        there are no expected values available, this widget will not appear.
-        The "Weight by" widget is used to specify which column, if any, 
-        contains weights for summarizing experience.
-
-        - Transaction studies:
-        The transaction types checkboxes are used to activate and deactivate
-        transaction types that appear in the plot and table outputs. The
-        available transaction types are taken from the `trx_types` property of 
-        the `ExposedDF` object. In the plot output, transaction type will 
-        always appear as a faceting variable. The "Transactions as % of"
-        selector will expand the list of available "y" variables for the plot 
-        and impact the table output directly. Lastly, a checkbox exists that 
-        allows for all transaction types to be aggregated into a single group.
-
-        **Output**
-
-        *Plot Tab*
-
-        This tab includes a plot and various options for customization:
-
-        - y: y variable
-        - Geometry: plotting geometry
-        - Add Smoothing?: activate to plot loess curves
-        - Free y Scales: activate to enable separate y scales in each plot.
-
-        *Table*
-
-        This tab includes a data table.
-
-        *Export Data*
-
-        This tab includes a download button that will save a copy of the 
-        summarized experience data.
-
-        **Filter Information**
-
-        This box contains information on the original number of exposure 
-        records, the number of records after filters are applied, and the 
-        percentage of records retained.
-
-        Examples 
-        ----------
-        ```{python}
-        import actxps as xp
-        import numpy as np
-
-        census_dat = xp.load_census_dat()
-        withdrawals = xp.load_withdrawals()
-        account_vals = xp.load_account_vals()
-
-        expo = xp.ExposedDF(census_dat, "2019-12-31",
-                            target_status = "Surrender")
-        expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
-                                        [.2, .15], np.repeat(0.05, 3)))
-        expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]
-        expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
-        expo.add_transactions(withdrawals)
-        expo.data = expo.data.merge(account_vals, how='left',
-                                    on=["pol_num", "pol_date_yr"])
-
-        app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
-        ```
-        """
-        from actxps.exp_shiny import _exp_shiny
-        return _exp_shiny(self, predictors, expected, distinct_max)
-
 
 def _most_common(x: pd.Series):
     """

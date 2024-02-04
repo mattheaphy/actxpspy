@@ -1,4 +1,3 @@
-from shiny import ui, render, reactive, App
 import pandas as pd
 import numpy as np
 from warnings import warn
@@ -11,27 +10,150 @@ from plotnine import (aes,
                       element_text,
                       element_rect)
 from actxps.col_select import col_contains
-from actxps.tools import _verify_exposed_df
-from actxps.expose_split import _check_split_expose_basis
 import io
 
 
-def _exp_shiny(obj,
-               predictors = None,
-               expected = None,
-               distinct_max = 25,
-               col_exposure = 'exposure'):
+def exp_shiny(self,
+              predictors=None,
+              expected=None,
+              distinct_max=25,
+              col_exposure='exposure'):
     """
-    Internal function for creating interactive shiny apps. This function is 
-    not meant to be called directly. Use `ExposedDF.exp_shiny()` instead.
+    Interactively explore experience data
+
+    Launch a shiny application to interactively explore drivers of
+    experience.
+
+    Parameters
+    ----------
+    predictors : str | list | np.ndarray, default=`None`
+        A character vector of independent variables in the `data` property 
+        to include in the shiny app.
+    expected : str | list | np.ndarray, default=`None`
+        A character vector of expected values in the `data` property to
+        include in the shiny app.
+    distinct_max : int
+        Maximum number of distinct values allowed for `predictors`
+        to be included as "Color" and "Facets" grouping variables. This 
+        input prevents the drawing of overly complex plots. Default 
+        value = 25.
+
+    Notes
+    ----------
+    If transactions have been attached to the `ExposedDF` object, the app
+    will contain features for both termination and transaction studies.
+    Otherwise, the app will only support termination studies.
+
+    If nothing is passed to `predictors`, all columns names in `dat` will be
+    used (excluding the policy number, status, termination date, exposure,
+    transaction counts, and transaction amounts columns).
+
+    The `expected` argument is optional. As a default, any column names
+    containing the word "expected" are used.
+
+    **Layout**
+
+    *Filters*
+
+    The sidebar contains filtering widgets for all variables passed
+    to the `predictors` argument.
+
+    *Study options*
+
+    Grouping variables
+
+    This box includes widgets to select grouping variables for summarizing
+    experience. The "x" widget is also used as the x variable in the plot
+    output. Similarly, the "Color" and "Facets" widgets are used for color
+    and facets in the plot. Multiple faceting variables are allowed. For 
+    the table output, "x", "Color", and "Facets" have no particular meaning 
+    beyond the order in which of grouping variables are displayed.
+
+    Study type
+
+    This box also includes a toggle to switch between termination studies 
+    and transaction studies (if available).
+
+    - Termination studies:
+    The expected values checkboxes are used to activate and deactivate
+    expected values passed to the `expected` argument. This impacts the
+    table output directly and the available "y" variables for the plot. If
+    there are no expected values available, this widget will not appear.
+    The "Weight by" widget is used to specify which column, if any, 
+    contains weights for summarizing experience.
+
+    - Transaction studies:
+    The transaction types checkboxes are used to activate and deactivate
+    transaction types that appear in the plot and table outputs. The
+    available transaction types are taken from the `trx_types` property of 
+    the `ExposedDF` object. In the plot output, transaction type will 
+    always appear as a faceting variable. The "Transactions as % of"
+    selector will expand the list of available "y" variables for the plot 
+    and impact the table output directly. Lastly, a checkbox exists that 
+    allows for all transaction types to be aggregated into a single group.
+
+    **Output**
+
+    *Plot Tab*
+
+    This tab includes a plot and various options for customization:
+
+    - y: y variable
+    - Geometry: plotting geometry
+    - Add Smoothing?: activate to plot loess curves
+    - Free y Scales: activate to enable separate y scales in each plot.
+
+    *Table*
+
+    This tab includes a data table.
+
+    *Export Data*
+
+    This tab includes a download button that will save a copy of the 
+    summarized experience data.
+
+    **Filter Information**
+
+    This box contains information on the original number of exposure 
+    records, the number of records after filters are applied, and the 
+    percentage of records retained.
+
+    Examples 
+    ----------
+    ```{python}
+    import actxps as xp
+    import numpy as np
+
+    census_dat = xp.load_census_dat()
+    withdrawals = xp.load_withdrawals()
+    account_vals = xp.load_account_vals()
+
+    expo = xp.ExposedDF(census_dat, "2019-12-31",
+                        target_status = "Surrender")
+    expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
+                                    [.2, .15], np.repeat(0.05, 3)))
+    expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]
+    expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
+    expo.add_transactions(withdrawals)
+    expo.data = expo.data.merge(account_vals, how='left',
+                                on=["pol_num", "pol_date_yr"])
+
+    app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
+    ```
     """
+    # check that shiny is installed
+    try:
+        from shiny import ui, render, reactive, App
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError("The 'shiny' package is required to use " +
+                                  "this function")
 
     from actxps import SplitExposedDF
-    _verify_exposed_df(obj)
-    
+    from actxps.expose_split import _check_split_expose_basis
+
     # special logic required for split exposed data frames
-    if isinstance(obj, SplitExposedDF):
-        _check_split_expose_basis(obj, col_exposure)
+    if isinstance(self, SplitExposedDF):
+        _check_split_expose_basis(self, col_exposure)
         dat = dat.rename(columns={col_exposure: 'exposure'})
 
         if col_exposure == "exposure_cal":
@@ -39,12 +161,14 @@ def _exp_shiny(obj,
         else:
             dat.drop(columns=['exposure_cal'], inplace=True)
 
-    dat = obj.data
+    # make a copy of the ExposedDF to avoid unexpected changes
+    expo = deepcopy(self)
+    dat = expo.data
     cols = dat.columns
 
     # convert boolean columns to strings
-    obj.data[obj.data.select_dtypes(bool).columns] = \
-        obj.data.select_dtypes(bool).apply(lambda x: x.astype(str))
+    dat[dat.select_dtypes(bool).columns] = \
+        dat.select_dtypes(bool).apply(lambda x: x.astype(str))
 
     if predictors is None:
         predictors = cols
@@ -57,7 +181,7 @@ def _exp_shiny(obj,
         expected = pd.Index(np.atleast_1d(expected))
 
     # check for presence of transactions
-    has_trx = len(obj.trx_types) > 0
+    has_trx = len(expo.trx_types) > 0
     trx_cols = col_contains(dat, "^trx_(?:n|amt)_")
 
     if any(~(predictors.append(expected)).isin(cols)):
@@ -210,8 +334,8 @@ def _exp_shiny(obj,
                 checkboxGroupPred(
                     "trx_types_checks",
                     "Transaction types:", 4,
-                    obj.trx_types,
-                    selected=obj.trx_types),
+                    expo.trx_types,
+                    selected=expo.trx_types),
                 selectPred(
                     "pct_checks",
                     "Transactions as % of:", 4,
@@ -232,8 +356,8 @@ def _exp_shiny(obj,
 
     app_ui = ui.page_fluid(
 
-        ui.panel_title(("/".join(obj.target_status) + " Experience Study" +
-                        ((" and " + "/".join(obj.trx_types) +
+        ui.panel_title(("/".join(expo.target_status) + " Experience Study" +
+                        ((" and " + "/".join(expo.trx_types) +
                           " Transaction Study")
                          if has_trx else ""))
                        ),
@@ -397,16 +521,16 @@ def _exp_shiny(obj,
             filters = [expr_filter(x) for x in preds.index]
             filters = ' & '.join(filters)
 
-            new_obj = deepcopy(obj)
-            new_obj.data = new_obj.data.query(filters)
+            new_expo = deepcopy(expo)
+            new_expo.data = new_expo.data.query(filters)
 
-            return new_obj
+            return new_expo
 
         # experience study
         @reactive.Calc
         def rxp():
 
-            obj = rdat()
+            expo = rdat()
 
             groups = [input.xVar(), input.colorVar()] + \
                 list(input.facetVar())
@@ -428,13 +552,13 @@ def _exp_shiny(obj,
                 ex = None
 
             if input.study_type() == "exp":
-                return (obj.
+                return (expo.
                         groupby(*groups).
                         exp_stats(wt=wt,
                                   credibility=True,
                                   expected=ex))
             else:
-                return (obj.
+                return (expo.
                         groupby(*groups).
                         trx_stats(percent_of=list(input.pct_checks()),
                                   trx_types=list(input.trx_types_checks()),

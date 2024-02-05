@@ -1,7 +1,3 @@
-import asyncio
-import random
-from datetime import date
-# end temp
 import pandas as pd
 import numpy as np
 from warnings import warn
@@ -16,6 +12,7 @@ from plotnine import (aes,
 from actxps.col_select import col_contains
 import io
 import great_tables.shiny as gts
+from actxps.tools import _set_actxps_plot_theme
 
 
 def exp_shiny(self,
@@ -182,6 +179,8 @@ def exp_shiny(self,
         
     from actxps import SplitExposedDF
     from actxps.expose_split import _check_split_expose_basis
+    
+    _set_actxps_plot_theme()
 
     # special logic required for split exposed data frames
     if isinstance(self, SplitExposedDF):
@@ -237,24 +236,24 @@ def exp_shiny(self,
 
     preds['dtype'] = dat[preds.predictors].dtypes.to_numpy()
     preds['dtype'] = preds['dtype'].apply(str)
-    preds['is_number'] = preds.dtype.str.contains('(?:int|float)')
-    preds['is_integer'] = preds.dtype.str.contains('(?:int)')
+    preds['is_number'] = preds['dtype'].str.contains('(?:int|float)')
+    preds['is_integer'] = preds['dtype'].str.contains('(?:int)')
 
     dtype_cond = [
-        preds.dtype.str.contains('date'),
-        (preds.dtype == 'category') | (preds.dtype == 'object'),
+        preds['dtype'].str.contains('date'),
+        (preds['dtype'] == 'category') | (preds['dtype'] == 'object'),
         preds.is_number,
         np.repeat(True, len(preds))
     ]
-    dtype_labels = ['date', 'category', 'number', 'other']
+    dtype_labels = ['Dates', 'Categorical', 'Numeric', 'other']
     preds['order'] = np.select(dtype_cond, range(len(dtype_cond)))
-    preds.dtype = np.select(dtype_cond, dtype_labels)
+    preds['dtype'] = np.select(dtype_cond, dtype_labels)
     preds['n_unique'] = preds.predictors.apply(
         lambda x: len(dat[x].unique())
     )
 
     def calc_scope(p, c):
-        if (c in ['date', 'number']):
+        if (c in ['Dates', 'Numeric']):
             return min(dat[p]), max(dat[p])
         else:
             return dat[p].unique()
@@ -287,7 +286,7 @@ def exp_shiny(self,
         info = preds.loc[x]
         choices = info['scope']
 
-        if info['dtype'] == "number":
+        if info['dtype'] == "Numeric":
 
             inp = ui.input_slider(
                 inputId, ui.strong(x),
@@ -298,7 +297,7 @@ def exp_shiny(self,
                 else None
             )
 
-        elif info['dtype'] == "date":
+        elif info['dtype'] == "Dates":
 
             def fmt_date(x):
                 return datetime.strftime(x, "%Y-%m-%d")
@@ -315,7 +314,7 @@ def exp_shiny(self,
                 startview="year"
             )
 
-        elif info['dtype'] == 'category':
+        elif info['dtype'] == 'Categorical':
 
             choices = choices.tolist()
 
@@ -692,11 +691,11 @@ def exp_shiny(self,
                 inp_val = input["i_" + x]()
 
                 # ensure that dates are quoted
-                if preds.loc[x]['dtype'] == 'date':
+                if preds.loc[x]['dtype'] == 'Dates':
                     inp_val = [f"'{a}'" for a in inp_val]
 
                 # create filter expressions
-                if preds.loc[x]['dtype'] in ['date', 'number']:
+                if preds.loc[x]['dtype'] in ['Dates', 'Numeric']:
                     res = f"({x} >= {inp_val[0]}) & ({x} <= {inp_val[1]})"
                 else:
                     # categorical

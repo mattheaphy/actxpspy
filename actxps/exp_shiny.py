@@ -1,3 +1,7 @@
+import asyncio
+import random
+from datetime import date
+# end temp
 import pandas as pd
 import numpy as np
 from warnings import warn
@@ -314,7 +318,7 @@ def exp_shiny(self,
             choices = choices.tolist()
 
             if len(choices) > checkbox_limit:
-                inp = ui.input_select(
+                inp = ui.input_selectize(
                     inputId, ui.strong(x),
                     choices=choices, selected=choices,
                     multiple=True
@@ -344,12 +348,12 @@ def exp_shiny(self,
             )
         return new_fun
 
-    selectPred = widgetPred(ui.input_select)
+    selectPred = widgetPred(ui.input_selectize)
     checkboxGroupPred = widgetPred(ui.input_checkbox_group)
 
     # create a tooltip with an info icon
-    def info_tooltip(*args):
-        ui.tooltip(icon_svg("circle-info"), *args)
+    def info_tooltip(*args, **kwargs):
+        return ui.tooltip(icon_svg("circle-info"), *args, **kwargs)
 
     # expected values set up
     if len(expected) > 0:
@@ -368,7 +372,7 @@ def exp_shiny(self,
         percent_of_choices = preds.loc[preds.is_number].index.to_list()
 
         trx_tab = ui.nav_panel(
-            ["Transaction study",
+            ["Transaction study ",
              info_tooltip(
                  'Choose transaction types and "percent of" variables that appear in \
                      the plot and table outputs. If desired, combine all transaction types \
@@ -439,7 +443,7 @@ def exp_shiny(self,
 
             ui.card(
                 ui.card_header(
-                    "Grouping variables",
+                    "Grouping variables ",
                     info_tooltip(
                         """
                         The variables selected below will be used as
@@ -460,7 +464,7 @@ def exp_shiny(self,
             ui.navset_card_tab(
 
                 ui.nav_panel(
-                    ["Termination study",
+                    ["Termination study ",
                      info_tooltip(
                          """
                          Choose expected values (if available) that appear in 
@@ -475,8 +479,7 @@ def exp_shiny(self,
                                    "Weight by:", 4,
                                    choices=["None"] +
                                    preds.loc[preds.is_number].index.to_list(
-                                   )
-                                   )
+                                   ))
                     ),
 
                     value="exp"),
@@ -497,9 +500,9 @@ def exp_shiny(self,
                     ui.card_header(
                         info_tooltip(
                             ui.markdown(
-                                """
-                            '<div style="text-align: left">
-
+                            """
+                            <div style="text-align: left">
+                            
                             - `y`-axis variable selection
                             - `Second y-axis` toggle and variable
                             - `Geometry` for plotting
@@ -511,10 +514,10 @@ def exp_shiny(self,
                             - The grouping variables selected above will determine the
                             variable on the `x`-axis, the color variable, and faceting
                             variables used to create subplots.
-
-                            </div>'
-                            """)  # ,
-                            # custom_class="left-tip"
+                            
+                            </div>
+                            """),
+                            custom_class="left-tip"
                         )),
 
                     ui.row(
@@ -533,18 +536,19 @@ def exp_shiny(self,
                                 ),
                             ),
 
-                            ui.row(
-                                # TODO second y-axis
-                                # ui.column(
-                                #     6
-                                #     ui.input_switch("plot2ndY",
-                                #                     ui.strong("Second y-axis"),
-                                #                 value = False)
-                                # ),
-                                # selectPred("yVar_2nd", "Second axis y:",
-                                #            6, choices=yVar_exp,
-                                #            selected="exposure")
-                            )),
+                            # TODO second y-axis
+                            # ui.row(
+                            #     ui.column(
+                            #         6
+                            #         ui.input_switch("plot2ndY",
+                            #                         ui.strong("Second y-axis"),
+                            #                     value = False)
+                            #     ),
+                            #     selectPred("yVar_2nd", "Second axis y:",
+                            #                6, choices=yVar_exp,
+                            #                selected="exposure")
+                            # )
+                        ),
 
                         ui.column(
                             4,
@@ -585,34 +589,58 @@ def exp_shiny(self,
                     class_="no-overflow"
                 )
             ),
-            title="Output"
-        ),
 
-        ui.navset_pill(
-
-
-            ui.nav(
+            ui.nav_panel(
                 "Table",
-                ui.br(),
-                ui.output_table("xpTable")
+                ui.card(
+                    ui.card_header(
+                        ui.popover(
+                            icon_svg("gear"),
+                            ui.input_switch("tableCI",
+                                            ui.strong("Confidence intervals"),
+                                            value=False),
+                            ui.input_switch("tableCredAdj",
+                                            ui.strong(
+                                                "Credibility-weighted termination rates"),
+                                            value=False),
+                            ui.input_switch("tableColorful",
+                                            ui.strong("Include color scales"),
+                                            value=False),
+                            ui.input_slider("tableDecimals",
+                                            ui.strong("Decimals:"),
+                                            value=1, min=0, max=5),
+                            ui.input_slider("tableFontsize",
+                                            ui.strong("Font size multiple:"),
+                                            value=100, min=50,
+                                            max=150, step=5)
+                        )
+                    ),
+                    gts.output_gt("xpTable"),
+                    full_screen=True,
+                    class_="no-overflow"
+                )
             ),
 
-            ui.nav(
-                "Export Data",
-                ui.br(),
-                ui.download_button("xpDownload", "Download")
-            )
+            ui.nav_spacer(),
+            ui.nav_menu(
+                [icon_svg("download"), "Export"],
+                ui.nav_panel(
+                    ui.download_link("xpDownload", "Summary data (.csv)"),                        
+                    ui.download_link("plotDownload", "Plot (.png)"),
+                    ui.download_link("tableDownload", "Table (.png)")
+                ),
+                align='right'
+            ),
 
+            title="Output"
         ),
-
-        ui.h3("Filter information"),
-        ui.output_text_verbatim("filterInfo"),
-
-        ui.tags.style(ui.HTML(""".html-fill-container > .html-fill-item {
-                                    overflow: visible; }
-                                    .html-fill-container > .no-overflow {
-                                    overflow: auto; }
-                                    """)),
+        
+        ui.tags.style(ui.HTML("""
+                              .html-fill-container > .html-fill-item {
+                              overflow: visible; }
+                              .html-fill-container > .no-overflow {
+                              overflow: auto; }
+                              """)),
 
         title=title,
         fillable=False,
@@ -788,19 +816,8 @@ def exp_shiny(self,
         def xpTable():
             return (rxp().table())
 
-        # filter information
-        @output
-        @render.text
-        def filterInfo():
-
-            curr_rows = len(rdat().data)
-
-            return (f"Total records = {total_rows:,d}\n" +
-                    f"Remaining records = {curr_rows:,d}\n" +
-                    f"% Data Remaining = {curr_rows / total_rows * 100:,.1f}%")
-
         # download data
-        @session.download(
+        @render.download(
             # TODO should this use tepmfile.TemporaryDirectory?
             filename=lambda: f"{input.study_type()}-data-{datetime.today().isoformat(timespec='minutes')[:10]}.csv"
         )
@@ -808,6 +825,7 @@ def exp_shiny(self,
             with io.BytesIO() as buf:
                 rxp().data.to_csv(buf)
                 yield buf.getvalue()
+ 
 
     # Run the application
     return App(app_ui, server)

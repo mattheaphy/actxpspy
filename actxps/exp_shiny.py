@@ -26,6 +26,7 @@ def exp_shiny(self,
               credibility: bool = True,
               conf_level: float = 0.95,
               cred_r: float = 0.05,
+              bootswatch_theme: str = None,
               col_exposure: str = 'exposure'):
     """
     Interactively explore experience data
@@ -56,7 +57,15 @@ def exp_shiny(self,
         Confidence level used for the Limited Fluctuation credibility method
         and confidence intervals.
     cred_r : float, default=0.05
-        Error tolerance under the Limited Fluctuation credibility method.            
+        Error tolerance under the Limited Fluctuation credibility method.
+    bootswatch_theme : str, default=None
+        The name of a preset bootswatch theme passed to shinyswatch.get_theme.
+    col_exposure : str, default='exposure'
+        Name of the column in the `data` property containing exposures. This
+        input is only used to clarify the exposure basis when the `ExposedDF` 
+        is also a `SplitExposedDF` object. For more information on split 
+        exposures, see ExposedDF.expose_split().
+
 
     Notes
     ----------
@@ -161,23 +170,16 @@ def exp_shiny(self,
     app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
     ```
     """
-    # check that shiny is installed
+    # check that required packages are installed
     try:
         from shiny import ui, render, reactive, App
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError("The 'shiny' package is required to " +
-                                  "use this function")
-    try:
-        from shinyswatch import theme as theme_swatch
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError("The 'shinyswatch' package is required to " +
-                                  "use this function")
-    try:
         from faicons import icon_svg
+        from shinyswatch import get_theme
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("The 'faicons' package is required to " +
+        raise ModuleNotFoundError("The 'shiny, faicons, and shinyswatch " +
+                                  "packages are required to " +
                                   "use this function")
-
+        
     from actxps import SplitExposedDF
     from actxps.expose_split import _check_split_expose_basis
 
@@ -498,6 +500,7 @@ def exp_shiny(self,
                 "Plot",
                 ui.card(
                     ui.card_header(
+                        "Plot inputs ",
                         info_tooltip(
                             ui.markdown(
                             """
@@ -642,9 +645,9 @@ def exp_shiny(self,
                               overflow: auto; }
                               """)),
 
+        get_theme(bootswatch_theme) if bootswatch_theme is not None else "",
         title=title,
         fillable=False,
-        # theme=theme #TODO
 
     )
 
@@ -818,7 +821,7 @@ def exp_shiny(self,
 
         # download data
         @render.download(
-            # TODO should this use tepmfile.TemporaryDirectory?
+            # TODO should this use tempfile.TemporaryDirectory?
             filename=lambda: f"{input.study_type()}-data-{datetime.today().isoformat(timespec='minutes')[:10]}.csv"
         )
         def xpDownload():

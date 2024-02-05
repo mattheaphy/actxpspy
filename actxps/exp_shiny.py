@@ -12,7 +12,6 @@ from plotnine import (aes,
 from actxps.col_select import col_contains
 import io
 import great_tables.shiny as gts
-from actxps.tools import _set_actxps_plot_theme
 
 
 def exp_shiny(self,
@@ -176,11 +175,9 @@ def exp_shiny(self,
         raise ModuleNotFoundError("The 'shiny, faicons, and shinyswatch " +
                                   "packages are required to " +
                                   "use this function")
-        
+
     from actxps import SplitExposedDF
     from actxps.expose_split import _check_split_expose_basis
-    
-    _set_actxps_plot_theme()
 
     # special logic required for split exposed data frames
     if isinstance(self, SplitExposedDF):
@@ -431,11 +428,15 @@ def exp_shiny(self,
             ui.strong(ui.output_text("filter_desc_header")),
             ui.tags.small(ui.output_text_verbatim('filter_desc')),
 
-            # ui.accordion( #TODO
+            # add filter widgets
+            ui.accordion(
+                *map(lambda x: ui.accordion_panel(
+                    x[0],
+                    [widget(y) for y in x[1].index]),
+                    preds.groupby('dtype', observed=True, sort=False)),
+                open=True
+            ),
 
-            # ),
-
-            [widget(x) for x in preds.index],
             width=300,
             title="Filters"
         ),
@@ -502,7 +503,7 @@ def exp_shiny(self,
                         "Plot inputs ",
                         info_tooltip(
                             ui.markdown(
-                            """
+                                """
                             <div style="text-align: left">
                             
                             - `y`-axis variable selection
@@ -627,7 +628,7 @@ def exp_shiny(self,
             ui.nav_menu(
                 [icon_svg("download"), "Export"],
                 ui.nav_panel(
-                    ui.download_link("xpDownload", "Summary data (.csv)"),                        
+                    ui.download_link("xpDownload", "Summary data (.csv)"),
                     ui.download_link("plotDownload", "Plot (.png)"),
                     ui.download_link("tableDownload", "Table (.png)")
                 ),
@@ -636,7 +637,7 @@ def exp_shiny(self,
 
             title="Output"
         ),
-        
+
         ui.tags.style(ui.HTML("""
                               .html-fill-container > .html-fill-item {
                               overflow: visible; }
@@ -827,7 +828,6 @@ def exp_shiny(self,
             with io.BytesIO() as buf:
                 rxp().data.to_csv(buf)
                 yield buf.getvalue()
- 
 
     # Run the application
     return App(app_ui, server)

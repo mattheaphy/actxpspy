@@ -15,10 +15,14 @@ import great_tables.shiny as gts
 
 
 def exp_shiny(self,
-              predictors=None,
-              expected=None,
-              distinct_max=25,
-              col_exposure='exposure'):
+              predictors: str | list | np.ndarray = None,
+              expected: str | list | np.ndarray = None,
+              distinct_max: int = 25,
+              title: str = None,
+              credibility: bool = True,
+              conf_level: float = 0.95,
+              cred_r: float = 0.05,
+              col_exposure: str = 'exposure'):
     """
     Interactively explore experience data
 
@@ -27,10 +31,10 @@ def exp_shiny(self,
 
     Parameters
     ----------
-    predictors : str | list | np.ndarray, default=`None`
+    predictors : str | list | np.ndarray, default=None
         A character vector of independent variables in the `data` property 
         to include in the shiny app.
-    expected : str | list | np.ndarray, default=`None`
+    expected : str | list | np.ndarray, default=None
         A character vector of expected values in the `data` property to
         include in the shiny app.
     distinct_max : int
@@ -38,6 +42,17 @@ def exp_shiny(self,
         to be included as "Color" and "Facets" grouping variables. This 
         input prevents the drawing of overly complex plots. Default 
         value = 25.
+    title : str, default=None
+        Title of the Shiny app. If no title is provided, a descriptive title 
+        will be generated based on attributes of the `ExposedDF` object.
+    credibility : bool, default=False
+        If `True`, future calls to `summary()` will include partial 
+        credibility weights and credibility-weighted termination rates.
+    conf_level : float, default=0.95
+        Confidence level used for the Limited Fluctuation credibility method
+        and confidence intervals.
+    cred_r : float, default=0.05
+        Error tolerance under the Limited Fluctuation credibility method.            
 
     Notes
     ----------
@@ -382,114 +397,226 @@ def exp_shiny(self,
     else:
         trx_tab = None
 
-    app_ui = ui.page_fluid(
+    if title is None:
+        title = ("/".join(expo.target_status) + " Experience Study" +
+                 ((" and " + "/".join(expo.trx_types) +
+                   " Transaction Study")
+                  if has_trx else ""))
 
-        ui.panel_title(("/".join(expo.target_status) + " Experience Study" +
-                        ((" and " + "/".join(expo.trx_types) +
-                          " Transaction Study")
-                         if has_trx else ""))
-                       ),
+    app_ui = ui.page_sidebar(
 
-        ui.layout_sidebar(
+        ui.sidebar(
+            ui.input_switch("play",
+                            ["Reactivity ",
+                             icon_svg("play"), "/",
+                             icon_svg("pause")],
+                            value=True),
+            # filter descriptions
+            ui.tooltip(
+                ui.value_box(
+                    title="% data remaining",
+                    value=ui.output_text("rem_pct"),
+                    showcase=ui.output_plot("filter_pie",
+                                            height="60px", width="60px")
+                ),
+                f"Original row count: {total_rows:,d}",
+                ui.output_text("rem_rows")
+            ),
 
-            ui.panel_sidebar(
-                ui.h3("Filters"),
-                [widget(x) for x in preds.index]),
+            ui.strong(ui.output_text("filter_desc_header")),
+            ui.tags.small(ui.output_text_verbatim('filter_desc')),
 
-            ui.panel_main(
-                ui.panel_well(
-                    ui.h3("Study options"),
+            # ui.accordion( #TODO
 
-                    ui.h4("Grouping variables"),
-                    ui.em(("The variables selected below will be used as " +
-                           "grouping variables in the plot and table outputs." +
-                           " Multiple variables can be selected as facets.")),
+            # ),
+
+            [widget(x) for x in preds.index],
+            width=300,
+            title="Filters"
+        ),
+
+        ui.layout_column_wrap(
+
+            ui.card(
+                ui.card_header(
+                    "Grouping variables",
+                    info_tooltip(
+                        """
+                        The variables selected below will be used as
+                        grouping variables in the plot and table outputs.
+                        Multiple variables can be selected as facets.
+                        """
+                    )),
+
+                ui.row(
+                    selectPred("xVar", "x:", 4),
+                    selectPred("colorVar", "Color:", 4,
+                               choices=["None"] + preds_small),
+                    selectPred("facetVar", "Facets:", 4, multiple=True,
+                               choices=preds_small)
+                ),
+            ),
+
+            ui.navset_card_tab(
+
+                ui.nav_panel(
+                    ["Termination study",
+                     info_tooltip(
+                         """
+                         Choose expected values (if available) that appear in 
+                         the plot and table outputs. If desired, select a 
+                         weighting variable for summarizing experience.
+                         """)
+                     ],
+
                     ui.row(
-                        selectPred("xVar", "x:", 4),
-                        selectPred("colorVar", "Color:", 4,
-                                   choices=["None"] + preds_small),
-                        selectPred("facetVar", "Facets:", 4, multiple=True,
-                                   choices=preds_small)
+                        expected_widget,
+                        selectPred("weightVar",
+                                   "Weight by:", 4,
+                                   choices=["None"] +
+                                   preds.loc[preds.is_number].index.to_list(
+                                   )
+                                   )
                     ),
 
-                    ui.h4("Study type"),
-                    ui.navset_pill(
-                        ui.nav("Termination study",
-                               ui.row(
-                                   expected_widget,
-                                   selectPred("weightVar",
-                                              "Weight by:", 4,
-                                              choices=["None"] +
-                                              preds.loc[preds.is_number].index.to_list(
-                                              )
-                                              )
-                               ),
-                               value="exp"
-                               ),
-                        trx_tab,
-                        id="study_type"
-                    )
+                    value="exp"),
 
-                ),
+                trx_tab,
+                id="study_type",
+                title="Study type",
 
-                ui.h3("Output"),
+            ),
+            width=400,
+            heights_equal='row'
+        ),
 
-                ui.navset_pill(
-                    ui.nav(
-                        "Plot",
-                        ui.br(),
-                        ui.row(
-                            selectPred("yVar", "y:", 4, choices=yVar_exp),
-                            ui.column(
-                                4,
-                                ui.input_radio_buttons(
-                                    "plotGeom",
-                                    ui.strong("Geometry:"),
-                                    {"bars": "Bars",
-                                     "lines": "Lines and Points",
-                                     "points": "Points"})
+        ui.navset_bar(
+            ui.nav_panel(
+                "Plot",
+                ui.card(
+                    ui.card_header(
+                        info_tooltip(
+                            ui.markdown(
+                                """
+                            '<div style="text-align: left">
+
+                            - `y`-axis variable selection
+                            - `Second y-axis` toggle and variable
+                            - `Geometry` for plotting
+                            - `Add smoothing`: add smooth loess curves
+                            - `Confidence intervals`: If available, draw confidence interval
+                            error bars
+                            - `Free y-scales`: enable separate `y` scales in each subplot
+                            - `Log y-axis`: plot y-axes on a log-10 scale
+                            - The grouping variables selected above will determine the
+                            variable on the `x`-axis, the color variable, and faceting
+                            variables used to create subplots.
+
+                            </div>'
+                            """)  # ,
+                            # custom_class="left-tip"
+                        )),
+
+                    ui.row(
+                        ui.column(
+                            8,
+                            ui.row(
+                                selectPred("yVar", "y:", 6, choices=yVar_exp),
+                                ui.column(
+                                    6,
+                                    ui.input_radio_buttons(
+                                        "plotGeom",
+                                        ui.strong("Geometry:"),
+                                        {"bars": "Bars",
+                                         "lines": "Lines and Points",
+                                         "points": "Points"}),
+                                ),
                             ),
-                            ui.column(
-                                4,
-                                ui.input_checkbox(
-                                    "plotSmooth",
-                                    ui.strong("Add Smoothing?"),
-                                    False)
-                            )
-                        ),
 
-                        ui.row(
-                            ui.column(
-                                4,
-                                ui.input_checkbox(
-                                    "plotFreeY",
-                                    ui.strong("Free y Scales?"),
-                                    False)
-                            )
-                        ),
+                            ui.row(
+                                # TODO second y-axis
+                                # ui.column(
+                                #     6
+                                #     ui.input_switch("plot2ndY",
+                                #                     ui.strong("Second y-axis"),
+                                #                 value = False)
+                                # ),
+                                # selectPred("yVar_2nd", "Second axis y:",
+                                #            6, choices=yVar_exp,
+                                #            selected="exposure")
+                            )),
 
-                        ui.output_plot("xpPlot")
-                    ),
-
-                    ui.nav(
-                        "Table",
-                        ui.br(),
-                        ui.output_table("xpTable")
-                    ),
-
-                    ui.nav(
-                        "Export Data",
-                        ui.br(),
-                        ui.download_button("xpDownload", "Download")
+                        ui.column(
+                            4,
+                            ui.input_switch("plotSmooth",
+                                            ui.strong("Add smoothing"),
+                                            value=False),
+                            ui.input_switch("plotCI",
+                                            ui.strong("Confidence intervals"),
+                                            value=False),
+                            ui.input_switch("plotFreeY",
+                                            ui.strong("Free y-scales"),
+                                            value=False),
+                            ui.input_switch("plotLogY",
+                                            ui.strong("Log y-axis"),
+                                            value=False),
+                        )
                     )
 
                 ),
 
-                ui.h3("Filter information"),
-                ui.output_text_verbatim("filterInfo")
+                ui.card(
+                    ui.card_header(
+                        ui.popover(
+                            icon_svg("gear"),
+                            ui.input_switch("plotResize", "Resize plot",
+                                            value=False),
+                            ui.input_slider("plotHeight", "Height (pixels):",
+                                            200, 1500, value=500, step=50),
+                            ui.input_slider("plotWidth", "Width (pixels):",
+                                            200, 1500, value=1500, step=50)
+                        )
+                    ),
+                    # ui.card_(
+                    # class = "no-overflow", #TODO needed?
+                    ui.output_plot("xpPlot", height="500px"),
+                    # ),
+                    full_screen=True,
+                    class_="no-overflow"
+                )
+            ),
+            title="Output"
+        ),
 
+        ui.navset_pill(
+
+
+            ui.nav(
+                "Table",
+                ui.br(),
+                ui.output_table("xpTable")
+            ),
+
+            ui.nav(
+                "Export Data",
+                ui.br(),
+                ui.download_button("xpDownload", "Download")
             )
-        )
+
+        ),
+
+        ui.h3("Filter information"),
+        ui.output_text_verbatim("filterInfo"),
+
+        ui.tags.style(ui.HTML(""".html-fill-container > .html-fill-item {
+                                    overflow: visible; }
+                                    .html-fill-container > .no-overflow {
+                                    overflow: auto; }
+                                    """)),
+
+        title=title,
+        fillable=False,
+        # theme=theme #TODO
 
     )
 

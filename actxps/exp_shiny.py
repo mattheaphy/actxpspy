@@ -655,10 +655,15 @@ def exp_shiny(self,
 
         @reactive.Calc
         def yVar_exp2():
-            return (yVar_exp +
-                    list(input.ex_checks()) +
-                    [f"ae_{x}" for x in input.ex_checks()] +
-                    [f"adj_{x}" for x in input.ex_checks()])
+            choices = (yVar_exp +
+                       list(input.ex_checks()) +
+                       [f"ae_{x}" for x in input.ex_checks()] +
+                       [f"adj_{x}" for x in input.ex_checks()])
+
+            if len(input.ex_checks()) > 0:
+                choices.extend(["All termination rates", "All A/E ratios"])
+
+            return choices
 
         @reactive.Calc
         def yVar_trx2():
@@ -677,14 +682,104 @@ def exp_shiny(self,
             else:
                 choices = yVar_trx2()
 
-            ui.update_select(
+            ui.update_selectize(
                 "yVar",
-                choices=choices
+                choices=choices,
+                selected=input.yVar() if input.yVar(
+                ) in choices else choices[0]
             )
+
+        # TODO second y-axis
+        # @reactive.Effect
+        # @reactive.event(input.study_type, input.ex_checks, input.pct_checks,
+        #                 input.yVar)
+        # def _():
+        #     if input.study_type() == "exp":
+
+        #         new_choices_2 = [
+        #             x for x in yVar_exp() if
+        #             x not in ["All termination rates", "All A/E ratios"]]
+
+        #         if input.yVar() == "All termination rates":
+        #             new_choices_2 = [
+        #                 x for x in new_choices_2 if
+        #                 x not in ['q_obs'] + input.ex_checks()]
+        #         elif input.yVar() == "All A/E ratios":
+        #             new_choices_2 = [
+        #                 x for x in new_choices_2 if
+        #                 x not in [f"ae_{x}" for x in input.ex_checks()]]
+
+        #     else:
+        #         new_choices_2 = yVar_trx2()
+
+        #     ui.update_selectize(
+        #         "yVar_2nd",
+        #         choices = new_choices_2,
+        #         selected = (input.yVar_2nd() if input.yVar_2nd() in
+        #                     new_choices_2 else "exposure")
+        #     )
+
+        # disable color input when using special plots
+        @reactive.Effect
+        @reactive.event(input.yVar, input.ex_checks)
+        def _():
+            if input.yVar() in ["All termination rates", "All A/E ratios"]:
+                ui.update_selectize(
+                    "colorVar", choices=["Series"], selected="Series")
+            else:
+                ui.update_selectize(
+                    "colorVar",
+                    choices=["None"] + preds_small,
+                    selected=(input.colorVar() if input.colorVar() in
+                              ["None"] + preds_small else "None")
+                )
+
+        # notification in pause mode
+        @reactive.Effect
+        def _():
+            if not input.play():
+                ui.notification_show("Reactivity is paused...",
+                                     duration=None,
+                                     id="paused",
+                                     close_button=False)
+            else:
+                ui.notification_remove("paused")
+
+        @reactive.Calc
+        def active_filters():
+
+            # TODO - update when validate() is added to Shiny for Python all
+            # instances of `if not input.play()` can be removed.
+            # ui.validate(ui.need(input.play(), "Paused"))
+            if not input.play():
+                return None
+
+            # TODO
+            def is_active(x):
+                info = preds.loc[x]
+                scope = info['scope']
+                selected = input["i_" + x]()
+                if info['dtype'] == "Dates":
+                    res = (scope[0] != pd.to_datetime(selected[0]) or
+                           scope[1] != pd.to_datetime(selected[1]))
+                elif info['is_number']:
+                    res = (not np.isclose(scope[0], selected[0]) or
+                           not np.isclose(scope[1], selected[1]))
+                else:
+                    res = len(set(scope).difference(selected)) > 0
+                if res:
+                    return x
+
+            keep = [is_active(x) for x in preds.index]
+
+            return [x for x in keep if x is not None]
 
         # reactive data
         @reactive.Calc
         def rdat():
+
+            if not input.play():
+                return None
 
             # function to build filter expressions
             def expr_filter(x):
@@ -704,9 +799,15 @@ def exp_shiny(self,
 
                 return res
 
-            filters = [expr_filter(x) for x in preds.index]
+            # determine which filters are active
+            filters = [expr_filter(x) for x in active_filters()]
+            
+            # if no active filters, return the current data
+            if len(filters) == 0:
+                return expo
+            
+            # apply filters
             filters = ' & '.join(filters)
-
             new_expo = deepcopy(expo)
             new_expo.data = new_expo.data.query(filters)
 
@@ -715,6 +816,9 @@ def exp_shiny(self,
         # experience study
         @reactive.Calc
         def rxp():
+
+            if not input.play():
+                return None
 
             expo = rdat()
 
@@ -753,6 +857,9 @@ def exp_shiny(self,
         @output()
         @render.plot()
         def xpPlot():
+
+            if not input.play():
+                return None
 
             if (input.study_type() == "exp") & (input.yVar() in yVar_trx2()):
                 return None
@@ -817,6 +924,8 @@ def exp_shiny(self,
         @output
         @gts.render_gt()
         def xpTable():
+            if not input.play():
+                return None
             return (rxp().table())
 
         # download data
@@ -825,6 +934,8 @@ def exp_shiny(self,
             filename=lambda: f"{input.study_type()}-data-{datetime.today().isoformat(timespec='minutes')[:10]}.csv"
         )
         def xpDownload():
+            if not input.play():
+                return None
             with io.BytesIO() as buf:
                 rxp().data.to_csv(buf)
                 yield buf.getvalue()

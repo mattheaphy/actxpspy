@@ -147,7 +147,7 @@ def _plot_experience(xp_obj,
          scale_y_continuous(labels=y_labels, trans=y_trans))
 
     global _use_default_colors
-    if _use_default_colors:
+    if _use_default_colors and color is not None:
         colors = ["#1367D4", "#7515EB", "#EB15E4", "#1AC4F2",
                   "#1FF2C1", "#C6E531", "#FFA13D", "#FF7647"]
         p = (p +
@@ -167,7 +167,8 @@ def _plot_experience(xp_obj,
             _conf_int_warning()
         else:
 
-            y_min_max = [y + "_lower", y + "_upper"]
+            y_chr = p.mapping['y']
+            y_min_max = [y_chr + "_lower", y_chr + "_upper"]
             if all(np.isin(y_min_max, data.columns)):
                 p = p + geom_errorbar(aes(ymin=y_min_max[0],
                                           ymax=y_min_max[1]))

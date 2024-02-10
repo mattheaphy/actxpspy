@@ -269,7 +269,7 @@ def exp_shiny(self,
 
     if has_trx:
         yVar_trx = ["trx_util", "trx_freq", "trx_n", "trx_flag",
-                    "trx_amt", "avg_trx", "avg_all"]
+                    "trx_amt", "avg_trx", "avg_all", "exposure"]
     else:
         yVar_trx = None
 
@@ -607,7 +607,7 @@ def exp_shiny(self,
                                             value=False),
                             ui.input_switch("tableColorful",
                                             ui.strong("Include color scales"),
-                                            value=False),
+                                            value=True),
                             ui.input_slider("tableDecimals",
                                             ui.strong("Decimals:"),
                                             value=1, min=0, max=5),
@@ -975,7 +975,21 @@ def exp_shiny(self,
                 return None
             if rdat().data.shape[0] == 0:
                 return None
-            return (rxp().table())
+
+            if (input.study_type() == "exp"):
+                return rxp().table(
+                    show_conf_int=input.tableCI(),
+                    show_cred_adj=input.tableCredAdj(),
+                    colorful=input.tableColorful(),
+                    decimals=input.tableDecimals(),
+                    fontsize=input.tableFontsize()
+                )
+            else:
+                return rxp().table(
+                    show_conf_int=input.tableCI(),
+                    colorful=input.tableColorful(),
+                    decimals=input.tableDecimals(),
+                    fontsize=input.tableFontsize())
 
         # download data
         @render.download(

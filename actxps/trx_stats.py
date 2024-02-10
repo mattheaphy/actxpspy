@@ -874,8 +874,8 @@ class TrxStats():
         if len(percent_of) > 0:
             data.drop(columns=percent_of + [x + "_w_trx" for x in percent_of],
                       inplace=True)
-        if conf_int:
-            data.drop(columns=['trx_amt_sq'], inplace=True)
+            if conf_int:
+                data.drop(columns=['trx_amt_sq'], inplace=True)
 
         ci_cols = col_contains(data, '_(?:upp|low)er$')
         if show_conf_int and not conf_int:

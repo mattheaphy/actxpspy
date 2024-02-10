@@ -634,9 +634,10 @@ def exp_shiny(self,
                 ui.nav_panel(
                     ui.download_link("plotDownload", "Plot (.png)")
                 ),
-                ui.nav_panel(
-                    ui.download_link("tableDownload", "Table (.png)")
-                ),
+                # TODO - uncomment when great_tables adds a save method
+                # ui.nav_panel(
+                #     ui.download_link("tableDownload", "Table (.png)")
+                # ),
                 align='right'
             ),
 
@@ -759,7 +760,6 @@ def exp_shiny(self,
             if not input.play():
                 return None
 
-            # TODO
             def is_active(x):
                 info = preds.loc[x]
                 scope = info['scope']
@@ -978,9 +978,9 @@ def exp_shiny(self,
                 height=input.plotHeight() if input.plotResize() else "500px",
                 width=input.plotWidth() if input.plotResize() else None)
 
-        @output
-        @gts.render_gt()
-        def xpTable():
+        
+        @reactive.Calc
+        def rtable():
             if not input.play():
                 return None
             if rdat().data.shape[0] == 0:
@@ -1000,6 +1000,11 @@ def exp_shiny(self,
                     colorful=input.tableColorful(),
                     decimals=input.tableDecimals(),
                     fontsize=input.tableFontsize())
+                
+        @output
+        @gts.render_gt()
+        def xpTable():
+            return rtable()
 
         @output
         @render.text()
@@ -1084,9 +1089,8 @@ def exp_shiny(self,
         # exporting
 
         # function factory for output file names
-        # TODO should this use tempfile.TemporaryDirectory?
-
         def export_path(study_type, x, extension):
+            # TODO should this use tempfile.TemporaryDirectory?
             return f"{study_type}-{x}-{datetime.today().isoformat(timespec='minutes')[:10]}.{extension}"
 
         @render.download(
@@ -1118,6 +1122,19 @@ def exp_shiny(self,
                              else None,
                              units='in')
                 yield buf.getvalue()
+                
+        # TODO - uncomment when great_tables adds a save method
+        # @render.download(
+        #     filename=lambda: export_path(input.study_type(), "table", "png")
+        # )
+        # def tableDownload():
+        #     if not input.play():
+        #         return None
+        #     if rdat().data.shape[0] == 0:
+        #         return None
+        #     with io.BytesIO() as buf:
+        #         rtable().save(buf)
+        #         yield buf.getvalue()
 
     # Run the application
     return App(app_ui, server)

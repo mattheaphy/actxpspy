@@ -1011,7 +1011,69 @@ def exp_shiny(self,
                            wedgeprops=dict(width=0.5), startangle=90,
                            colors=["#033C73", "#BBBBBB"])
 
+        # function to describe filters in words
+        def describe_filter(x):
+
+            selected = input["i_" + x]()
+            info = preds.loc[x]
+            choices = info['scope']
+
+            # numeric or date
+            if (info['dtype'] == "Numeric") | (info['dtype'] == "Dates"):
+                
+                if (info['dtype'] == 'Dates'):
+                    selected = pd.to_datetime(selected)
+
+                if selected[0] == selected[1]:
+                    # exactly equal
+                    return f"{x} == {selected[0]}"
+                elif selected[0] > choices[0]:
+                    if selected[1] < choices[1]:
+                        # between
+                        return f"{selected[0]} <= {x} <= {selected[1]}"
+                    else:
+                        # strictly greater than
+                        return f"{x} >= {selected[0]}"
+                else:
+                    # strictly less than
+                    return f"{x} <= {selected[1]}"
+
+            elif len(selected) == 0:
+                # categorical
+                # nothing selected
+                return f"{x} is nothing"
+            else:
+                def or_list(y):
+                    y = list(y)
+                    if len(y) > 2:
+                        y[len(y) - 1] = "or " + y[len(y) - 1]
+                        return ", ".join(y)
+                    elif len(y) == 1:
+                        return str(y[0])
+                    else:
+                        return f"{y[0]} or {y[1]}"
+                    
+                if len(selected) < 0.5 * info.n_unique:
+                    # minority selected - list all selections
+                    return f"{x} is {or_list(selected)}"
+                else:
+                    # majority selected - list all NOT selected
+                    y = set(choices).difference(selected)
+                    return f"{x} is NOT {or_list(y)}"
+
+        # filter description output
+        @output
+        @render.text()
+        def filter_desc():
+            return "\n".join([describe_filter(x) for x in active_filters()])
+
         # download data
+        @output
+        @render.text()
+        def filter_desc_header():
+            if len(active_filters()) > 0:
+                return "Active filters"
+
         @render.download(
             # TODO should this use tempfile.TemporaryDirectory?
             filename=lambda: f"{input.study_type()}-data-{datetime.today().isoformat(timespec='minutes')[:10]}.csv"

@@ -10,6 +10,7 @@ from plotnine import (aes,
                       element_text,
                       element_rect)
 from actxps.col_select import col_contains
+import matplotlib.pyplot as plt
 import io
 import great_tables.shiny as gts
 
@@ -420,8 +421,9 @@ def exp_shiny(self,
                 ui.value_box(
                     title="% data remaining",
                     value=ui.output_text("rem_pct"),
-                    showcase=ui.output_plot("filter_pie",
-                                            height="60px", width="60px")
+                    showcase_layout=ui.showcase_left_center(width="100%",
+                                                            max_height='200px'),
+                    showcase=ui.output_plot("filter_pie")
                 ),
                 f"Original row count: {total_rows:,d}",
                 ui.output_text("rem_rows")
@@ -866,7 +868,7 @@ def exp_shiny(self,
 
         @output
         @render.plot()
-        def rPlot():
+        def rplot():
 
             if not input.play():
                 return None
@@ -964,7 +966,7 @@ def exp_shiny(self,
         @render.ui()
         def xpPlot():
             return ui.output_plot(
-                "rPlot",
+                "rplot",
                 height=input.plotHeight() if input.plotResize() else "500px",
                 width=input.plotWidth() if input.plotResize() else None)
 
@@ -990,6 +992,24 @@ def exp_shiny(self,
                     colorful=input.tableColorful(),
                     decimals=input.tableDecimals(),
                     fontsize=input.tableFontsize())
+
+        @output
+        @render.text()
+        def rem_pct():
+            return f"{(rdat().data.shape[0] / total_rows) * 100:.0f}%"
+
+        @output
+        @render.text()
+        def rem_rows():
+            return f"Remaining rows: {rdat().data.shape[0]:,d}"
+
+        @output
+        @render.plot()
+        def filter_pie():
+            return plt.pie([rdat().data.shape[0],
+                            total_rows - rdat().data.shape[0]],
+                           wedgeprops=dict(width=0.5), startangle=90,
+                           colors=["#033C73", "#BBBBBB"])
 
         # download data
         @render.download(

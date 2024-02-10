@@ -629,8 +629,12 @@ def exp_shiny(self,
             ui.nav_menu(
                 [icon_svg("download"), "Export"],
                 ui.nav_panel(
-                    ui.download_link("xpDownload", "Summary data (.csv)"),
-                    ui.download_link("plotDownload", "Plot (.png)"),
+                    ui.download_link("xpDownload", "Summary data (.csv)")
+                ),
+                ui.nav_panel(
+                    ui.download_link("plotDownload", "Plot (.png)")
+                ),
+                ui.nav_panel(
                     ui.download_link("tableDownload", "Table (.png)")
                 ),
                 align='right'
@@ -866,8 +870,7 @@ def exp_shiny(self,
                                   combine_trx=input.trx_combine(),
                                   conf_int=True))
 
-        @output
-        @render.plot()
+        @reactive.Calc
         def rplot():
 
             if not input.play():
@@ -961,12 +964,17 @@ def exp_shiny(self,
                           strip_background=element_rect(fill="#43536b")
                           )
                     )
+            
+        @output
+        @render.plot
+        def oplot():
+            return rplot()
 
         @output
         @render.ui()
         def xpPlot():
             return ui.output_plot(
-                "rplot",
+                "oplot",
                 height=input.plotHeight() if input.plotResize() else "500px",
                 width=input.plotWidth() if input.plotResize() else None)
 
@@ -1020,7 +1028,7 @@ def exp_shiny(self,
 
             # numeric or date
             if (info['dtype'] == "Numeric") | (info['dtype'] == "Dates"):
-                
+
                 if (info['dtype'] == 'Dates'):
                     selected = pd.to_datetime(selected)
 
@@ -1052,7 +1060,7 @@ def exp_shiny(self,
                         return str(y[0])
                     else:
                         return f"{y[0]} or {y[1]}"
-                    
+
                 if len(selected) < 0.5 * info.n_unique:
                     # minority selected - list all selections
                     return f"{x} is {or_list(selected)}"
@@ -1067,16 +1075,22 @@ def exp_shiny(self,
         def filter_desc():
             return "\n".join([describe_filter(x) for x in active_filters()])
 
-        # download data
         @output
         @render.text()
         def filter_desc_header():
             if len(active_filters()) > 0:
                 return "Active filters"
 
+        # exporting
+
+        # function factory for output file names
+        # TODO should this use tempfile.TemporaryDirectory?
+
+        def export_path(study_type, x, extension):
+            return f"{study_type}-{x}-{datetime.today().isoformat(timespec='minutes')[:10]}.{extension}"
+
         @render.download(
-            # TODO should this use tempfile.TemporaryDirectory?
-            filename=lambda: f"{input.study_type()}-data-{datetime.today().isoformat(timespec='minutes')[:10]}.csv"
+            filename=lambda: export_path(input.study_type(), "data", "csv")
         )
         def xpDownload():
             if not input.play():
@@ -1085,6 +1099,24 @@ def exp_shiny(self,
                 return None
             with io.BytesIO() as buf:
                 rxp().data.to_csv(buf)
+                yield buf.getvalue()
+
+        @render.download(
+            filename=lambda: export_path(input.study_type(), "plot", "png")
+        )
+        def plotDownload():
+            if not input.play():
+                return None
+            if rdat().data.shape[0] == 0:
+                return None
+            with io.BytesIO() as buf:
+                # note the conversion of height / width to pixels below
+                rplot().save(buf,
+                             height=input.plotHeight() if input.plotResize() / 96
+                             else None,
+                             width=input.plotWidth() if input.plotResize() / 96
+                             else None,
+                             units='in')
                 yield buf.getvalue()
 
     # Run the application

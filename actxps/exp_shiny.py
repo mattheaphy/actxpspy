@@ -263,7 +263,9 @@ def exp_shiny(self,
              set_index('predictors'))
     preds_small = preds.copy()[preds.n_unique <= distinct_max].index.to_list()
 
-    yVar_exp = ["q_obs", "n_claims", "claims", "exposure", "credibility"]
+    yVar_exp = ["q_obs", "n_claims", "claims", "exposure"]
+    if credibility:
+        yVar_exp.append("credibility")
 
     if has_trx:
         yVar_trx = ["trx_util", "trx_freq", "trx_n", "trx_flag",
@@ -584,10 +586,7 @@ def exp_shiny(self,
                                             200, 1500, value=1500, step=50)
                         )
                     ),
-                    # ui.card_(
-                    # class = "no-overflow", #TODO needed?
-                    ui.output_plot("xpPlot", height="500px"),
-                    # ),
+                    ui.output_ui("xpPlot"),
                     full_screen=True,
                     class_="no-overflow"
                 )
@@ -801,11 +800,11 @@ def exp_shiny(self,
 
             # determine which filters are active
             filters = [expr_filter(x) for x in active_filters()]
-            
+
             # if no active filters, return the current data
             if len(filters) == 0:
                 return expo
-            
+
             # apply filters
             filters = ' & '.join(filters)
             new_expo = deepcopy(expo)
@@ -820,11 +819,18 @@ def exp_shiny(self,
             if not input.play():
                 return None
 
+            # TODO - add when validate is added to shiny for python
+            # ui.validate(ui.need(rdat().data is not None,
+            #                     "No data remaining after applying filters."))
+            # temporary
+            if rdat().data.shape[0] == 0:
+                return None
+
             expo = rdat()
 
             groups = [input.xVar(), input.colorVar()] + \
                 list(input.facetVar())
-            groups = [x for x in groups if x != "None"]
+            groups = [x for x in groups if x not in ["None", "Series"]]
             # ensure uniqueness
             groups = list(set(groups))
 
@@ -845,25 +851,33 @@ def exp_shiny(self,
                 return (expo.
                         groupby(*groups).
                         exp_stats(wt=wt,
-                                  credibility=True,
-                                  expected=ex))
+                                  credibility=credibility,
+                                  expected=ex,
+                                  conf_level=conf_level,
+                                  cred_r=cred_r,
+                                  conf_int=True))
             else:
                 return (expo.
                         groupby(*groups).
                         trx_stats(percent_of=list(input.pct_checks()),
                                   trx_types=list(input.trx_types_checks()),
-                                  combine_trx=input.trx_combine()))
+                                  combine_trx=input.trx_combine(),
+                                  conf_int=True))
 
-        @output()
+        @output
         @render.plot()
-        def xpPlot():
+        def rPlot():
 
             if not input.play():
                 return None
-
-            if (input.study_type() == "exp") & (input.yVar() in yVar_trx2()):
+            if rdat().data.shape[0] == 0:
                 return None
-            if (input.study_type() == "trx") & (input.yVar() in yVar_exp2()):
+
+            if ((input.study_type() == "exp") & (input.yVar() in yVar_trx2()) &
+                    (input.yVar() != "exposure")):
+                return None
+            if ((input.study_type() == "trx") & (input.yVar() in yVar_exp2()) &
+                    (input.yVar() != "exposure")):
                 return None
 
             new_rxp = deepcopy(rxp())
@@ -874,17 +888,40 @@ def exp_shiny(self,
                 new_rxp.data["All"] = ""
                 x = "All"
 
-            y = input.yVar()
-
             if input.colorVar() != "None":
+                color = input.colorVar()
+            else:
+                color = None
+
+            # set up y-variable and plotting function
+            if input.yVar() == "All termination rates":
+                y = "Rate"
+                plot_fun = new_rxp.plot_termination_rates
+            elif input.yVar() == "All A/E ratios":
+                y = 'A/E ratio'
+                plot_fun = new_rxp.plot_actual_to_expected
+            else:
+                if color is not None:
+                    if not {input.yVar(), color}.issubset(new_rxp.data.columns):
+                        return None
+                else:
+                    if input.yVar() not in new_rxp.data.columns:
+                        return None
+                y = input.yVar()
+                plot_fun = new_rxp.plot
+
+            # TODO second axis
+            # second_y = input.yVar_2nd()
+
+            if color is not None:
                 color = input.colorVar()
                 mapping = aes(x, y, color=color,
                               fill=color, group=color)
             else:
-                color = None
                 mapping = aes(x, y)
 
             # y labels
+            # TODO a function is needed here for second axis labels in the future
             if input.yVar() in (["claims", "n_claims", "exposure",
                                 "trx_n", "trx_flag", "trx_amt",
                                  "avg_trx", "avg_all"] +
@@ -897,17 +934,20 @@ def exp_shiny(self,
                 def y_labels(l): return [f"{v * 100:.1f}%" for v in l]
 
             if len(input.facetVar()) == 0:
-                p = new_rxp.plot(mapping=mapping, geoms=input.plotGeom(),
-                                 y_labels=y_labels)
+                p = plot_fun(mapping=mapping, geoms=input.plotGeom(),
+                             y_labels=y_labels,
+                             y_log10=input.plotLogY(),
+                             conf_int_bars=input.plotCI())
             else:
-
                 facets = list(input.facetVar())
 
-                p = new_rxp.plot(mapping=mapping,
-                                 geoms=input.plotGeom(),
-                                 y_labels=y_labels,
-                                 facets=facets,
-                                 scales="free_y" if input.plotFreeY() else "fixed")
+                p = plot_fun(mapping=mapping,
+                             geoms=input.plotGeom(),
+                             y_labels=y_labels,
+                             facets=facets,
+                             scales="free_y" if input.plotFreeY() else "fixed",
+                             y_log10=input.plotLogY(),
+                             conf_int_bars=input.plotCI())
 
             if input.plotSmooth():
                 p = p + geom_smooth(method="loess")
@@ -916,15 +956,24 @@ def exp_shiny(self,
                     theme_light() +
                     theme(axis_text=element_text(size=10),
                           strip_text=element_text(size=12),
-                          strip_background=element_rect(fill="#43536b"),
-                          dpi=300
+                          strip_background=element_rect(fill="#43536b")
                           )
                     )
+
+        @output
+        @render.ui()
+        def xpPlot():
+            return ui.output_plot(
+                "rPlot",
+                height=input.plotHeight() if input.plotResize() else "500px",
+                width=input.plotWidth() if input.plotResize() else None)
 
         @output
         @gts.render_gt()
         def xpTable():
             if not input.play():
+                return None
+            if rdat().data.shape[0] == 0:
                 return None
             return (rxp().table())
 
@@ -935,6 +984,8 @@ def exp_shiny(self,
         )
         def xpDownload():
             if not input.play():
+                return None
+            if rdat().data.shape[0] == 0:
                 return None
             with io.BytesIO() as buf:
                 rxp().data.to_csv(buf)

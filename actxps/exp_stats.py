@@ -230,7 +230,7 @@ class ExpStats():
         if agg:
             if groups is not None:
                 res = (data.groupby(groups, observed=True).
-                       apply(self._calc).
+                       apply(self._calc, include_groups=False).
                        reset_index().
                        drop(columns=[f'level_{len(groups)}']))
             else:

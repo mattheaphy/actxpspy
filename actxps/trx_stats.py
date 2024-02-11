@@ -281,7 +281,7 @@ class TrxStats():
         # finish trx stats
         if agg:
             res = (data.groupby(groups + ['trx_type'], observed=True).
-                   apply(self._calc).
+                   apply(self._calc, include_groups=False).
                    reset_index().
                    drop(columns=[f'level_{len(groups) + 1}']))
             self.data = res

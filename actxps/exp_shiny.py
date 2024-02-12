@@ -388,6 +388,30 @@ def exp_shiny(self,
         has_expected = False
         expected_widget = None
 
+    # set up nav panels for study type options
+    study_type_nav_panels = [
+        ui.nav_panel(
+            ["Termination study ",
+             info_tooltip(
+                 """
+                         Choose expected values (if available) that appear in 
+                         the plot and table outputs. If desired, select a 
+                         weighting variable for summarizing experience.
+                         """)
+             ],
+
+            ui.row(
+                expected_widget,
+                selectPred("weightVar",
+                           "Weight by:", 4,
+                           choices=["None"] +
+                           preds.loc[preds.is_number].index.to_list(
+                           ))
+            ),
+
+            value="exp")
+    ]
+
     # transactions set up
     if has_trx:
 
@@ -419,9 +443,7 @@ def exp_shiny(self,
             ),
             value="trx"
         )
-
-    else:
-        trx_tab = None
+        study_type_nav_panels.append(trx_tab)
 
     if title is None:
         title = ("/".join(expo.target_status) + " Experience Study" +
@@ -489,32 +511,9 @@ def exp_shiny(self,
             ),
 
             ui.navset_card_tab(
-
-                ui.nav_panel(
-                    ["Termination study ",
-                     info_tooltip(
-                         """
-                         Choose expected values (if available) that appear in 
-                         the plot and table outputs. If desired, select a 
-                         weighting variable for summarizing experience.
-                         """)
-                     ],
-
-                    ui.row(
-                        expected_widget,
-                        selectPred("weightVar",
-                                   "Weight by:", 4,
-                                   choices=["None"] +
-                                   preds.loc[preds.is_number].index.to_list(
-                                   ))
-                    ),
-
-                    value="exp"),
-
-                trx_tab,
+                *study_type_nav_panels,
                 id="study_type",
                 title="Study type",
-
             ),
             width=400,
             heights_equal='row'
@@ -694,6 +693,8 @@ def exp_shiny(self,
 
         @reactive.Calc
         def yVar_trx2():
+            if not has_trx:
+                return []
             return (yVar_trx +
                     [f"pct_of_{x}_w_trx" for x in input.pct_checks()] +
                     [f"pct_of_{x}_all" for x in input.pct_checks()] +
@@ -720,8 +721,8 @@ def exp_shiny(self,
 
         # TODO second y-axis
         # @reactive.Effect
-        # @reactive.event(input.study_type, 
-        #                 (lambda: True) if not has_expected else input.ex_checks, 
+        # @reactive.event(input.study_type,
+        #                 (lambda: True) if not has_expected else input.ex_checks,
         #                 input.pct_checks,
         #                 input.yVar)
         # def _():
@@ -954,11 +955,13 @@ def exp_shiny(self,
 
             # y labels
             # TODO a function is needed here for second axis labels in the future
-            if input.yVar() in (["claims", "n_claims", "exposure",
-                                "trx_n", "trx_flag", "trx_amt",
-                                 "avg_trx", "avg_all"] +
-                                list(input.pct_checks()) +
-                                [i + "_w_trx" for i in input.pct_checks()]):
+            y_comma = ["claims", "n_claims", "exposure",
+                       "trx_n", "trx_flag", "trx_amt",
+                       "avg_trx", "avg_all"]
+            if has_trx:
+                y_comma = (y_comma + list(input.pct_checks()) +
+                           [i + "_w_trx" for i in input.pct_checks()])
+            if input.yVar() in y_comma:
                 def y_labels(l): return [f"{v:,.0f}" for v in l]
             elif input.yVar() == "trx_freq":
                 def y_labels(l): return [f"{v:,.1f}" for v in l]

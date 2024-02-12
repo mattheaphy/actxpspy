@@ -83,11 +83,11 @@ def exp_shiny(self,
 
     The sidebar contains filtering widgets organized by data type for all
     variables passed to the `predictors` argument.
-    
+
     At the top of the sidebar, information is shown on the percentage of records
     remaining after applying filters. A description of all active filters is 
     also provided.
-    
+
     The top of the sidebar also includes a "play / pause" switch that can pause
     reactivity of the application. Pausing is a good option when multiple 
     changes are made in quick succession, especially when the underlying data 
@@ -107,9 +107,9 @@ def exp_shiny(self,
     This box includes a toggle to switch between termination studies and
     transaction studies (if available). Different options are available for each
     study type.
-    
+
     Termination studies
-    
+
     The expected values checkboxes are used to activate and deactivate
     expected values passed to the `expected` argument. This impacts the
     table output directly and the available "y" variables for the plot. If
@@ -118,7 +118,7 @@ def exp_shiny(self,
     contains weights for summarizing experience.
 
     Transaction studies
-    
+
     The transaction types checkboxes are used to activate and deactivate
     transaction types that appear in the plot and table outputs. The
     available transaction types are taken from the `trx_types` property of 
@@ -141,7 +141,7 @@ def exp_shiny(self,
       intervals around the selected y variable
     - Free y Scales: activate to enable separate y scales in each plot
     - Log y-axis: activate to plot all y-axes on a log-10 scale
-    
+
     The gear icon above the plot contains a pop-up menu that can be used to
     change the size of the plot for exporting.
 
@@ -149,7 +149,7 @@ def exp_shiny(self,
 
     The gear icon above the table contains a pop-up menu that can be used to
     change the appearance of the table:
-    
+
     - The "Confidence intervals" and "Credibility-weighted termination rates"
     switches add these outputs to the table. These values are hidden as a 
     default to prevent over-crowding.
@@ -160,7 +160,7 @@ def exp_shiny(self,
     - The "Font size multiple" slider impacts the table's font size
 
     Export
-    
+
     This pop-up menu contains options for saving summarized experience data or 
     the plot. Data is saved as a CSV file. The plot is saved as a png file.
 
@@ -226,7 +226,7 @@ def exp_shiny(self,
         predictors = pd.Index(np.atleast_1d(predictors))
 
     if expected is None:
-        expected = col_contains(dat, 'expected')
+        expected = pd.Index(col_contains(dat, 'expected'))
     else:
         expected = pd.Index(np.atleast_1d(expected))
 
@@ -682,13 +682,13 @@ def exp_shiny(self,
 
         @reactive.Calc
         def yVar_exp2():
-            choices = (yVar_exp +
-                       list(input.ex_checks()) +
-                       [f"ae_{x}" for x in input.ex_checks()] +
-                       [f"adj_{x}" for x in input.ex_checks()])
+            choices = yVar_exp
 
-            if len(input.ex_checks()) > 0:
-                choices.extend(["All termination rates", "All A/E ratios"])
+            if has_expected:
+                choices.extend(list(input.ex_checks()) +
+                               [f"ae_{x}" for x in input.ex_checks()] +
+                               [f"adj_{x}" for x in input.ex_checks()] +
+                               ["All termination rates", "All A/E ratios"])
 
             return choices
 
@@ -702,7 +702,9 @@ def exp_shiny(self,
 
         # update y variable selections in response to inputs
         @reactive.Effect
-        @reactive.event(input.study_type, input.ex_checks, input.pct_checks)
+        @reactive.event(input.study_type,
+                        (lambda: True) if not has_expected else input.ex_checks,
+                        input.pct_checks)
         def _():
             if input.study_type() == "exp":
                 choices = yVar_exp2()
@@ -718,7 +720,9 @@ def exp_shiny(self,
 
         # TODO second y-axis
         # @reactive.Effect
-        # @reactive.event(input.study_type, input.ex_checks, input.pct_checks,
+        # @reactive.event(input.study_type, 
+        #                 (lambda: True) if not has_expected else input.ex_checks, 
+        #                 input.pct_checks,
         #                 input.yVar)
         # def _():
         #     if input.study_type() == "exp":
@@ -748,7 +752,8 @@ def exp_shiny(self,
 
         # disable color input when using special plots
         @reactive.Effect
-        @reactive.event(input.yVar, input.ex_checks)
+        @reactive.event(input.yVar,
+                        (lambda: True) if not has_expected else input.ex_checks)
         def _():
             if input.yVar() in ["All termination rates", "All A/E ratios"]:
                 ui.update_selectize(
@@ -889,7 +894,8 @@ def exp_shiny(self,
                         trx_stats(percent_of=list(input.pct_checks()),
                                   trx_types=list(input.trx_types_checks()),
                                   combine_trx=input.trx_combine(),
-                                  conf_int=True))
+                                  conf_int=True,
+                                  conf_level=conf_level))
 
         @reactive.Calc
         def rplot():
@@ -985,7 +991,7 @@ def exp_shiny(self,
                           strip_background=element_rect(fill="#43536b")
                           )
                     )
-            
+
         @output
         @render.plot
         def oplot():
@@ -999,7 +1005,6 @@ def exp_shiny(self,
                 height=input.plotHeight() if input.plotResize() else "500px",
                 width=input.plotWidth() if input.plotResize() else None)
 
-        
         @reactive.Calc
         def rtable():
             if not input.play():
@@ -1021,7 +1026,7 @@ def exp_shiny(self,
                     colorful=input.tableColorful(),
                     decimals=input.tableDecimals(),
                     fontsize=input.tableFontsize())
-                
+
         @output
         @gts.render_gt()
         def xpTable():
@@ -1143,7 +1148,7 @@ def exp_shiny(self,
                              else None,
                              units='in')
                 yield buf.getvalue()
-                
+
         # TODO - uncomment when great_tables adds a save method
         # @render.download(
         #     filename=lambda: export_path(input.study_type(), "table", "png")

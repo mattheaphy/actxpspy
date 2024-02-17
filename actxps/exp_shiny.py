@@ -1021,8 +1021,7 @@ def exp_shiny(self,
                     show_cred_adj=input.tableCredAdj(),
                     colorful=input.tableColorful(),
                     decimals=input.tableDecimals(),
-                    fontsize=input.tableFontsize()
-                )
+                    fontsize=input.tableFontsize())
             else:
                 return rxp().table(
                     show_conf_int=input.tableCI(),

@@ -463,10 +463,10 @@ def exp_shiny(self,
             ui.tooltip(
                 ui.value_box(
                     title="% data remaining",
+                    theme="primary",
                     value=ui.output_text("rem_pct"),
-                    showcase_layout=ui.showcase_left_center(width="100%",
-                                                            max_height='200px'),
-                    showcase=ui.output_plot("filter_pie")
+                    showcase=ui.output_plot("filter_pie",
+                                            width="75px", height="75px")
                 ),
                 f"Original row count: {total_rows:,d}",
                 ui.output_text("rem_rows")
@@ -484,7 +484,7 @@ def exp_shiny(self,
                 open=True
             ),
 
-            width=300,
+            width=370,
             title="Filters"
         ),
 
@@ -673,7 +673,7 @@ def exp_shiny(self,
 
         get_theme(bootswatch_theme) if bootswatch_theme is not None else "",
         title=title,
-        fillable=False,
+        fillable=False
 
     )
 
@@ -681,7 +681,7 @@ def exp_shiny(self,
 
         @reactive.Calc
         def yVar_exp2():
-            choices = yVar_exp
+            choices = yVar_exp.copy()
 
             if has_expected:
                 choices.extend(list(input.ex_checks()) +
@@ -1046,7 +1046,7 @@ def exp_shiny(self,
             return f"Remaining rows: {rdat().data.shape[0]:,d}"
 
         @output
-        @render.plot()
+        @render.plot(pad_inches=0)
         def filter_pie():
             return plt.pie([rdat().data.shape[0],
                             total_rows - rdat().data.shape[0]],

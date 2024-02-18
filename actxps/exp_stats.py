@@ -10,7 +10,6 @@ from actxps.tools import (
     _pivot_plot_special,
     _verify_exposed_df,
     _conf_int_warning,
-    _data_color,
     _verify_col_names,
     _date_str,
     _qnorm
@@ -185,7 +184,7 @@ class ExpStats():
 
         else:
             data['claims'] = data.n_claims
-            
+
         _check_split_expose_basis(expo, col_exposure)
         data = data.rename(columns={col_exposure: 'exposure'})
 
@@ -230,7 +229,7 @@ class ExpStats():
         if agg:
             if groups is not None:
                 res = (data.groupby(groups, observed=True).
-                       apply(self._calc).
+                       apply(self._calc, include_groups=False).
                        reset_index().
                        drop(columns=[f'level_{len(groups)}']))
             else:
@@ -860,7 +859,7 @@ class ExpStats():
               decimals: int = 1,
               colorful: bool = True,
               color_q_obs: str = "GnBu",
-              color_ae_: str = "RdBu_r",
+              color_ae_: str = "RdBu",
               show_conf_int: bool = False,
               show_cred_adj: bool = False,
               decimals_amt: int = 0,
@@ -884,10 +883,10 @@ class ExpStats():
             and actual-to-expected columns.
 
         color_q_obs : str or colormap, default='GnBu'
-            Matplotlib colormap used for the observed decrement rate.
+            ColorBrewer palette used for the observed decrement rate.
 
-        color_ae_ : str or colormap, default='RdBu_r'
-            Matplotlib colormap used for actual-to-expected rates.
+        color_ae_ : str or colormap, default='RdBu'
+            ColorBrewer palette used for actual-to-expected rates.
 
         show_conf_int: bool, default=False 
             If `True` any confidence intervals will be displayed.
@@ -1004,7 +1003,7 @@ class ExpStats():
                            ex_cols,
                            decimals=decimals).
                tab_options(table_font_size=pct(fontsize),
-                           row_striping_include_table_body=True,
+                           # row_striping_include_table_body=True,
                            column_labels_font_weight='bold').
                cols_label(q_obs=md("*q<sup>obs</sup>*"),
                           claims="Claims",
@@ -1047,13 +1046,18 @@ class ExpStats():
         if cred:
             tab = tab.cols_label(credibility=md("*Z<sup>cred</sup>*"))
 
-        # TODO - replace _data_color with a great_tables function in the future
         if colorful:
-            tab = _data_color(tab, ['q_obs'], color_q_obs)
+            if data['q_obs'].nunique() > 1:
+                tab = tab.data_color(['q_obs'], palette=color_q_obs)
 
             if has_expected:
                 ae_cols = ["ae_" + x for x in expected]
-                tab = _data_color(tab, ae_cols, color_ae_)
+                ae_vals = data[ae_cols].values
+                ae_vals = ae_vals[~np.isnan(ae_vals)]
+                domain_ae = ae_vals.min(), ae_vals.max()
+                if domain_ae[0] != domain_ae[1]:
+                    tab = tab.data_color(ae_cols, palette=color_ae_, 
+                                         reverse=True, domain=domain_ae)
 
         return tab
 

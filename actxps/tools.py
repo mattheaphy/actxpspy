@@ -147,7 +147,7 @@ def _plot_experience(xp_obj,
          scale_y_continuous(labels=y_labels, trans=y_trans))
 
     global _use_default_colors
-    if _use_default_colors:
+    if _use_default_colors and (color or 'color' in mapping.keys()) is not None:
         colors = ["#1367D4", "#7515EB", "#EB15E4", "#1AC4F2",
                   "#1FF2C1", "#C6E531", "#FFA13D", "#FF7647"]
         p = (p +
@@ -167,7 +167,8 @@ def _plot_experience(xp_obj,
             _conf_int_warning()
         else:
 
-            y_min_max = [y + "_lower", y + "_upper"]
+            y_chr = p.mapping['y']
+            y_min_max = [y_chr + "_lower", y_chr + "_upper"]
             if all(np.isin(y_min_max, data.columns)):
                 p = p + geom_errorbar(aes(ymin=y_min_max[0],
                                           ymax=y_min_max[1]))
@@ -271,44 +272,6 @@ def _verify_exposed_df(expo):
     from actxps import ExposedDF
     assert isinstance(expo, ExposedDF), \
         "An `ExposedDF` object is required."
-
-
-def _data_color(tab: GT, cols: list, color_map: str):
-    """
-    Internal helper fuction for adding color to GT objects
-
-    Parameters
-    ----------
-    tab : GT
-        A GT object
-    cols : list
-        A list of columns to color
-    color_map : str
-        A matplotlib colormap name
-
-    Returns
-    -------
-    GT
-        A GT object where `cols` are colored according to `color_map`
-    """
-    data = tab._tbl_data
-    x = np.array(data[cols])
-    dmin, dmax = np.nanmin(x), np.nanmax(x)
-
-    for c in cols:
-        A = colormaps[color_map]((data[c] - dmin) / (dmax - dmin))
-        B = A[:, :3].sum(1)
-        data['color' + c] = [rgb2hex(A[i, :]) for i in range(A.shape[0])]
-        data['color' + c] = np.where(np.isnan(data[c]), '#808080',
-                                     data['color' + c])
-        data['fc' + c] = np.where(B < 3/2, 'white', 'black')
-        tab = tab.tab_style(
-            style=[style.fill(color=from_column('color' + c)),
-                   style.text(color=from_column('fc' + c))],
-            locations=loc.body(columns=c)
-        )
-
-    return tab
 
 
 def _verify_col_names(x_names, required: set):

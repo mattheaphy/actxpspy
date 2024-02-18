@@ -308,7 +308,7 @@ The table tab includes the table itself plus a pop-up menu for changing the tabl
 - The "Decimals" slider controls the number of decimals displayed for percentage fields.
 - The "Font size multiple" slider impacts the table's font size
 
-The export pop-up menu contains options for saving summarized experience data, the plot, or the table. Data is saved as a CSV file. The plot and table are saved as png files.
+The export pop-up menu contains options for saving summarized experience data or the plot. Data is saved as a CSV file. The plot is saved as a png file.
 
 <img src="../images/exp_shiny.png" width="100%" />
 

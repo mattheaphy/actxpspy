@@ -1,4 +1,4 @@
-## v0.0.1 (2023-12-14)
+## v0.0.1 (2024-02-18)
 
 - Several updates to align with the R version of actxps
   

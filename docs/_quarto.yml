@@ -80,6 +80,12 @@ quartodoc:
           name: ExposedDF.add_transactions
         - TrxStats
 
+    - title: "Shiny app"
+      desc: "Launch a Shiny application to interactively explore drivers of experience."
+      package: actxps.exp_shiny
+      contents:
+        - exp_shiny
+
     - title: "Sample data sets"
       desc: "Data sets for testing the functionality of actxps"
 

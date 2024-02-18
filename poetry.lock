@@ -586,13 +586,13 @@ woff = ["brotli (>=1.0.1)", "brotlicffi (>=0.8.0)", "zopfli (>=0.1.4)"]
 
 [[package]]
 name = "great-tables"
-version = "0.2.0"
+version = "0.3.0"
 description = "Easily generate information-rich, publication-quality tables from Python."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "great-tables-0.2.0.tar.gz", hash = "sha256:aa75913a773c8e6dd5a33e4437a772440f4444cf2e59cc2aeb93b83d50953297"},
-    {file = "great_tables-0.2.0-py3-none-any.whl", hash = "sha256:56003df01e1eb8e1606336581a34bf1715227eea65839641d2fa63addae74e69"},
+    {file = "great-tables-0.3.0.tar.gz", hash = "sha256:e31f6d04c14fcaea831c8d292f5170b2fde5ac77ebc3192bab6040f6718b5252"},
+    {file = "great_tables-0.3.0-py3-none-any.whl", hash = "sha256:40fcf2028dc4784c119119e7a7651a19076a216cd41773e7ce67c22943f887b5"},
 ]
 
 [package.dependencies]
@@ -2856,4 +2856,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "dfdc7085f056b144e72cabc27418a50fe5a3a1378efc9580ad8eec7684733ed1"
+content-hash = "8a132b9e000fa0a2f4dfc9c298880e9a81bbb8f35cc4aeac531ad8dda510f848"

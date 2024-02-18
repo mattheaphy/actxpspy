@@ -9,7 +9,6 @@ from actxps.tools import (
     _pivot_plot_special,
     _verify_exposed_df,
     _conf_int_warning,
-    _data_color,
     _verify_col_names,
     _date_str,
     _qnorm
@@ -188,7 +187,7 @@ class TrxStats():
             assert len(unmatched) == 0, \
                 ("The following transactions do not exist in `expo`: " +
                  ", ".join(unmatched))
-                
+
         _check_split_expose_basis(expo, col_exposure)
 
         start_date = expo.start_date
@@ -787,7 +786,7 @@ class TrxStats():
               decimals: int = 1,
               colorful: bool = True,
               color_util: str = "GnBu",
-              color_pct_of: str = "RdBu_r",
+              color_pct_of: str = "RdBu",
               show_conf_int: bool = False,
               decimals_amt: int = 0,
               suffix_amt: bool = False,
@@ -810,10 +809,10 @@ class TrxStats():
             and "percentage of" columns.
 
         color_util : str, default='GnBu'
-            Matplotlib colormap used for the observed utilization rate.
+            ColorBrewer palette used for the observed utilization rate.
 
-        color_pct_of : str, default='RdBu_r'
-            Matplotlib colormap used for "percentage of" columns.
+        color_pct_of : str, default='RdBu'
+            ColorBrewer palette used for "percentage of" columns.
 
         show_conf_int: bool, default=False 
             If `True` any confidence intervals will be displayed.
@@ -844,7 +843,7 @@ class TrxStats():
         ----------
         great_tables.gt.GT
             A formatted HTML table
-            
+
         Examples
         ----------
         ```{python}
@@ -910,7 +909,7 @@ class TrxStats():
                            decimals=decimals).
                # sub_missing().
                tab_options(table_font_size=pct(fontsize),
-                           row_striping_include_table_body=True,
+                           # row_striping_include_table_body=True,
                            column_labels_font_weight='bold').
                tab_spanner(md("**Counts**"), ["trx_n", "trx_flag"]).
                tab_spanner(md("**Averages**"), ["avg_trx", "avg_all"]).
@@ -943,14 +942,18 @@ class TrxStats():
         for i in percent_of:
             tab = _span_percent_of(tab, i, conf_int)
 
-        # TODO - replace _data_color with a great_tables function in the future
         if colorful:
-            tab = _data_color(tab, ['trx_util'], color_util)
+            if data['trx_util'].nunique() > 1:
+                tab = tab.data_color(['trx_util'], palette=color_util)
 
             if len(percent_of) > 0:
                 pct_of_cols = [f"pct_of_{x}_w_trx" for x in percent_of] + \
                     [f"pct_of_{x}_all" for x in percent_of]
-                tab = _data_color(tab, pct_of_cols, color_pct_of)
+                domain_pct = data[pct_of_cols].values.min(), \
+                    data[pct_of_cols].values.max()
+                if domain_pct[0] != domain_pct[1]:
+                    tab = tab.data_color(pct_of_cols, palette=color_pct_of,
+                                         reverse=True, domain=domain_pct)
 
         return tab
 

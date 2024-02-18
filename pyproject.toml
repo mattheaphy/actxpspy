@@ -23,6 +23,7 @@ great-tables = ">=0.3.0"
 shinyswatch = {version = ">=0.4.2", optional = true}
 faicons = {version = ">=0.2.2", optional = true}
 scikit-misc = {version = ">=0.3.1", optional = true}
+polars = ">=0.20.9"
 
 [tool.poetry.dev-dependencies]
 

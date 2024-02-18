@@ -1555,6 +1555,43 @@ typing-extensions = {version = "*", markers = "python_version <= \"3.10\""}
 dev = ["black (==23.9.0)", "build", "coveralls", "ghp-import", "ipython", "jupyter-book", "mypy", "numpy", "pre-commit", "pyright (>=1.1.331)", "pytest (>=6)", "pytest-cov", "ruff (==0.1.0)", "tox", "wheel"]
 
 [[package]]
+name = "polars"
+version = "0.20.9"
+description = "Blazingly fast DataFrame library"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "polars-0.20.9-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:fac0cac8fc734a434990f78ff1f21fa3ddcd00965c6b6c39996e189d406e3f19"},
+    {file = "polars-0.20.9-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:bdeeb77738a6a5e92c27ff791c12fb51896be5949a25c82023ce066010b50c2a"},
+    {file = "polars-0.20.9-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:88112c329b4aaaead05df8758b433b243d6aab99c1f3b1e75c1f22ba4b13f47d"},
+    {file = "polars-0.20.9-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:a382b59095691b482ae64ba3a66e982778d98e916b929e31a4aad4ad9304486f"},
+    {file = "polars-0.20.9-cp38-abi3-win_amd64.whl", hash = "sha256:298a942b61eb71110c36961682562c69996ec6c22c538f77e96a19c54f9e3461"},
+    {file = "polars-0.20.9.tar.gz", hash = "sha256:6633b94a21cec728e6079cc400822731f6702f4dc599b37657dcdb6178c3788d"},
+]
+
+[package.extras]
+adbc = ["adbc_driver_sqlite"]
+all = ["polars[adbc,cloudpickle,connectorx,deltalake,fsspec,gevent,numpy,pandas,plot,pyarrow,pydantic,pyiceberg,sqlalchemy,timezone,xlsx2csv,xlsxwriter]"]
+cloudpickle = ["cloudpickle"]
+connectorx = ["connectorx (>=0.3.2)"]
+deltalake = ["deltalake (>=0.14.0)"]
+fsspec = ["fsspec"]
+gevent = ["gevent"]
+matplotlib = ["matplotlib"]
+numpy = ["numpy (>=1.16.0)"]
+openpyxl = ["openpyxl (>=3.0.0)"]
+pandas = ["pandas", "pyarrow (>=7.0.0)"]
+plot = ["hvplot (>=0.9.1)"]
+pyarrow = ["pyarrow (>=7.0.0)"]
+pydantic = ["pydantic"]
+pyiceberg = ["pyiceberg (>=0.5.0)"]
+pyxlsb = ["pyxlsb (>=1.0)"]
+sqlalchemy = ["pandas", "sqlalchemy"]
+timezone = ["backports.zoneinfo", "tzdata"]
+xlsx2csv = ["xlsx2csv (>=0.8.0)"]
+xlsxwriter = ["xlsxwriter"]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.36"
 description = "Library for building powerful interactive command lines in Python"
@@ -2856,4 +2893,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "8a132b9e000fa0a2f4dfc9c298880e9a81bbb8f35cc4aeac531ad8dda510f848"
+content-hash = "0e9191c42744885df954aba22ac8c8603309e88fcc035c01ec7fb74c9f56a432"

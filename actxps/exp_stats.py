@@ -1052,8 +1052,9 @@ class ExpStats():
 
             if has_expected:
                 ae_cols = ["ae_" + x for x in expected]
-                domain_ae = data[ae_cols].values.min(), \
-                    data[ae_cols].values.max()
+                ae_vals = data[ae_cols].values
+                ae_vals = ae_vals[~np.isnan(ae_vals)]
+                domain_ae = ae_vals.min(), ae_vals.max()
                 if domain_ae[0] != domain_ae[1]:
                     tab = tab.data_color(ae_cols, palette=color_ae_, 
                                          reverse=True, domain=domain_ae)

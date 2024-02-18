@@ -949,8 +949,9 @@ class TrxStats():
             if len(percent_of) > 0:
                 pct_of_cols = [f"pct_of_{x}_w_trx" for x in percent_of] + \
                     [f"pct_of_{x}_all" for x in percent_of]
-                domain_pct = data[pct_of_cols].values.min(), \
-                    data[pct_of_cols].values.max()
+                pct_of_vals = data[pct_of_cols].values
+                pct_of_vals = pct_of_vals[~np.isnan(pct_of_vals)]
+                domain_pct = pct_of_vals.min(), pct_of_vals.max()
                 if domain_pct[0] != domain_pct[1]:
                     tab = tab.data_color(pct_of_cols, palette=color_pct_of,
                                          reverse=True, domain=domain_pct)

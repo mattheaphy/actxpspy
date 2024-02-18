@@ -93,7 +93,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
 
@@ -190,7 +195,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#toy-census-data" id="toc-toy-census-data" class="nav-link active" data-scroll-target="#toy-census-data">Toy census data</a></li>
+  <li><a href="#policy-year-exposures" id="toc-policy-year-exposures" class="nav-link" data-scroll-target="#policy-year-exposures">Policy year exposures</a>
+  <ul class="collapse">
+  <li><a href="#study-start-date" id="toc-study-start-date" class="nav-link" data-scroll-target="#study-start-date">Study start date</a></li>
+  <li><a href="#target-status" id="toc-target-status" class="nav-link" data-scroll-target="#target-status">Target status</a></li>
+  </ul></li>
+  <li><a href="#other-exposure-periods" id="toc-other-exposure-periods" class="nav-link" data-scroll-target="#other-exposure-periods">Other exposure periods</a>
+  <ul class="collapse">
+  <li><a href="#calendar-years" id="toc-calendar-years" class="nav-link" data-scroll-target="#calendar-years">Calendar years</a></li>
+  <li><a href="#quarters-months-and-weeks" id="toc-quarters-months-and-weeks" class="nav-link" data-scroll-target="#quarters-months-and-weeks">Quarters, months, and weeks</a></li>
+  <li><a href="#convenience-functions" id="toc-convenience-functions" class="nav-link" data-scroll-target="#convenience-functions">Convenience functions</a></li>
+  </ul></li>
+  <li><a href="#split-exposures-by-calendar-period-and-policy-year" id="toc-split-exposures-by-calendar-period-and-policy-year" class="nav-link" data-scroll-target="#split-exposures-by-calendar-period-and-policy-year">Split exposures by calendar period and policy year</a></li>
+  <li><a href="#miscellaneous" id="toc-miscellaneous" class="nav-link" data-scroll-target="#miscellaneous">Miscellaneous</a>
+  <ul class="collapse">
+  <li><a href="#column-names" id="toc-column-names" class="nav-link" data-scroll-target="#column-names">Column names</a></li>
+  <li><a href="#treatment-of-additional-columns-in-the-census-data" id="toc-treatment-of-additional-columns-in-the-census-data" class="nav-link" data-scroll-target="#treatment-of-additional-columns-in-the-census-data">Treatment of additional columns in the census data</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -213,11 +242,1279 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p><strong>Census-level data</strong> refers to a data set wherein there is one row per policy. <strong>Exposure-level data</strong> expands census-level data such that there is one record per policy per observation period. Observation periods could be any meaningful period of time such as a policy year, policy month, calendar year, calendar quarter, calendar month, etc.</p>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>A common step in experience studies is converting census-level data into exposure-level data. The <code>ExposedDF</code> class performs this task. Specifically, this class:</p>
+<ul>
+<li>Expands a census-level data frame to an exposure-level data frame</li>
+<li>Calculates partial exposures for left-censored and right-censored records using exact day counts</li>
+<li>For terminated policies, sets the policy status to an active state for all observation periods except the last. Similarly, the termination date is set to <code>NA</code> for all periods except the last.</li>
+<li>Adds identifier columns for observation periods</li>
+</ul>
+<p>If you already have exposure-level data available, the class method <code>ExposedDF.from_DataFrame()</code> can be used to convert a data frame into an <code>ExposedDF</code> object.</p>
+<section id="toy-census-data" class="level2">
+<h2 class="anchored" data-anchor-id="toy-census-data">Toy census data</h2>
+<p>To get started, we’re going to use a toy census data frame from the actxps package that contains 3 policies: one active, one that terminated due to death, and one that terminated due to surrender.</p>
+<p><code>toy_census</code> contains the 4 columns necessary to compute exposures:</p>
+<ul>
+<li><code>pol_num</code>: a unique identifier for individual policies</li>
+<li><code>status</code>: the policy status</li>
+<li><code>issue_date</code>: issue date</li>
+<li><code>term_date</code>: termination date, if any. Otherwise <code>NA</code></li>
+</ul>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>toy_census <span class="op">=</span> xp.load_toy_census()</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>toy_census</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="packages" class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_num</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">issue_date</th>
+<th data-quarto-table-cell-role="th">term_date</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2</td>
+<td>Death</td>
+<td>2011-05-27</td>
+<td>2020-09-14</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>3</td>
+<td>Surrender</td>
+<td>2009-11-10</td>
+<td>2022-02-25</td>
+</tr>
+</tbody>
+</table>
+
 </div>
+</div>
+</div>
+</section>
+<section id="policy-year-exposures" class="level2">
+<h2 class="anchored" data-anchor-id="policy-year-exposures">Policy year exposures</h2>
+<p>Let’s assume we’re performing an experience study as of 2022-12-31 and we’re interested in policy year exposures. Here’s what we should expect for our 3 policies.</p>
+<ul>
+<li>Policy 1 was issued on January 1, 2010 and has not terminated. Therefore we expect 13 exposure years.</li>
+<li>Policy 2 was issued on May 27, 2011 and was terminated in 2020 due to death. The death occurred after the 9th policy anniversary, therefore we expect 9 fully exposed years and a partial exposure in the 10th year.</li>
+<li>Policy 3 was issued on November 10, 2009 and was terminated in 2022 due to surrender. The surrender occurred after the 12th policy anniversary, therefore we expect 12 fully exposed years and a partial exposure in the 13th year.</li>
+</ul>
+<p>To calculate exposures, we pass our data to <code>ExposedDF()</code> and we specify a study <code>end_date</code>.</p>
+<div id="expose-1" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(toy_census, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This creates a new <code>ExposedDF</code> object, which contains a <code>data</code> property and additional attributes related to the experience study.</p>
+<p>Let’s examine what happened to each policy.</p>
+<p><strong>Policy 1</strong>: As expected, there are 13 rows for this policy. New columns were added for the policy year (<code>pol_yr</code>), date ranges (<code>pol_date_yr</code>, <code>pol_date_yr_end</code>), and exposure. All exposures are 100% since this policy was active for all 13 years.</p>
+<p>When the data is printed, additional attributes from the <code>ExposedDF</code> class are displayed.</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.query(<span class="st">'pol_num == 1'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expose-pol-1" class="cell-output cell-output-display" data-execution_count="4">
+<div>
 
 
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_num</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">issue_date</th>
+<th data-quarto-table-cell-role="th">term_date</th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">pol_date_yr</th>
+<th data-quarto-table-cell-role="th">pol_date_yr_end</th>
+<th data-quarto-table-cell-role="th">exposure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>1</td>
+<td>2010-01-01</td>
+<td>2010-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>2</td>
+<td>2011-01-01</td>
+<td>2011-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>3</td>
+<td>2012-01-01</td>
+<td>2012-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>4</td>
+<td>2013-01-01</td>
+<td>2013-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>5</td>
+<td>2014-01-01</td>
+<td>2014-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>9</td>
+<td>2018-01-01</td>
+<td>2018-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>10</td>
+<td>2019-01-01</td>
+<td>2019-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">10</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>11</td>
+<td>2020-01-01</td>
+<td>2020-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">11</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>12</td>
+<td>2021-01-01</td>
+<td>2021-12-31</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">12</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>13</td>
+<td>2022-01-01</td>
+<td>2022-12-31</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table>
+
+<p>13 rows × 8 columns</p>
+</div>
+</div>
+</div>
+<p><strong>Policy 2</strong>: There are 10 rows for this policy. The first 9 periods show the policy in an active <code>status</code> and the termination date (<code>term_date</code>) is set to <code>NA</code>. The last period includes the final status of “Death” and the actual termination date. The last exposure is less than one because roughly a third of a year elapsed between the last anniversary date on 2020-05-27 and the termination date on 2020-09-14.</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.query(<span class="st">'pol_num == 2'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expose-pol-2" class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_num</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">issue_date</th>
+<th data-quarto-table-cell-role="th">term_date</th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">pol_date_yr</th>
+<th data-quarto-table-cell-role="th">pol_date_yr_end</th>
+<th data-quarto-table-cell-role="th">exposure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">13</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>1</td>
+<td>2011-05-27</td>
+<td>2012-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">14</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2</td>
+<td>2012-05-27</td>
+<td>2013-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">15</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>3</td>
+<td>2013-05-27</td>
+<td>2014-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">16</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>4</td>
+<td>2014-05-27</td>
+<td>2015-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">17</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>5</td>
+<td>2015-05-27</td>
+<td>2016-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">18</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>6</td>
+<td>2016-05-27</td>
+<td>2017-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">19</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>7</td>
+<td>2017-05-27</td>
+<td>2018-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">20</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>8</td>
+<td>2018-05-27</td>
+<td>2019-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">21</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>9</td>
+<td>2019-05-27</td>
+<td>2020-05-26</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">22</td>
+<td>2</td>
+<td>Death</td>
+<td>2011-05-27</td>
+<td>2020-09-14</td>
+<td>10</td>
+<td>2020-05-27</td>
+<td>2021-05-26</td>
+<td>0.30411</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Policy 3</strong>: There are 13 rows for this policy. The first 12 periods show the policy in an active <code>status</code> and the termination date (<code>term_date</code>) is set to <code>NA</code>. The last period includes the final status of “Surrender” and the actual termination date. The last exposure is less than one because the roughly a third of a year elapsed between the last anniversary date on 2021-11-10 and the termination date on 2022-02-25.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.query(<span class="st">'pol_num == 3'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expose-pol-3" class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_num</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">issue_date</th>
+<th data-quarto-table-cell-role="th">term_date</th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">pol_date_yr</th>
+<th data-quarto-table-cell-role="th">pol_date_yr_end</th>
+<th data-quarto-table-cell-role="th">exposure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">23</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>1</td>
+<td>2009-11-10</td>
+<td>2010-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">24</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>2</td>
+<td>2010-11-10</td>
+<td>2011-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>3</td>
+<td>2011-11-10</td>
+<td>2012-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>4</td>
+<td>2012-11-10</td>
+<td>2013-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>5</td>
+<td>2013-11-10</td>
+<td>2014-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">31</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>9</td>
+<td>2017-11-10</td>
+<td>2018-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">32</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>10</td>
+<td>2018-11-10</td>
+<td>2019-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">33</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>11</td>
+<td>2019-11-10</td>
+<td>2020-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">34</td>
+<td>3</td>
+<td>Active</td>
+<td>2009-11-10</td>
+<td>NaT</td>
+<td>12</td>
+<td>2020-11-10</td>
+<td>2021-11-09</td>
+<td>1.00000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">35</td>
+<td>3</td>
+<td>Surrender</td>
+<td>2009-11-10</td>
+<td>2022-02-25</td>
+<td>13</td>
+<td>2021-11-10</td>
+<td>2022-11-09</td>
+<td>0.29589</td>
+</tr>
+</tbody>
+</table>
+
+<p>13 rows × 8 columns</p>
+</div>
+</div>
+</div>
+<section id="study-start-date" class="level3">
+<h3 class="anchored" data-anchor-id="study-start-date">Study start date</h3>
+<p>The previous section only supplied data and a study <code>end_date</code> to <code>ExposedDF()</code>. This is the minimum required arguments for the function. Optionally, a <code>start_date</code> can be supplied that will drop exposure periods that begin before a specified date.</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>xp.ExposedDF(toy_census, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>, start_date<span class="op">=</span><span class="st">"2019-12-31"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expose-start" class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>Exposure data
+
+Exposure type: policy_year
+Target status: None
+Study range: 2019-12-31 to 2022-12-31
+
+A DataFrame: 6 x 8
+    pol_num     status issue_date  term_date  pol_yr pol_date_yr  \
+10        1     Active 2010-01-01        NaT      11  2020-01-01   
+11        1     Active 2010-01-01        NaT      12  2021-01-01   
+12        1     Active 2010-01-01        NaT      13  2022-01-01   
+22        2      Death 2011-05-27 2020-09-14      10  2020-05-27   
+34        3     Active 2009-11-10        NaT      12  2020-11-10   
+35        3  Surrender 2009-11-10 2022-02-25      13  2021-11-10   
+
+   pol_date_yr_end  exposure  
+10      2020-12-31   1.00000  
+11      2021-12-31   1.00000  
+12      2022-12-31   1.00000  
+22      2021-05-26   0.30411  
+34      2021-11-09   1.00000  
+35      2022-11-09   0.29589  </code></pre>
+</div>
+</div>
+</section>
+<section id="target-status" class="level3">
+<h3 class="anchored" data-anchor-id="target-status">Target status</h3>
+<p>Most experience studies use the annual exposure method which allocates a full period of exposure for the particular termination event of interest in the scope of the study.</p>
+<p>The intuition for this approach is simple: let’s assume we have an unrealistically small study with a single data point for one policy over the course of one year. Let’s assume that policy terminated due to surrender half way through the year.</p>
+<p>If we don’t apply the annual exposure method, we would calculate a termination rate as:</p>
+<p><span class="math display">\[
+q^{surr} = \frac{claims}{exposures} = \frac{1}{0.5} = 200\%
+\]</span></p>
+<p>A termination rate of 200% doesn’t make any sense. Under the annual exposure method we would see a rate of 100%, which is intuitive.</p>
+<p><span class="math display">\[
+q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
+\]</span></p>
+<p>The annual exposure method can be applied by passing a character vector of target statuses to the <code>ExposedDF()</code> class.</p>
+<p>Let’s assume we are performing a surrender study.</p>
+<div id="expose-targ" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>exposed_data2 <span class="op">=</span> xp.ExposedDF(toy_census, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                             target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now let’s verify that the exposure on the surrendered policy increased to 100% in the last exposure period.</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>exposed_data2.data.groupby(<span class="st">'pol_num'</span>).tail(<span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expose-targ-check" class="cell-output cell-output-display" data-execution_count="9">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_num</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">issue_date</th>
+<th data-quarto-table-cell-role="th">term_date</th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">pol_date_yr</th>
+<th data-quarto-table-cell-role="th">pol_date_yr_end</th>
+<th data-quarto-table-cell-role="th">exposure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">12</td>
+<td>1</td>
+<td>Active</td>
+<td>2010-01-01</td>
+<td>NaT</td>
+<td>13</td>
+<td>2022-01-01</td>
+<td>2022-12-31</td>
+<td>1.00000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">22</td>
+<td>2</td>
+<td>Death</td>
+<td>2011-05-27</td>
+<td>2020-09-14</td>
+<td>10</td>
+<td>2020-05-27</td>
+<td>2021-05-26</td>
+<td>0.30411</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">35</td>
+<td>3</td>
+<td>Surrender</td>
+<td>2009-11-10</td>
+<td>2022-02-25</td>
+<td>13</td>
+<td>2021-11-10</td>
+<td>2022-11-09</td>
+<td>1.00000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="other-exposure-periods" class="level2">
+<h2 class="anchored" data-anchor-id="other-exposure-periods">Other exposure periods</h2>
+<p>The default exposure basis used by <code>ExposedDF()</code> is policy years. Using the arguments <code>cal_expo</code> and <code>expo_length</code> other exposure periods can be used.</p>
+<section id="calendar-years" class="level3">
+<h3 class="anchored" data-anchor-id="calendar-years">Calendar years</h3>
+<p>If <code>cal_expo</code> is set to <code>True</code>, calendar year exposures will be calculated.</p>
+<p>Looking at the second policy, we can see that the first year is left-censored because the policy was issued two-fifths of the way through the year, and the last period is right-censored because the policy terminated roughly seven-tenths of the way through the year.</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>exposed_cal <span class="op">=</span> xp.ExposedDF(toy_census, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                           cal_expo<span class="op">=</span><span class="va">True</span>, target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>exposed_cal.data.query(<span class="st">'pol_num == 2'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expo-cal" class="cell-output cell-output-display" data-execution_count="10">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_num</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">issue_date</th>
+<th data-quarto-table-cell-role="th">term_date</th>
+<th data-quarto-table-cell-role="th">cal_yr</th>
+<th data-quarto-table-cell-role="th">cal_yr_end</th>
+<th data-quarto-table-cell-role="th">exposure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">13</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2011-01-01</td>
+<td>2011-12-31</td>
+<td>0.600000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">14</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2012-01-01</td>
+<td>2012-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">15</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2013-01-01</td>
+<td>2013-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">16</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2014-01-01</td>
+<td>2014-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">17</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2015-01-01</td>
+<td>2015-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">18</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2016-01-01</td>
+<td>2016-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">19</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2017-01-01</td>
+<td>2017-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">20</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2018-01-01</td>
+<td>2018-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">21</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2019-01-01</td>
+<td>2019-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">22</td>
+<td>2</td>
+<td>Death</td>
+<td>2011-05-27</td>
+<td>2020-09-14</td>
+<td>2020-01-01</td>
+<td>2020-12-31</td>
+<td>0.704918</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="quarters-months-and-weeks" class="level3">
+<h3 class="anchored" data-anchor-id="quarters-months-and-weeks">Quarters, months, and weeks</h3>
+<p>The length of the exposure period can be decreased by passing <code>"quarter"</code>, <code>"month"</code>, or <code>"week"</code> to the <code>expo_length</code> argument. This can be used with policy or calendar-based exposures.</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>(xp.ExposedDF(toy_census, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>, cal_expo<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>              expo_length<span class="op">=</span><span class="st">"quarter"</span>, target_status<span class="op">=</span><span class="st">"Surrender"</span>).</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>              data.query(<span class="st">'pol_num == 2'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expo-mth" class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_num</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">issue_date</th>
+<th data-quarto-table-cell-role="th">term_date</th>
+<th data-quarto-table-cell-role="th">cal_qtr</th>
+<th data-quarto-table-cell-role="th">cal_qtr_end</th>
+<th data-quarto-table-cell-role="th">exposure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">52</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2011-04-01</td>
+<td>2011-06-30</td>
+<td>0.384615</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">53</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2011-07-01</td>
+<td>2011-09-30</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">54</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2011-10-01</td>
+<td>2011-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">55</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2012-01-01</td>
+<td>2012-03-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">56</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2012-04-01</td>
+<td>2012-06-30</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">85</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2019-07-01</td>
+<td>2019-09-30</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">86</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2019-10-01</td>
+<td>2019-12-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">87</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2020-01-01</td>
+<td>2020-03-31</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">88</td>
+<td>2</td>
+<td>Active</td>
+<td>2011-05-27</td>
+<td>NaT</td>
+<td>2020-04-01</td>
+<td>2020-06-30</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">89</td>
+<td>2</td>
+<td>Death</td>
+<td>2011-05-27</td>
+<td>2020-09-14</td>
+<td>2020-07-01</td>
+<td>2020-09-30</td>
+<td>0.826087</td>
+</tr>
+</tbody>
+</table>
+
+<p>38 rows × 7 columns</p>
+</div>
+</div>
+</div>
+</section>
+<section id="convenience-functions" class="level3">
+<h3 class="anchored" data-anchor-id="convenience-functions">Convenience functions</h3>
+<p>The following functions are class methods of <code>ExposedDF()</code> that target a specific exposure type without specifying <code>cal_expo</code> and <code>expo_length</code>.</p>
+<ul>
+<li><code>ExposedDF.expose_py()</code> = exposures by policy year</li>
+<li><code>ExposedDF.expose_pq()</code> = exposures by policy quarter</li>
+<li><code>ExposedDF.expose_pm()</code> = exposures by policy month</li>
+<li><code>ExposedDF.expose_pw()</code> = exposures by policy week</li>
+<li><code>ExposedDF.expose_cy()</code> = exposures by calendar year</li>
+<li><code>ExposedDF.expose_cq()</code> = exposures by calendar quarter</li>
+<li><code>ExposedDF.expose_cm()</code> = exposures by calendar month</li>
+<li><code>ExposedDF.expose_cw()</code> = exposures by calendar week</li>
+</ul>
+</section>
+</section>
+<section id="split-exposures-by-calendar-period-and-policy-year" class="level2">
+<h2 class="anchored" data-anchor-id="split-exposures-by-calendar-period-and-policy-year">Split exposures by calendar period and policy year</h2>
+<p>A common technique used in experience studies is to split calendar years into two records: a pre-anniversary record and a post-anniversary record. In actxps, this can be accomplished using the <code>expose_split()</code> method.</p>
+<p>Let’s continue examining the second policy. <code>exposed_cal</code>, which contains calendar year exposures, is passed into <code>expose_split()</code>. The resulting data now contains 19 records instead of 10. There is one record for 2011 and 2 records for all other years. The year 2011 only has a single record because the policy was issued in this year, so there can only be a post-anniversary record.</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>split <span class="op">=</span> exposed_cal.expose_split()</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>split.data.query(<span class="st">'pol_num == 2'</span>)[</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'cal_yr'</span>, <span class="st">'cal_yr_end'</span>, <span class="st">'pol_yr'</span>, <span class="st">'exposure_pol'</span>, <span class="st">'exposure_cal'</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expo-split" class="cell-output cell-output-display" data-execution_count="12">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">cal_yr</th>
+<th data-quarto-table-cell-role="th">cal_yr_end</th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">exposure_pol</th>
+<th data-quarto-table-cell-role="th">exposure_cal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">13</td>
+<td>2011-05-27</td>
+<td>2011-12-31</td>
+<td>1</td>
+<td>0.598361</td>
+<td>0.600000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">14</td>
+<td>2012-01-01</td>
+<td>2012-05-26</td>
+<td>1</td>
+<td>0.401639</td>
+<td>0.401639</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">14</td>
+<td>2012-05-27</td>
+<td>2012-12-31</td>
+<td>2</td>
+<td>0.600000</td>
+<td>0.598361</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">15</td>
+<td>2013-01-01</td>
+<td>2013-05-26</td>
+<td>2</td>
+<td>0.400000</td>
+<td>0.400000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">15</td>
+<td>2013-05-27</td>
+<td>2013-12-31</td>
+<td>3</td>
+<td>0.600000</td>
+<td>0.600000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">20</td>
+<td>2018-05-27</td>
+<td>2018-12-31</td>
+<td>8</td>
+<td>0.600000</td>
+<td>0.600000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">21</td>
+<td>2019-01-01</td>
+<td>2019-05-26</td>
+<td>8</td>
+<td>0.400000</td>
+<td>0.400000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">21</td>
+<td>2019-05-27</td>
+<td>2019-12-31</td>
+<td>9</td>
+<td>0.598361</td>
+<td>0.600000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">22</td>
+<td>2020-01-01</td>
+<td>2020-05-26</td>
+<td>9</td>
+<td>0.401639</td>
+<td>0.401639</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">22</td>
+<td>2020-05-27</td>
+<td>2020-12-31</td>
+<td>10</td>
+<td>0.304110</td>
+<td>0.303279</td>
+</tr>
+</tbody>
+</table>
+
+<p>19 rows × 5 columns</p>
+</div>
+</div>
+</div>
+<p>The output of <code>expose_split()</code> contains two exposure columns.</p>
+<ul>
+<li><code>exposure_pol</code> contains policy year exposures</li>
+<li><code>exposure_cal</code> contains calendar year exposures</li>
+</ul>
+<p>The two exposure bases will often not match for two reasons:</p>
+<ol type="1">
+<li><p>Calendar years and policy years have different start and end dates that may or may not include a leap day. In the first row, the calendar year exposure is 0.6 years of the year 2011, which does not include a leap day. In the second row, the policy year exposure is 0.5984 years of the policy year spanning 2011-05-27 to 2012-05-26, which does include a leap day.</p></li>
+<li><p>Application of the annual exposure method. If the termination event of interest appears on a post-anniversary record, policy exposures will be 1 and calendar exposures will be the fraction of the year spanning the anniversary to December 31st. Conversely, if the termination event of interest appears on a pre-anniversary record, calendar exposures will be 1 and policy exposures will be the fraction of the policy year from January 1st to the last day of the current policy year. While it may sound confusing at first, these rules are important to ensure that the termination event of interest always has an exposure of 1 when the data is grouped on a calendar year or policy year basis.</p></li>
+</ol>
+<p>Some downstream methods like <code>exp_stats()</code> expect <code>ExposedDF</code> objects to have a single column for exposures. For split exposures, the exposure basis must be specified using the <code>col_exposure</code> argument.</p>
+<div id="split-stats-unclear" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>split.exp_stats()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="split-stats-unclear-cat" class="cell" data-execution_count="14">
+<div class="cell-output cell-output-stdout">
+<pre><code>A `SplitExposedDF` was passed without clarifying which exposure basis should be used to summarize results. Hint: Pass "exposure_pol" to `col_exposure` for policy year exposures pass "exposure_cal" to `col_exposure` for calendar exposures.</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>split.exp_stats(col_exposure<span class="op">=</span><span class="st">"exposure_pol"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="split-stats-clear" class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>Experience study results
+
+Target status: Surrender
+Study range: 1900-01-01 to 2022-12-31
+
+
+A DataFrame: 1 x 4
+   n_claims  claims  exposure     q_obs
+0         1       1  35.30411  0.028325</code></pre>
+</div>
+</div>
+<p><code>expose_split()</code> doesn’t just work with calendar year exposures. Calendar quarters, months, or weeks can also be split. For periods shorter than a year, a record is only split into pre- and post-anniversary segments if a policy anniversary appears in the middle of the period.</p>
+<div class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>(xp.ExposedDF.expose_cq(toy_census, <span class="st">"2022-12-31"</span>,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                        target_status<span class="op">=</span><span class="st">"Surrender"</span>).</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    expose_split().</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    data.query(<span class="st">'pol_num == 2'</span>)[</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'cal_qtr'</span>, <span class="st">'cal_qtr_end'</span>, <span class="st">'pol_yr'</span>, <span class="st">'exposure_pol'</span>, <span class="st">'exposure_cal'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="split-qtr" class="cell-output cell-output-display" data-execution_count="15">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">cal_qtr</th>
+<th data-quarto-table-cell-role="th">cal_qtr_end</th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">exposure_pol</th>
+<th data-quarto-table-cell-role="th">exposure_cal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">52</td>
+<td>2011-05-27</td>
+<td>2011-06-30</td>
+<td>1</td>
+<td>0.095628</td>
+<td>0.384615</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">53</td>
+<td>2011-07-01</td>
+<td>2011-09-30</td>
+<td>1</td>
+<td>0.251366</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">54</td>
+<td>2011-10-01</td>
+<td>2011-12-31</td>
+<td>1</td>
+<td>0.251366</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">55</td>
+<td>2012-01-01</td>
+<td>2012-03-31</td>
+<td>1</td>
+<td>0.248634</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">56</td>
+<td>2012-04-01</td>
+<td>2012-05-26</td>
+<td>1</td>
+<td>0.153005</td>
+<td>0.615385</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">86</td>
+<td>2019-10-01</td>
+<td>2019-12-31</td>
+<td>9</td>
+<td>0.251366</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">87</td>
+<td>2020-01-01</td>
+<td>2020-03-31</td>
+<td>9</td>
+<td>0.248634</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">88</td>
+<td>2020-04-01</td>
+<td>2020-05-26</td>
+<td>9</td>
+<td>0.153005</td>
+<td>0.615385</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">88</td>
+<td>2020-05-27</td>
+<td>2020-06-30</td>
+<td>10</td>
+<td>0.095890</td>
+<td>0.384615</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">89</td>
+<td>2020-07-01</td>
+<td>2020-09-30</td>
+<td>10</td>
+<td>0.304110</td>
+<td>1.206522</td>
+</tr>
+</tbody>
+</table>
+
+<p>47 rows × 5 columns</p>
+</div>
+</div>
+</div>
+<p>Note, however, that calendar period exposures will always be expressed in the original units and policy exposures will always be expressed in years. Above, calendar exposures are quarters whereas policy exposures are years.</p>
+</section>
+<section id="miscellaneous" class="level2">
+<h2 class="anchored" data-anchor-id="miscellaneous">Miscellaneous</h2>
+<section id="column-names" class="level3">
+<h3 class="anchored" data-anchor-id="column-names">Column names</h3>
+<p>As a default, <code>ExposedDF()</code> assumes the census data frame uses the following naming conventions:</p>
+<ul>
+<li>The policy number column is called <code>pol_num</code></li>
+<li>The status column is called <code>status</code></li>
+<li>The issue date column is called <code>issue_date</code></li>
+<li>The termination date column is called <code>term_date</code></li>
+</ul>
+<p>These default names can be overridden using the <code>col_pol_num</code>, <code>col_status</code>, <code>col_issue_date</code>, and <code>col_term_date</code> arguments.</p>
+<p>For example, if the policy number column was called <code>id</code> in our census-level data, we could write:</p>
+<div id="col-names" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>xp.ExposedDF(toy_census, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>, target_status<span class="op">=</span><span class="st">"Surrender"</span>,</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>             col_pol_num<span class="op">=</span><span class="st">"id"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="treatment-of-additional-columns-in-the-census-data" class="level3">
+<h3 class="anchored" data-anchor-id="treatment-of-additional-columns-in-the-census-data">Treatment of additional columns in the census data</h3>
+<p>If the census-level data contains other policy attributes like plan type or policy values, they will be broadcast across all exposure periods. Depending on the nature of the data, this may or may not be desirable. Constant policy attributes like plan type make sense to broadcast, but numeric values may or may not depending on the circumstances.</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>toy_census2 <span class="op">=</span> toy_census.copy()</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>toy_census2[<span class="st">'plan_type'</span>] <span class="op">=</span> [<span class="st">"X"</span>, <span class="st">"Y"</span>, <span class="st">"Z"</span>]</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>toy_census2[<span class="st">'policy_value'</span>] <span class="op">=</span> [<span class="dv">100</span>, <span class="dv">125</span>, <span class="dv">90</span>]</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>xp.ExposedDF(toy_census2, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>, target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="broadcast" class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>Exposure data
+
+Exposure type: policy_year
+Target status: Surrender
+Study range: 1900-01-01 to 2022-12-31
+
+A DataFrame: 36 x 10
+   pol_num  status issue_date term_date plan_type  policy_value  pol_yr  \
+0        1  Active 2010-01-01       NaT         X           100       1   
+1        1  Active 2010-01-01       NaT         X           100       2   
+2        1  Active 2010-01-01       NaT         X           100       3   
+3        1  Active 2010-01-01       NaT         X           100       4   
+4        1  Active 2010-01-01       NaT         X           100       5   
+5        1  Active 2010-01-01       NaT         X           100       6   
+6        1  Active 2010-01-01       NaT         X           100       7   
+7        1  Active 2010-01-01       NaT         X           100       8   
+8        1  Active 2010-01-01       NaT         X           100       9   
+9        1  Active 2010-01-01       NaT         X           100      10   
+
+  pol_date_yr pol_date_yr_end  exposure  
+0  2010-01-01      2010-12-31       1.0  
+1  2011-01-01      2011-12-31       1.0  
+2  2012-01-01      2012-12-31       1.0  
+3  2013-01-01      2013-12-31       1.0  
+4  2014-01-01      2014-12-31       1.0  
+5  2015-01-01      2015-12-31       1.0  
+6  2016-01-01      2016-12-31       1.0  
+7  2017-01-01      2017-12-31       1.0  
+8  2018-01-01      2018-12-31       1.0  
+9  2019-01-01      2019-12-31       1.0  </code></pre>
+</div>
+</div>
+<p>If your experience study requires a numeric feature that varies over time (ex: policy values, crediting rates, etc.), you can always attach it to an <code>ExposedDF</code> object’s <code>data</code> using a join function.</p>
+<div id="join-ex" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Illustrative example - assume `values` is a data frame containing the columns pol_num and pol_yr.</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>exposed_data.data.merge(values, on<span class="op">=</span>[<span class="st">'pol_num'</span>, <span class="st">'pol_yr'</span>], how<span class="op">=</span><span class="st">'left'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="limitations" class="level3">
+<h3 class="anchored" data-anchor-id="limitations">Limitations</h3>
+<p><code>ExposedDF()</code> does not support studies with multiple changes between an active status and an inactive status.</p>
+
+
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

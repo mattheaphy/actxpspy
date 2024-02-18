@@ -93,6 +93,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -229,6 +232,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">ExposedDF.from_DataFrame</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/SplitExposedDF.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SplitExposedDF</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -280,21 +289,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
- <span class="menu-text">Sample data sets</span></a>
+ <span class="menu-text">Shiny app</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item sidebar-item-section">
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/exp_shiny.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">exp_shiny</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">
- <span class="menu-text">Toy census data</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Sample data sets</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+ <span class="menu-text">Toy census data</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/load_toy_census.html" class="sidebar-item-text sidebar-link">
@@ -305,13 +331,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
  <span class="menu-text">Simulated annuity data</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/sim_data.html" class="sidebar-item-text sidebar-link">
@@ -322,13 +348,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
  <span class="menu-text">2012 Individual Annuity Mortality Table and Projection Scale G2</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/qx_iamb.html" class="sidebar-item-text sidebar-link">
@@ -341,22 +367,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true">
  <span class="menu-text">Date functions</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
  <span class="menu-text">Policy duration functions</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/pol_durations.html" class="sidebar-item-text sidebar-link">
@@ -367,13 +393,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false">
  <span class="menu-text">Fractional duration functions</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/frac_durations.html" class="sidebar-item-text sidebar-link">
@@ -384,13 +410,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
  <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
@@ -416,7 +442,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
   <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
+  <li><a href="#actxps.trx_stats.TrxStats.from_DataFrame" id="toc-actxps.trx_stats.TrxStats.from_DataFrame" class="nav-link" data-scroll-target="#actxps.trx_stats.TrxStats.from_DataFrame">from_DataFrame</a></li>
   <li><a href="#actxps.trx_stats.TrxStats.plot" id="toc-actxps.trx_stats.TrxStats.plot" class="nav-link" data-scroll-target="#actxps.trx_stats.TrxStats.plot">plot</a></li>
+  <li><a href="#actxps.trx_stats.TrxStats.plot_utilization_rates" id="toc-actxps.trx_stats.TrxStats.plot_utilization_rates" class="nav-link" data-scroll-target="#actxps.trx_stats.TrxStats.plot_utilization_rates">plot_utilization_rates</a></li>
   <li><a href="#actxps.trx_stats.TrxStats.summary" id="toc-actxps.trx_stats.TrxStats.summary" class="nav-link" data-scroll-target="#actxps.trx_stats.TrxStats.summary">summary</a></li>
   <li><a href="#actxps.trx_stats.TrxStats.table" id="toc-actxps.trx_stats.TrxStats.table" class="nav-link" data-scroll-target="#actxps.trx_stats.TrxStats.table">table</a></li>
   </ul></li>
@@ -443,7 +471,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p><code>trx_stats.TrxStats(self, expo, trx_types=None, percent_of=None, combine_trx=False, col_exposure='exposure', full_exposures_only=True)</code></p>
+<p><code>trx_stats.TrxStats(self, expo, trx_types=None, percent_of=None, combine_trx=False, full_exposures_only=True, conf_int=False, conf_level=0.95, col_exposure='exposure')</code></p>
 <p>Transactions study summary class</p>
 <p>Create a summary of transaction counts, amounts, and utilization rates (a <code>TrxStats</code> object).</p>
 <p>Typically, the <code>TrxStats</code> class constructor should not be called directly. The preferred method for creating a <code>TrxStats</code> object is to call the <code>trx_stats()</code> method on an <code>ExposedDF</code> object.</p>
@@ -490,16 +518,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><code>False</code></td>
 </tr>
 <tr class="odd">
+<td><code>full_exposures_only</code></td>
+<td>bool</td>
+<td>If <code>True</code>, partially exposed records will be ignored in the results.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="even">
+<td><code>conf_int</code></td>
+<td>bool</td>
+<td>If <code>True</code>, the output will include confidence intervals around the observed utilization rate and any <code>percent_of</code> output columns.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td><code>conf_level</code></td>
+<td>float</td>
+<td>Confidence level for confidence intervals</td>
+<td><code>0.95</code></td>
+</tr>
+<tr class="even">
 <td><code>col_exposure</code></td>
 <td>str</td>
 <td>Name of the column in the <code>data</code> property of <code>expo</code> containing exposures</td>
 <td><code>'exposure'</code></td>
-</tr>
-<tr class="even">
-<td><code>full_exposures_only</code></td>
-<td>bool</td>
-<td>If <code>True</code> (default), partially exposed records will be ignored in the results.</td>
-<td><code>True</code></td>
 </tr>
 </tbody>
 </table>
@@ -538,8 +578,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>In a study of partial withdrawal transactions, if <code>percent_of</code> refers to account values, observed withdrawal rates can be determined.</li>
 <li>In a study of recurring claims, if <code>percent_of</code> refers to a column containing a maximum benefit amount, utilization rates can be determined.</li>
 </ul>
+<p><strong>Confidence intervals</strong></p>
+<p>If <code>conf_int</code> is set to <code>True</code>, the output will contain lower and upper confidence interval limits for the observed utilization rate and any <code>percent_of</code> output columns. The confidence level is dictated by <code>conf_level</code>.</p>
+<ul>
+<li><p>Intervals for the utilization rate (<code>trx_util</code>) assume a binomial distribution.</p></li>
+<li><p>Intervals for transactions as a percentage of another column with non-zero transactions (<code>pct_of_{*}_w_trx</code>) are constructed using a normal distribution</p></li>
+<li><p>Intervals for transactions as a percentage of another column regardless of transaction utilization (<code>pct_of_{*}_all</code>) are calculated assuming that the aggregate distribution is normal with a mean equal to observed transactions and a variance equal to:</p>
+<p><code>Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)</code>,</p></li>
+</ul>
+<p>Where <code>S</code> is the aggregate transactions random variable, <code>X</code> is an individual transaction amount assumed to follow a normal distribution, and <code>N</code> is a binomial random variable for transaction utilization.</p>
 <p><strong>Default removal of partial exposures</strong></p>
 <p>As a default, partial exposures are removed from <code>data</code> before summarizing results. This is done to avoid complexity associated with a lopsided skew in the timing of transactions. For example, if transactions can occur on a monthly basis or annually at the beginning of each policy year, partial exposures may not be appropriate. If a policy had an exposure of 0.5 years and was taking withdrawals annually at the beginning of the year, an argument could be made that the exposure should instead be 1 complete year. If the same policy was expected to take withdrawals 9 months into the year, it’s not clear if the exposure should be 0.5 years or 0.5 / 0.75 years. To override this treatment, set <code>full_exposures_only</code> to <code>False</code>.</p>
+<p><strong>Alternative class constructor</strong></p>
+<p><code>TrxStats.from_DataFrame()</code> can be used to coerce a data frame containing pre-aggregated experience into a <code>TrxStats</code> object. This is most useful for working with industry study data where individual exposure records are not available.</p>
 </section>
 <section id="methods" class="level2">
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
@@ -552,8 +603,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
+<td><a href="#actxps.trx_stats.TrxStats.from_DataFrame">from_DataFrame</a></td>
+<td>Convert a data frame containing aggregate transaction experience study</td>
+</tr>
+<tr class="even">
 <td><a href="#actxps.trx_stats.TrxStats.plot">plot</a></td>
 <td>Plot transaction study results</td>
+</tr>
+<tr class="odd">
+<td><a href="#actxps.trx_stats.TrxStats.plot_utilization_rates">plot_utilization_rates</a></td>
+<td>Plot transaction frequency and severity.</td>
 </tr>
 <tr class="even">
 <td><a href="#actxps.trx_stats.TrxStats.summary">summary</a></td>
@@ -565,18 +624,241 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<section id="actxps.trx_stats.TrxStats.plot" class="level3">
-<h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.plot">plot</h3>
-<p><code>trx_stats.TrxStats.plot(x=None, y='trx_util', color=None, facets=None, mapping=None, scales='fixed', geoms='lines', y_labels=lambda : [f'{v * 100}%' for v in l])</code></p>
-<p>Plot transaction study results</p>
+<section id="actxps.trx_stats.TrxStats.from_DataFrame" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.from_DataFrame">from_DataFrame</h3>
+<p><code>trx_stats.TrxStats.from_DataFrame(data, conf_int=False, conf_level=0.95, col_trx_amt='trx_amt', col_trx_n='trx_n', col_trx_flag='trx_flag', col_exposure='exposure', col_percent_of=None, col_percent_of_w_trx=None, col_trx_amt_sq='trx_amt_sq', start_date=datetime(1900, 1, 1), end_date=None)</code></p>
+<p>Convert a data frame containing aggregate transaction experience study results to the <code>TrxStats</code> class.</p>
+<p><code>from_DataFrame()</code> is most useful for working with aggregate summaries of experience that were not created by actxps where individual policy information is not available. After converting the data to the <code>TrxStats</code> class, <code>summary()</code> can be used to summarize data by any grouping variables, and <code>plot()</code> and <code>table()</code> are available for reporting.</p>
 <section id="parameters-1" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-1">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 4%">
+<col style="width: 10%">
+<col style="width: 14%">
+<col style="width: 64%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>data</code></td>
+<td>pandas.pandas.DataFrame</td>
+<td>A DataFrame containing aggregate transaction study results. See the Notes section for required columns that must be present.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td><code>conf_int</code></td>
+<td>bool</td>
+<td>If <code>True</code>, future calls to <code>summary()</code> will include confidence intervals around the observed utilization rates and any <code>percent_of</code> output columns.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td><code>conf_level</code></td>
+<td>float</td>
+<td>Confidence level used for the Limited Fluctuation credibility method and confidence intervals.</td>
+<td><code>0.95</code></td>
+</tr>
+<tr class="even">
+<td><code>col_trx_amt</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing transaction amounts.</td>
+<td><code>'trx_amt'</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_trx_n</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing transaction counts.</td>
+<td><code>'trx_n'</code></td>
+</tr>
+<tr class="even">
+<td><code>col_trx_flag</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing the number of exposure records with transactions.</td>
+<td><code>'trx_flag'</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_exposure</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing exposures.</td>
+<td><code>'exposure'</code></td>
+</tr>
+<tr class="even">
+<td><code>col_percent_of</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing a numeric variable to use in “percent of” calculations.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_percent_of_w_trx</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing a numeric variable to use in “percent of” calculations with transactions.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td><code>col_trx_amt_sq</code></td>
+<td>str</td>
+<td>Only required when <code>col_percent_of</code> is passed and <code>conf_int</code> is <code>True</code>. Name of the column in <code>data</code> containing squared transaction amounts.</td>
+<td><code>'trx_amt_sq'</code></td>
+</tr>
+<tr class="odd">
+<td><code>start_date</code></td>
+<td>datetime.datetime | int | str</td>
+<td>Transaction study start date</td>
+<td><code>datetime(1900, 1, 1)</code></td>
+</tr>
+<tr class="even">
+<td><code>end_date</code></td>
+<td>datetime.datetime | int | str</td>
+<td>Transaction study end date</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level4">
+<h4 class="anchored" data-anchor-id="returns">Returns</h4>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>actxps.trx_stats.TrxStats</td>
+<td>A <code>TrxStats</code> object</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="notes-1" class="level4">
+<h4 class="anchored" data-anchor-id="notes-1">Notes</h4>
+<p>At a minimum, the following columns are required:</p>
+<ul>
+<li>Transaction amounts (<code>trx_amt</code>)</li>
+<li>Transaction counts (<code>trx_n</code>)</li>
+<li>The number of exposure records with transactions (<code>trx_flag</code>). This number is not necessarily equal to transaction counts. If multiple transactions are allowed per exposure period, <code>trx_flag</code> will be less than <code>trx_n</code>.</li>
+<li>Exposures (<code>exposure</code>)</li>
+</ul>
+<p>If transaction amounts should be expressed as a percentage of another variable (i.e.&nbsp;to calculate utilization rates or actual-to-expected ratios), additional columns are required:</p>
+<ul>
+<li>A denominator “percent of” column. For example, the sum of account values.</li>
+<li>A denominator “percent of” column for exposure records with transactions. For example, the sum of account values across all records with non-zero transaction amounts.</li>
+</ul>
+<p>If confidence intervals are desired and “percent of” columns are passed, an additional column for the sum of squared transaction amounts (<code>trx_amt_sq</code>) is also required.</p>
+<p>The names in parentheses above are expected column names. If the data frame passed to <code>from_DataFrame()</code> uses different column names, these can be specified using the <code>col_*</code> arguments.</p>
+<p><code>start_date</code>, and <code>end_date</code> are optional arguments that are only used for printing the resulting <code>TrxStats</code> object.</p>
+<p>Unlike <code>ExposedDF.trx_stats()</code>, <code>from_DataFrame()</code> only permits a single transaction type and a single <code>percent_of</code> column.</p>
+</section>
+<section id="examples" class="level4">
+<h4 class="anchored" data-anchor-id="examples">Examples</h4>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># convert pre-aggregated experience into a TrxStats object</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>agg_sim_dat <span class="op">=</span> xp.load_agg_sim_dat()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>dat <span class="op">=</span> xp.TrxStats.from_DataFrame(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    agg_sim_dat,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    col_exposure<span class="op">=</span><span class="st">"n"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    col_trx_amt<span class="op">=</span><span class="st">"wd"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    col_trx_n<span class="op">=</span><span class="st">"wd_n"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    col_trx_flag<span class="op">=</span><span class="st">"wd_flag"</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    col_percent_of<span class="op">=</span><span class="st">"av"</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    col_percent_of_w_trx<span class="op">=</span><span class="st">"av_w_wd"</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    col_trx_amt_sq<span class="op">=</span><span class="st">"wd_sq"</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    start_date<span class="op">=</span><span class="dv">2005</span>, end_date<span class="op">=</span><span class="dv">2019</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    conf_int<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>dat</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># summary by policy year</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>dat.summary(<span class="st">'pol_yr'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>Transaction study results
+
+Groups: pol_yr
+Study range: 2005 to 2019
+Transaction types: wd
+Transactions as % of: av
+
+
+A DataFrame: 15 x 21
+   pol_yr trx_type  trx_n  trx_flag   trx_amt  exposure    avg_trx    avg_all  \
+0       1       wd  16942      7921  419763.0     19995  52.993688  20.993398   
+1       2       wd  16900      7923  440919.0     18434  55.650511  23.918791   
+2       3       wd  16679      7796  449349.0     16806  57.638404  26.737415   
+3       4       wd  16193      7575  440510.0     15266  58.153135  28.855627   
+4       5       wd  15353      7153  420462.0     13618  58.781211  30.875459   
+5       6       wd  14382      6708  411073.0     12067  61.281008  34.065882   
+6       7       wd  13248      6183  396732.0     10541  64.164968  37.637036   
+7       8       wd  12034      5603  369098.0      9130  65.875067  40.426944   
+8       9       wd  10461      4868  330507.0      7591  67.893796  43.539323   
+9      10       wd   8978      4155  290363.0      6185  69.882792  46.946322   
+
+   trx_freq  trx_util  ...    av_w_trx  pct_of_av_all  pct_of_av_w_trx  \
+0  2.138871  0.396149  ...  10578610.0       0.015960         0.039680   
+1  2.133030  0.429804  ...  10632252.0       0.017660         0.041470   
+2  2.139430  0.463882  ...  10561119.0       0.019168         0.042547   
+3  2.137690  0.496201  ...  10343861.0       0.020150         0.042587   
+4  2.146372  0.525261  ...   9953286.0       0.020914         0.042244   
+5  2.144007  0.555896  ...   9516448.0       0.022355         0.043196   
+6  2.142649  0.586567  ...   8889312.0       0.024132         0.044630   
+7  2.147778  0.613691  ...   8189855.0       0.025198         0.045068   
+8  2.148932  0.641286  ...   7296740.0       0.026223         0.045295   
+9  2.160770  0.671787  ...   6325646.0       0.027570         0.045903   
+
+   trx_util_lower  trx_util_upper   trx_amt_sq  pct_of_av_w_trx_lower  \
+0        0.389397        0.402951   79706383.0               0.038276   
+1        0.422643        0.436964   96920305.0               0.039902   
+2        0.456325        0.471439   92757953.0               0.041030   
+3        0.488275        0.504127   96528006.0               0.040991   
+4        0.516889        0.533632   96744946.0               0.040572   
+5        0.547029        0.564763   92206797.0               0.041510   
+6        0.577175        0.595959  100055006.0               0.042726   
+7        0.603724        0.623658   92940464.0               0.043085   
+8        0.630483        0.652088   80290185.0               0.043252   
+9        0.659984        0.683428   75062381.0               0.043609   
+
+   pct_of_av_w_trx_upper  pct_of_av_all_lower  pct_of_av_all_upper  
+0               0.041085             0.015332             0.016587  
+1               0.043038             0.016931             0.018390  
+2               0.044065             0.018417             0.019919  
+3               0.044182             0.019329             0.020971  
+4               0.043915             0.020021             0.021806  
+5               0.044882             0.021412             0.023297  
+6               0.046535             0.023032             0.025232  
+7               0.047050             0.024016             0.026380  
+8               0.047338             0.024961             0.027486  
+9               0.048196             0.026112             0.029029  
+
+[10 rows x 21 columns]</code></pre>
+</div>
+</div>
+</section>
+<section id="see-also" class="level4">
+<h4 class="anchored" data-anchor-id="see-also">See Also</h4>
+<p><code>ExposedDF.trx_stats()</code> for information on how <code>TrxStats</code> objects are typically created from individual exposure records.</p>
+</section>
+</section>
+<section id="actxps.trx_stats.TrxStats.plot" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.plot">plot</h3>
+<p><code>trx_stats.TrxStats.plot(x=None, y='trx_util', color=None, facets=None, mapping=None, scales='fixed', geoms='lines', y_labels=lambda : [f'{v * 100}%' for v in l], y_log10=False, conf_int_bars=False)</code></p>
+<p>Plot transaction study results</p>
+<section id="parameters-2" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-2">Parameters</h4>
+<table class="table">
+<colgroup>
 <col style="width: 5%">
-<col style="width: 75%">
-<col style="width: 15%">
+<col style="width: 8%">
+<col style="width: 71%">
+<col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -625,8 +907,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td><code>geoms</code></td>
-<td>(lines, bars)</td>
-<td>Type of geometry. If “lines” is passed, the plot will display lines and points. If “bars”, the plot will display bars.</td>
+<td>‘lines’, ‘bars’, ’points</td>
+<td>Type of geometry. If “lines” is passed, the plot will display lines and points. If “bars”, the plot will display bars. If “points”, the plot will display points only.</td>
 <td><code>'lines'</code></td>
 </tr>
 <tr class="even">
@@ -635,13 +917,105 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>Label function passed to <code>plotnine.scale_y_continuous()</code>.</td>
 <td><code>lambda l: [f"{v * 100:.1f}%" for v in l]</code></td>
 </tr>
+<tr class="odd">
+<td><code>y_log10</code></td>
+<td>bool</td>
+<td>If <code>True</code>, the y-axes are plotted on a log-10 scale.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td><code>conf_int_bars</code></td>
+<td>bool</td>
+<td>If <code>True</code>, confidence interval error bars are included in the plot. This option is only available for utilization rates and any <code>pct_of</code> columns.</td>
+<td><code>False</code></td>
+</tr>
 </tbody>
 </table>
 </section>
-<section id="notes-1" class="level4">
-<h4 class="anchored" data-anchor-id="notes-1">Notes</h4>
+<section id="notes-2" class="level4">
+<h4 class="anchored" data-anchor-id="notes-2">Notes</h4>
 <p>If no aesthetic map is supplied, the plot will use the first grouping variable in the <code>groups</code> property on the x axis and <code>trx_util</code> on the y axis. In addition, the second grouping variable in <code>groups</code> will be used for color and fill.</p>
 <p>If no faceting variables are supplied, the plot will use grouping variables 3 and up as facets. These variables are passed into <code>plotnine.facet_wrap()</code>.</p>
+</section>
+<section id="examples-1" class="level4">
+<h4 class="anchored" data-anchor-id="examples-1">Examples</h4>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">'premium'</span>))</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>trx_res.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="TrxStats_files/figure-html/cell-3-output-1.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="actxps.trx_stats.TrxStats.plot_utilization_rates" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.plot_utilization_rates">plot_utilization_rates</h3>
+<p><code>trx_stats.TrxStats.plot_utilization_rates(**kwargs)</code></p>
+<p>Plot transaction frequency and severity.</p>
+<p>Frequency is represented by utilization rates (<code>trx_util</code>). Severity is represented by transaction amounts as a percentage of one or more other columns in the data (<code>{*}_w_trx</code>). All severity series begin with the prefix “pct_of_” and end with the suffix “_w_trx”. The suffix refers to the fact that the denominator only includes records with non-zero transactions. Severity series are based on column names passed to the <code>percent_of</code> argument in <code>trx_stats()</code>. If no “percentage of” columns exist, this function will only plot utilization rates.</p>
+<section id="parameters-3" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-3">Parameters</h4>
+<table class="table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 11%">
+<col style="width: 56%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>**kwargs</code></td>
+<td></td>
+<td>Additional arguments passed to <code>plot()</code></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples-2" class="level4">
+<h4 class="anchored" data-anchor-id="examples-2">Examples</h4>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>account_vals <span class="op">=</span> xp.load_account_vals()</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>expo.data <span class="op">=</span> expo.data.merge(account_vals, how<span class="op">=</span><span class="st">'left'</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                            on<span class="op">=</span>[<span class="st">"pol_num"</span>, <span class="st">"pol_date_yr"</span>])        </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">'av_anniv'</span>, combine_trx<span class="op">=</span><span class="va">True</span>))</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>trx_res.plot_utilization_rates()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="TrxStats_files/figure-html/cell-4-output-1.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
 </section>
 </section>
 <section id="actxps.trx_stats.TrxStats.summary" class="level3">
@@ -649,8 +1023,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><code>trx_stats.TrxStats.summary(*by)</code></p>
 <p>Re-summarize transaction experience data</p>
 <p>Re-summarize the data while retaining any grouping variables passed to the <code>*by</code> argument.</p>
-<section id="parameters-2" class="level4">
-<h4 class="anchored" data-anchor-id="parameters-2">Parameters</h4>
+<section id="parameters-4" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-4">Parameters</h4>
 <table class="table">
 <colgroup>
 <col style="width: 4%">
@@ -676,52 +1050,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="examples" class="level4">
-<h4 class="anchored" data-anchor-id="examples">Examples</h4>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                              target_status <span class="op">=</span> <span class="st">"Surrender"</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'inc_guar'</span>, <span class="st">'pol_yr'</span>).</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>               trx_stats(percent_of <span class="op">=</span> <span class="st">"premium"</span>))</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>trx_res.summary()</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>trx_res.summary(<span class="st">'inc_guar'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="1">
-<pre><code>Transaction study results
-
-Groups: inc_guar
-Study range: 1900-01-01 to 2019-12-31
-Transaction types: Base, Rider
-Transactions as % of: premium
-
-
-A DataFrame: 4 x 14
-   inc_guar trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx  \
-0     False     Base  52939.0     24703   952629.0   48938.0  38.563292   
-1     False    Rider      0.0         0        0.0   48938.0        inf   
-2      True     Base   7561.0      3521   141270.0   75235.0  40.122124   
-3      True    Rider  77321.0     35941  2842729.0   75235.0  79.094321   
-
-     avg_all  trx_freq  trx_util      premium  premium_w_trx  \
-0  19.466039  2.143019  0.504782   65442415.0     33915201.0   
-1   0.000000       inf  0.000000   65442415.0            0.0   
-2   1.877716  2.147401  0.046800  100927712.0      4940490.0   
-3  37.784661  2.151331  0.477716  100927712.0     47887716.0   
-
-   pct_of_premium_all  pct_of_premium_w_trx  
-0            0.014557              0.028089  
-1            0.000000                   inf  
-2            0.001400              0.028594  
-3            0.028166              0.059362  </code></pre>
-</div>
-</div>
-</section>
-<section id="returns" class="level4">
-<h4 class="anchored" data-anchor-id="returns">Returns</h4>
+<section id="returns-1" class="level4">
+<h4 class="anchored" data-anchor-id="returns-1">Returns</h4>
 <table class="table">
 <colgroup>
 <col style="width: 27%">
@@ -741,19 +1071,62 @@ A DataFrame: 4 x 14
 </tbody>
 </table>
 </section>
+<section id="examples-3" class="level4">
+<h4 class="anchored" data-anchor-id="examples-3">Examples</h4>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'inc_guar'</span>, <span class="st">'pol_yr'</span>).</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">'premium'</span>))</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>trx_res.summary(<span class="st">'inc_guar'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>Transaction study results
+
+Groups: inc_guar
+Study range: 1900-01-01 to 2019-12-31
+Transaction types: Base, Rider
+Transactions as % of: premium
+
+
+A DataFrame: 4 x 14
+   inc_guar trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx  \
+0     False     Base  52939.0     24703   952629.0   48938.0  38.563292   
+1     False    Rider      0.0         0        0.0   48938.0        NaN   
+2      True     Base   7561.0      3521   141270.0   75235.0  40.122124   
+3      True    Rider  77321.0     35941  2842729.0   75235.0  79.094321   
+
+     avg_all  trx_freq  trx_util      premium  premium_w_trx  \
+0  19.466039  2.143019  0.504782   65442415.0     33915201.0   
+1   0.000000       NaN  0.000000   65442415.0            0.0   
+2   1.877716  2.147401  0.046800  100927712.0      4940490.0   
+3  37.784661  2.151331  0.477716  100927712.0     47887716.0   
+
+   pct_of_premium_all  pct_of_premium_w_trx  
+0            0.014557              0.028089  
+1            0.000000                   NaN  
+2            0.001400              0.028594  
+3            0.028166              0.059362  </code></pre>
+</div>
+</div>
+</section>
 </section>
 <section id="actxps.trx_stats.TrxStats.table" class="level3">
 <h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.table">table</h3>
-<p><code>trx_stats.TrxStats.table(fontsize=100, decimals=1, colorful=True, color_util='GnBu', color_pct_of='RdBu_r', rename_cols=None)</code></p>
+<p><code>trx_stats.TrxStats.table(fontsize=100, decimals=1, colorful=True, color_util='GnBu', color_pct_of='RdBu', show_conf_int=False, decimals_amt=0, suffix_amt=False, **rename_cols)</code></p>
 <p>Tabular transaction study summary</p>
 <p>Convert transaction study results to a presentation-friendly format.</p>
-<section id="parameters-3" class="level4">
-<h4 class="anchored" data-anchor-id="parameters-3">Parameters</h4>
+<section id="parameters-5" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-5">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 85%">
+<col style="width: 4%">
+<col style="width: 2%">
+<col style="width: 90%">
 <col style="width: 3%">
 </colgroup>
 <thead>
@@ -785,35 +1158,53 @@ A DataFrame: 4 x 14
 </tr>
 <tr class="even">
 <td><code>color_util</code></td>
-<td>str or colormap</td>
-<td>Matplotlib colormap used for the observed utilization rate.</td>
+<td>str</td>
+<td>ColorBrewer palette used for the observed utilization rate.</td>
 <td><code>'GnBu'</code></td>
 </tr>
 <tr class="odd">
 <td><code>color_pct_of</code></td>
-<td>str or colormap</td>
-<td>Matplotlib colormap used for “percentage of” columns.</td>
-<td><code>'RdBu_r'</code></td>
+<td>str</td>
+<td>ColorBrewer palette used for “percentage of” columns.</td>
+<td><code>'RdBu'</code></td>
 </tr>
 <tr class="even">
+<td><code>show_conf_int</code></td>
+<td>bool</td>
+<td>If <code>True</code> any confidence intervals will be displayed.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td><code>decimals_amt</code></td>
+<td>int</td>
+<td>Number of decimals to display for amount columns (transaction counts, total transactions, and average transactions)</td>
+<td><code>0</code></td>
+</tr>
+<tr class="even">
+<td><code>suffix_amt</code></td>
+<td>bool</td>
+<td>This argument has the same meaning as the <code>compact</code> argument in great_tables.gt.GT.fmt_number() for amount columns. If <code>False</code>, no scaling or suffixing are applied to amount columns. If <code>True</code>, all amount columns are automatically scaled and suffixed by “K” (thousands), “M” (millions), “B” (billions), or “T” (trillions).</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
 <td><code>rename_cols</code></td>
-<td>dict</td>
-<td>An optional dictionaryof key-value pairs where keys are column names and values are labels that will appear on the output table. This parameter is useful for renaming grouping variables that will appear under their original variable names if left unchanged.</td>
+<td>str</td>
+<td>Key-value pairs where keys are column names and values are labels that will appear on the output table. This parameter is useful for renaming grouping variables that will appear under their original variable names if left unchanged.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="notes-2" class="level4">
-<h4 class="anchored" data-anchor-id="notes-2">Notes</h4>
-<p>Further customizations can be added using Pandas Styler functions. See <code>pandas.DataFrame.style</code> for more information.</p>
+<section id="notes-3" class="level4">
+<h4 class="anchored" data-anchor-id="notes-3">Notes</h4>
+<p>Further customizations can be added using great_tables.gt.GT methods. See the <code>great_tables</code> package documentation for more information.</p>
 </section>
-<section id="returns-1" class="level4">
-<h4 class="anchored" data-anchor-id="returns-1">Returns</h4>
+<section id="returns-2" class="level4">
+<h4 class="anchored" data-anchor-id="returns-2">Returns</h4>
 <table class="table">
 <colgroup>
-<col style="width: 64%">
-<col style="width: 35%">
+<col style="width: 67%">
+<col style="width: 32%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -823,11 +1214,482 @@ A DataFrame: 4 x 14
 </thead>
 <tbody>
 <tr class="odd">
-<td>pandas.pandas.io.pandas.io.formats.pandas.io.formats.style.pandas.io.formats.style.Styler</td>
-<td>A formatted HTML table of the Pandas styler class</td>
+<td>great_tables.great_tables.gt.great_tables.gt.GT</td>
+<td>A formatted HTML table</td>
 </tr>
 </tbody>
 </table>
+</section>
+<section id="examples-4" class="level4">
+<h4 class="anchored" data-anchor-id="examples-4">Examples</h4>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">'premium'</span>))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>trx_res.table()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+
+<div id="rraeydjmez" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#rraeydjmez table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#rraeydjmez thead, tbody, tfoot, tr, td, th { border-style: none; }
+#rraeydjmez p { margin: 0; padding: 0; }
+ #rraeydjmez .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 100%; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: auto; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #rraeydjmez .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #rraeydjmez .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #rraeydjmez .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #rraeydjmez .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #rraeydjmez .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #rraeydjmez .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #rraeydjmez .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: bold; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #rraeydjmez .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: bold; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #rraeydjmez .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #rraeydjmez .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #rraeydjmez .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #rraeydjmez .gt_spanner_row { border-bottom-style: hidden; }
+ #rraeydjmez .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #rraeydjmez .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #rraeydjmez .gt_from_md> :first-child { margin-top: 0; }
+ #rraeydjmez .gt_from_md> :last-child { margin-bottom: 0; }
+ #rraeydjmez .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #rraeydjmez .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #rraeydjmez .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #rraeydjmez .gt_row_group_first td { border-top-width: 2px; }
+ #rraeydjmez .gt_row_group_first th { border-top-width: 2px; }
+ #rraeydjmez .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #rraeydjmez .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #rraeydjmez .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; }
+ #rraeydjmez .gt_left { text-align: left; }
+ #rraeydjmez .gt_center { text-align: center; }
+ #rraeydjmez .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #rraeydjmez .gt_font_normal { font-weight: normal; }
+ #rraeydjmez .gt_font_bold { font-weight: bold; }
+ #rraeydjmez .gt_font_italic { font-style: italic; }
+ #rraeydjmez .gt_super { font-size: 65%; }
+ #rraeydjmez .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #rraeydjmez .gt_asterisk { font-size: 100%; vertical-align: 0; }
+ 
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead class="gt_header">  <tr>
+    <th colspan="10" class="gt_heading gt_title gt_font_normal">Transaction Study Results
+  </th></tr>
+  <tr>
+    <th colspan="10" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">Transaction types: Base, Rider
+  </th></tr></thead>
+<tbody><tr class="gt_col_headings gt_spanner_row">
+  <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id=""></th>
+  <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="<strong>Counts</strong>">
+    <span class="gt_column_spanner"><strong>Counts</strong></span>
+  </th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="2" colspan="1" scope="col" id="Amount">Amount</th>
+  <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="<strong>Averages</strong>">
+    <span class="gt_column_spanner"><strong>Averages</strong></span>
+  </th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="2" colspan="1" scope="col" id="Frequency">Frequency</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="2" colspan="1" scope="col" id="Utilization">Utilization</th>
+  <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="<strong>% of premium</strong>">
+    <span class="gt_column_spanner"><strong>% of premium</strong></span>
+  </th>
+</tr>
+<tr class="gt_col_headings">
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total">Total</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Periods">Periods</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>w/ trx</em>"><em>w/ trx</em></th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>all</em>"><em>all</em></th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>w/ trx</em>"><em>w/ trx</em></th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>all</em>"><em>all</em></th>
+</tr>
+</tbody><tbody class="gt_table_body">
+<tr>
+</tr><tr class="gt_group_heading_row">  <th class="gt_group_heading" colspan="10">Base</th></tr>
+  <tr><th class="gt_row gt_left gt_stub">1</th>
+  <td class="gt_row gt_right">7,447</td>
+  <td class="gt_row gt_right">3,514</td>
+  <td class="gt_row gt_right">119,877</td>
+  <td class="gt_row gt_right">34</td>
+  <td class="gt_row gt_right">6</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #f7fcf0;" class="gt_row gt_right">19.0%</td>
+  <td style="color: #000000; background-color: #62a7ce;" class="gt_row gt_right">2.5%</td>
+  <td style="color: #FFFFFF; background-color: #053061;" class="gt_row gt_right">0.5%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">2</th>
+  <td class="gt_row gt_right">7,274</td>
+  <td class="gt_row gt_right">3,422</td>
+  <td class="gt_row gt_right">116,967</td>
+  <td class="gt_row gt_right">34</td>
+  <td class="gt_row gt_right">7</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #f1faeb;" class="gt_row gt_right">20.2%</td>
+  <td style="color: #000000; background-color: #62a7ce;" class="gt_row gt_right">2.5%</td>
+  <td style="color: #FFFFFF; background-color: #053061;" class="gt_row gt_right">0.5%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">3</th>
+  <td class="gt_row gt_right">7,061</td>
+  <td class="gt_row gt_right">3,309</td>
+  <td class="gt_row gt_right">116,357</td>
+  <td class="gt_row gt_right">35</td>
+  <td class="gt_row gt_right">8</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #eaf7e4;" class="gt_row gt_right">21.5%</td>
+  <td style="color: #000000; background-color: #6bacd1;" class="gt_row gt_right">2.6%</td>
+  <td style="color: #FFFFFF; background-color: #073467;" class="gt_row gt_right">0.6%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">4</th>
+  <td class="gt_row gt_right">6,596</td>
+  <td class="gt_row gt_right">3,080</td>
+  <td class="gt_row gt_right">114,987</td>
+  <td class="gt_row gt_right">37</td>
+  <td class="gt_row gt_right">8</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #e6f6e1;" class="gt_row gt_right">22.3%</td>
+  <td style="color: #000000; background-color: #78b4d5;" class="gt_row gt_right">2.8%</td>
+  <td style="color: #FFFFFF; background-color: #09386d;" class="gt_row gt_right">0.6%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">5</th>
+  <td class="gt_row gt_right">6,093</td>
+  <td class="gt_row gt_right">2,847</td>
+  <td class="gt_row gt_right">109,918</td>
+  <td class="gt_row gt_right">39</td>
+  <td class="gt_row gt_right">9</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #e1f4dc;" class="gt_row gt_right">23.3%</td>
+  <td style="color: #000000; background-color: #7eb8d7;" class="gt_row gt_right">2.8%</td>
+  <td style="color: #FFFFFF; background-color: #0a3b70;" class="gt_row gt_right">0.7%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">6</th>
+  <td class="gt_row gt_right">5,543</td>
+  <td class="gt_row gt_right">2,572</td>
+  <td class="gt_row gt_right">97,455</td>
+  <td class="gt_row gt_right">38</td>
+  <td class="gt_row gt_right">9</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #ddf2d8;" class="gt_row gt_right">24.0%</td>
+  <td style="color: #000000; background-color: #78b4d5;" class="gt_row gt_right">2.8%</td>
+  <td style="color: #FFFFFF; background-color: #0a3b70;" class="gt_row gt_right">0.7%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">7</th>
+  <td class="gt_row gt_right">4,921</td>
+  <td class="gt_row gt_right">2,297</td>
+  <td class="gt_row gt_right">92,797</td>
+  <td class="gt_row gt_right">40</td>
+  <td class="gt_row gt_right">10</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #dbf1d5;" class="gt_row gt_right">24.7%</td>
+  <td style="color: #000000; background-color: #87beda;" class="gt_row gt_right">2.9%</td>
+  <td style="color: #FFFFFF; background-color: #0d3f76;" class="gt_row gt_right">0.7%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">8</th>
+  <td class="gt_row gt_right">4,200</td>
+  <td class="gt_row gt_right">1,964</td>
+  <td class="gt_row gt_right">85,740</td>
+  <td class="gt_row gt_right">44</td>
+  <td class="gt_row gt_right">11</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #d8f0d3;" class="gt_row gt_right">25.2%</td>
+  <td style="color: #000000; background-color: #98c8e0;" class="gt_row gt_right">3.1%</td>
+  <td style="color: #FFFFFF; background-color: #0f437b;" class="gt_row gt_right">0.8%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">9</th>
+  <td class="gt_row gt_right">3,579</td>
+  <td class="gt_row gt_right">1,655</td>
+  <td class="gt_row gt_right">70,715</td>
+  <td class="gt_row gt_right">43</td>
+  <td class="gt_row gt_right">11</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #d5efcf;" class="gt_row gt_right">26.0%</td>
+  <td style="color: #000000; background-color: #90c4dd;" class="gt_row gt_right">3.0%</td>
+  <td style="color: #FFFFFF; background-color: #0f437b;" class="gt_row gt_right">0.8%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">10</th>
+  <td class="gt_row gt_right">3,004</td>
+  <td class="gt_row gt_right">1,376</td>
+  <td class="gt_row gt_right">57,935</td>
+  <td class="gt_row gt_right">42</td>
+  <td class="gt_row gt_right">11</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #d0ecc9;" class="gt_row gt_right">27.2%</td>
+  <td style="color: #000000; background-color: #8dc2dc;" class="gt_row gt_right">3.0%</td>
+  <td style="color: #FFFFFF; background-color: #10457e;" class="gt_row gt_right">0.8%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">11</th>
+  <td class="gt_row gt_right">2,428</td>
+  <td class="gt_row gt_right">1,115</td>
+  <td class="gt_row gt_right">53,809</td>
+  <td class="gt_row gt_right">48</td>
+  <td class="gt_row gt_right">14</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #c7e9c3;" class="gt_row gt_right">28.6%</td>
+  <td style="color: #000000; background-color: #a9d1e5;" class="gt_row gt_right">3.4%</td>
+  <td style="color: #FFFFFF; background-color: #15508d;" class="gt_row gt_right">1.0%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">12</th>
+  <td class="gt_row gt_right">1,320</td>
+  <td class="gt_row gt_right">605</td>
+  <td class="gt_row gt_right">30,425</td>
+  <td class="gt_row gt_right">50</td>
+  <td class="gt_row gt_right">13</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #d2edcc;" class="gt_row gt_right">26.7%</td>
+  <td style="color: #000000; background-color: #a0cce2;" class="gt_row gt_right">3.2%</td>
+  <td style="color: #FFFFFF; background-color: #134c87;" class="gt_row gt_right">0.9%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">13</th>
+  <td class="gt_row gt_right">700</td>
+  <td class="gt_row gt_right">319</td>
+  <td class="gt_row gt_right">17,809</td>
+  <td class="gt_row gt_right">56</td>
+  <td class="gt_row gt_right">14</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #daf0d4;" class="gt_row gt_right">24.9%</td>
+  <td style="color: #000000; background-color: #a5cee3;" class="gt_row gt_right">3.3%</td>
+  <td style="color: #FFFFFF; background-color: #124984;" class="gt_row gt_right">0.9%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">14</th>
+  <td class="gt_row gt_right">315</td>
+  <td class="gt_row gt_right">141</td>
+  <td class="gt_row gt_right">8,883</td>
+  <td class="gt_row gt_right">63</td>
+  <td class="gt_row gt_right">15</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #dcf1d6;" class="gt_row gt_right">24.6%</td>
+  <td style="color: #000000; background-color: #b8d8e9;" class="gt_row gt_right">3.6%</td>
+  <td style="color: #FFFFFF; background-color: #175290;" class="gt_row gt_right">1.0%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">15</th>
+  <td class="gt_row gt_right">19</td>
+  <td class="gt_row gt_right">8</td>
+  <td class="gt_row gt_right">225</td>
+  <td class="gt_row gt_right">28</td>
+  <td class="gt_row gt_right">11</td>
+  <td class="gt_row gt_right">2.4</td>
+  <td style="color: #000000; background-color: #70c6c8;" class="gt_row gt_right">38.1%</td>
+  <td style="color: #000000; background-color: #8dc2dc;" class="gt_row gt_right">3.0%</td>
+  <td style="color: #FFFFFF; background-color: #15508d;" class="gt_row gt_right">1.0%</td>
+</tr>
+<tr>
+</tr><tr class="gt_group_heading_row">  <th class="gt_group_heading" colspan="10">Rider</th></tr>
+  <tr><th class="gt_row gt_left gt_stub">1</th>
+  <td class="gt_row gt_right">8,077</td>
+  <td class="gt_row gt_right">3,778</td>
+  <td class="gt_row gt_right">265,312</td>
+  <td class="gt_row gt_right">70</td>
+  <td class="gt_row gt_right">14</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #f0f9e9;" class="gt_row gt_right">20.4%</td>
+  <td style="color: #000000; background-color: #fbe4d6;" class="gt_row gt_right">5.3%</td>
+  <td style="color: #FFFFFF; background-color: #185493;" class="gt_row gt_right">1.1%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">2</th>
+  <td class="gt_row gt_right">8,232</td>
+  <td class="gt_row gt_right">3,834</td>
+  <td class="gt_row gt_right">288,114</td>
+  <td class="gt_row gt_right">75</td>
+  <td class="gt_row gt_right">17</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #e5f5e0;" class="gt_row gt_right">22.6%</td>
+  <td style="color: #000000; background-color: #fcd5bf;" class="gt_row gt_right">5.7%</td>
+  <td style="color: #FFFFFF; background-color: #1e61a5;" class="gt_row gt_right">1.3%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">3</th>
+  <td class="gt_row gt_right">8,204</td>
+  <td class="gt_row gt_right">3,817</td>
+  <td class="gt_row gt_right">294,795</td>
+  <td class="gt_row gt_right">77</td>
+  <td class="gt_row gt_right">19</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #daf1d5;" class="gt_row gt_right">24.8%</td>
+  <td style="color: #000000; background-color: #fbccb4;" class="gt_row gt_right">5.8%</td>
+  <td style="color: #FFFFFF; background-color: #246aae;" class="gt_row gt_right">1.4%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">4</th>
+  <td class="gt_row gt_right">7,960</td>
+  <td class="gt_row gt_right">3,715</td>
+  <td class="gt_row gt_right">283,763</td>
+  <td class="gt_row gt_right">76</td>
+  <td class="gt_row gt_right">21</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #d1edca;" class="gt_row gt_right">26.9%</td>
+  <td style="color: #000000; background-color: #fbd0b9;" class="gt_row gt_right">5.8%</td>
+  <td style="color: #FFFFFF; background-color: #2870b1;" class="gt_row gt_right">1.5%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">5</th>
+  <td class="gt_row gt_right">7,536</td>
+  <td class="gt_row gt_right">3,521</td>
+  <td class="gt_row gt_right">264,939</td>
+  <td class="gt_row gt_right">75</td>
+  <td class="gt_row gt_right">22</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #c6e9c2;" class="gt_row gt_right">28.8%</td>
+  <td style="color: #000000; background-color: #fcd7c2;" class="gt_row gt_right">5.7%</td>
+  <td style="color: #FFFFFF; background-color: #2b73b3;" class="gt_row gt_right">1.6%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">6</th>
+  <td class="gt_row gt_right">7,118</td>
+  <td class="gt_row gt_right">3,342</td>
+  <td class="gt_row gt_right">264,516</td>
+  <td class="gt_row gt_right">79</td>
+  <td class="gt_row gt_right">25</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #b2e1b9;" class="gt_row gt_right">31.2%</td>
+  <td style="color: #000000; background-color: #f9c4a9;" class="gt_row gt_right">5.9%</td>
+  <td style="color: #000000; background-color: #3480b9;" class="gt_row gt_right">1.8%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">7</th>
+  <td class="gt_row gt_right">6,631</td>
+  <td class="gt_row gt_right">3,097</td>
+  <td class="gt_row gt_right">251,502</td>
+  <td class="gt_row gt_right">81</td>
+  <td class="gt_row gt_right">27</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #a0dab8;" class="gt_row gt_right">33.3%</td>
+  <td style="color: #000000; background-color: #f8bb9e;" class="gt_row gt_right">6.1%</td>
+  <td style="color: #000000; background-color: #3b88be;" class="gt_row gt_right">2.0%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">8</th>
+  <td class="gt_row gt_right">5,952</td>
+  <td class="gt_row gt_right">2,773</td>
+  <td class="gt_row gt_right">226,770</td>
+  <td class="gt_row gt_right">82</td>
+  <td class="gt_row gt_right">29</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #88d1c0;" class="gt_row gt_right">35.6%</td>
+  <td style="color: #000000; background-color: #f8bb9e;" class="gt_row gt_right">6.1%</td>
+  <td style="color: #000000; background-color: #408fc1;" class="gt_row gt_right">2.1%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">9</th>
+  <td class="gt_row gt_right">5,173</td>
+  <td class="gt_row gt_right">2,406</td>
+  <td class="gt_row gt_right">204,000</td>
+  <td class="gt_row gt_right">85</td>
+  <td class="gt_row gt_right">32</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #73c8c7;" class="gt_row gt_right">37.8%</td>
+  <td style="color: #000000; background-color: #f5aa89;" class="gt_row gt_right">6.3%</td>
+  <td style="color: #000000; background-color: #4f9bc7;" class="gt_row gt_right">2.3%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">10</th>
+  <td class="gt_row gt_right">4,331</td>
+  <td class="gt_row gt_right">1,998</td>
+  <td class="gt_row gt_right">174,457</td>
+  <td class="gt_row gt_right">87</td>
+  <td class="gt_row gt_right">35</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #61bdcd;" class="gt_row gt_right">39.5%</td>
+  <td style="color: #000000; background-color: #f09c7b;" class="gt_row gt_right">6.5%</td>
+  <td style="color: #000000; background-color: #5fa5cd;" class="gt_row gt_right">2.5%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">11</th>
+  <td class="gt_row gt_right">3,468</td>
+  <td class="gt_row gt_right">1,597</td>
+  <td class="gt_row gt_right">139,620</td>
+  <td class="gt_row gt_right">87</td>
+  <td class="gt_row gt_right">36</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #53b6d1;" class="gt_row gt_right">41.0%</td>
+  <td style="color: #000000; background-color: #f19e7d;" class="gt_row gt_right">6.5%</td>
+  <td style="color: #000000; background-color: #68abd0;" class="gt_row gt_right">2.6%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">12</th>
+  <td class="gt_row gt_right">2,398</td>
+  <td class="gt_row gt_right">1,076</td>
+  <td class="gt_row gt_right">90,469</td>
+  <td class="gt_row gt_right">84</td>
+  <td class="gt_row gt_right">40</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #000000; background-color: #1f80b8;" class="gt_row gt_right">47.4%</td>
+  <td style="color: #000000; background-color: #f7b596;" class="gt_row gt_right">6.2%</td>
+  <td style="color: #000000; background-color: #78b4d5;" class="gt_row gt_right">2.8%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">13</th>
+  <td class="gt_row gt_right">1,486</td>
+  <td class="gt_row gt_right">662</td>
+  <td class="gt_row gt_right">62,880</td>
+  <td class="gt_row gt_right">95</td>
+  <td class="gt_row gt_right">49</td>
+  <td class="gt_row gt_right">2.2</td>
+  <td style="color: #FFFFFF; background-color: #085da0;" class="gt_row gt_right">51.7%</td>
+  <td style="color: #000000; background-color: #ea8e70;" class="gt_row gt_right">6.7%</td>
+  <td style="color: #000000; background-color: #a0cce2;" class="gt_row gt_right">3.2%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">14</th>
+  <td class="gt_row gt_right">736</td>
+  <td class="gt_row gt_right">316</td>
+  <td class="gt_row gt_right">30,648</td>
+  <td class="gt_row gt_right">97</td>
+  <td class="gt_row gt_right">53</td>
+  <td class="gt_row gt_right">2.3</td>
+  <td style="color: #FFFFFF; background-color: #084081;" class="gt_row gt_right">55.1%</td>
+  <td style="color: #000000; background-color: #db6b55;" class="gt_row gt_right">7.1%</td>
+  <td style="color: #000000; background-color: #b8d8e9;" class="gt_row gt_right">3.6%</td>
+</tr>
+<tr>
+  <th class="gt_row gt_left gt_stub">15</th>
+  <td class="gt_row gt_right">19</td>
+  <td class="gt_row gt_right">9</td>
+  <td class="gt_row gt_right">944</td>
+  <td class="gt_row gt_right">105</td>
+  <td class="gt_row gt_right">45</td>
+  <td class="gt_row gt_right">2.1</td>
+  <td style="color: #000000; background-color: #43a7cd;" class="gt_row gt_right">42.9%</td>
+  <td style="color: #FFFFFF; background-color: #67001f;" class="gt_row gt_right">9.0%</td>
+  <td style="color: #000000; background-color: #e0ecf3;" class="gt_row gt_right">4.2%</td>
+</tr>
+</tbody>
+  <tfoot class="gt_sourcenotes">
+  
+  <tr>
+    <td class="gt_sourcenote" colspan="10">Study range: 1900-01-01 to 2019-12-31</td>
+  </tr>
+
+</tfoot>
+
+</table>
+
+</div>
+        
+</div>
+</div>
 
 
 </section>

@@ -190,7 +190,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#working-with-aggregate-experience-data" id="toc-working-with-aggregate-experience-data" class="nav-link active" data-scroll-target="#working-with-aggregate-experience-data">Working with aggregate experience data</a></li>
+  <li><a href="#policy-duration-functions" id="toc-policy-duration-functions" class="nav-link" data-scroll-target="#policy-duration-functions">Policy duration functions</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -213,11 +220,129 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p>This article features functions that are not covered in other articles.</p>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="packages" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="working-with-aggregate-experience-data" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-aggregate-experience-data">Working with aggregate experience data</h2>
+<p>Seriatim-level policy experience data is often not available for analysis. This is almost always the case with industry studies that contain experience data submitted by multiple parties. In these cases, experience is grouped by a several common policy attributes and aggregated accordingly.</p>
+<p>The typical workflow in actxps of <code>ExposedDF().exp_stats()</code> for termination studies or <code>ExposedDF().add_transactions().trx_stats()</code> for transaction studies doesn’t apply if the starting data is aggregated. That is because another party has already gone through the steps of creating exposure records and performing an initial level of aggregation.</p>
+<p>Actxps provides two functions designed to work with aggregate experience data.</p>
+<ul>
+<li>For termination studies, <code>ExpStats.from_DataFrame()</code> converts a data frame of aggregate experience into an <code>ExpStats</code> object. = For transaction studies, <code>TrxStats.from_DataFrame()</code> converts a data frame of aggregate experience into a <code>TrxStats</code> object.</li>
+</ul>
+<p>Both object classes have a <code>summary()</code> method which summarizes experience across any grouping variables passed to the function. The output of <code>summary()</code> will always be another <code>ExpStats</code> (or <code>TrxStats</code>) object, and will look just like the results of <code>exp_stats()</code> (or <code>trx_stats()</code>). For downstream reporting, summary results can be passed to the visualization methods <code>plot()</code> and <code>table()</code>.</p>
+<p>The <code>agg_sim_dat</code> data set contains aggregate experience on a theoretical block of deferred annuity contracts. Below, <code>ExpStats.from_DataFrame()</code> is used to convert the data to an <code>ExpStats</code>, and <code>summary()</code> is called using multiple grouping variables.</p>
+<div id="agg-exp-1" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>agg_sim_dat <span class="op">=</span> xp.load_agg_sim_dat()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>agg_sim_ExpStats <span class="op">=</span> xp.ExpStats.from_DataFrame(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    agg_sim_dat,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    col_exposure<span class="op">=</span><span class="st">"exposure_n"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    col_claims<span class="op">=</span><span class="st">"claims_n"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    conf_int<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    start_date<span class="op">=</span><span class="dv">2005</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    end_date<span class="op">=</span><span class="dv">2019</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Results summarized by policy year</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>agg_sim_ExpStats.summary(<span class="st">'pol_yr'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="agg-exp-2" class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>Experience study results
+
+Groups: pol_yr
+Target status: Surrender
+Study range: 2005 to 2019
+
+
+A DataFrame: 15 x 7
+   pol_yr  n_claims  claims      exposure     q_obs  q_obs_lower  q_obs_upper
+0       1       102     102  19252.212366  0.005298     0.004311     0.006337
+1       2       160     160  17714.780418  0.009032     0.007677     0.010443
+2       3       124     124  16097.137376  0.007703     0.006399     0.009070
+3       4       168     168  14535.852953  0.011558     0.009838     0.013346
+4       5       164     164  12915.526244  0.012698     0.010840     0.014634
+5       6       152     152  11375.931769  0.013362     0.011252     0.015471
+6       7       164     164   9916.841762  0.016538     0.014117     0.019058
+7       8       190     190   8447.885912  0.022491     0.019413     0.025687
+8       9       181     181   6959.806363  0.026006     0.022271     0.029742
+9      10       152     152   5604.283330  0.027122     0.023018     0.031405</code></pre>
+</div>
+</div>
+<p>Results summarized by income guarantee presence and product</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>agg_sim_ExpStats.summary(<span class="st">'inc_guar'</span>, <span class="st">'product'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="agg-exp-3" class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>Experience study results
+
+Groups: inc_guar, product
+Target status: Surrender
+Study range: 2005 to 2019
+
+
+A DataFrame: 6 x 8
+   inc_guar product  n_claims  claims      exposure     q_obs  q_obs_lower  \
+0     False       a       449     449  12738.212621  0.035248     0.032108   
+1     False       b       392     392  13489.708578  0.029059     0.026242   
+2     False       c       760     760  25895.314881  0.029349     0.027302   
+3      True       a       361     361  19966.028820  0.018081     0.016278   
+4      True       b       273     273  19694.192761  0.013862     0.012237   
+5      True       c       634     634  40850.510510  0.015520     0.014345   
+
+   q_obs_upper  
+0     0.038467  
+1     0.031950  
+2     0.031434  
+3     0.019934  
+4     0.015538  
+5     0.016719  </code></pre>
+</div>
+</div>
+<p><code>ExpStats.from_DataFrame()</code> and <code>TrxStats.from_DataFrame()</code> contain several arguments for optional calculations like confidence intervals, expected values, weighting variables, and more. These arguments mirror the functionality in <code>exp_stats()</code> and <code>trx_stats()</code>. Both functions also contain multiple arguments for specifying column names associated with required values like exposures and claims.</p>
+</section>
+<section id="policy-duration-functions" class="level2">
+<h2 class="anchored" data-anchor-id="policy-duration-functions">Policy duration functions</h2>
+<p>The <code>pol_()</code> family of functions calculates policy years, months, quarters, weeks, or any other arbitrary duration. Each function accepts a vector of dates and a vector of issue dates.</p>
+<p><strong>Example</strong>: assume a policy was issued on 2022-05-10 and we are interested in calculating various policy duration values at the end of calendar years 2022-2032.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pd.to_datetime({</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'year'</span>: <span class="dv">2022</span> <span class="op">+</span> np.arange(<span class="dv">11</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'month'</span>: <span class="dv">12</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'day'</span>: <span class="dv">31</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># policy years</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>xp.pol_yr(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="pol-dur1" class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>array([ 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy quarters</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>xp.pol_qtr(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="pol-dur2" class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>array([ 3,  7, 11, 15, 19, 23, 27, 31, 35, 39, 43])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy months</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>xp.pol_mth(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="pol-dur3" class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>array([  8,  20,  32,  44,  56,  68,  80,  92, 104, 116, 128])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy weeks</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>xp.pol_wk(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="pol-dur4" class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>array([ 34,  86, 139, 191, 243, 295, 347, 399, 452, 504, 556], dtype=int64)</code></pre>
+</div>
 </div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

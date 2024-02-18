@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>actxps – add_durations</title>
+<title>actxps – splitexposeddf</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -190,7 +190,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Date functions</li><li class="breadcrumb-item"><a href="../reference/add_durations.html">Add durations to a vector of dates</a></li><li class="breadcrumb-item"><a href="../reference/add_durations.html">add_interval</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/ExposedDF.html">Exposure calculations</a></li><li class="breadcrumb-item"><a href="../reference/SplitExposedDF.html">SplitExposedDF</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
     </div>
@@ -231,7 +231,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/SplitExposedDF.html" class="sidebar-item-text sidebar-link">
+  <a href="../reference/SplitExposedDF.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">SplitExposedDF</span></a>
   </div>
 </li>
@@ -407,16 +407,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
  <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 show">  
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link active">
+  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">add_interval</span></a>
   </div>
 </li>
@@ -435,37 +435,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#parameters" id="toc-parameters" class="nav-link active" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
-  <li><a href="#actxps.dates.add_yr" id="toc-actxps.dates.add_yr" class="nav-link" data-scroll-target="#actxps.dates.add_yr">add_yr</a>
-  <ul class="collapse">
-  <li><a href="#parameters-1" id="toc-parameters-1" class="nav-link" data-scroll-target="#parameters-1">Parameters</a></li>
-  <li><a href="#returns-1" id="toc-returns-1" class="nav-link" data-scroll-target="#returns-1">Returns</a></li>
-  <li><a href="#see-also-1" id="toc-see-also-1" class="nav-link" data-scroll-target="#see-also-1">See Also</a></li>
-  <li><a href="#examples-1" id="toc-examples-1" class="nav-link" data-scroll-target="#examples-1">Examples</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.add_qtr" id="toc-actxps.dates.add_qtr" class="nav-link" data-scroll-target="#actxps.dates.add_qtr">add_qtr</a>
-  <ul class="collapse">
-  <li><a href="#parameters-2" id="toc-parameters-2" class="nav-link" data-scroll-target="#parameters-2">Parameters</a></li>
-  <li><a href="#returns-2" id="toc-returns-2" class="nav-link" data-scroll-target="#returns-2">Returns</a></li>
-  <li><a href="#see-also-2" id="toc-see-also-2" class="nav-link" data-scroll-target="#see-also-2">See Also</a></li>
-  <li><a href="#examples-2" id="toc-examples-2" class="nav-link" data-scroll-target="#examples-2">Examples</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.add_mth" id="toc-actxps.dates.add_mth" class="nav-link" data-scroll-target="#actxps.dates.add_mth">add_mth</a>
-  <ul class="collapse">
-  <li><a href="#parameters-3" id="toc-parameters-3" class="nav-link" data-scroll-target="#parameters-3">Parameters</a></li>
-  <li><a href="#returns-3" id="toc-returns-3" class="nav-link" data-scroll-target="#returns-3">Returns</a></li>
-  <li><a href="#see-also-3" id="toc-see-also-3" class="nav-link" data-scroll-target="#see-also-3">See Also</a></li>
-  <li><a href="#examples-3" id="toc-examples-3" class="nav-link" data-scroll-target="#examples-3">Examples</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.add_wk" id="toc-actxps.dates.add_wk" class="nav-link" data-scroll-target="#actxps.dates.add_wk">add_wk</a>
-  <ul class="collapse">
-  <li><a href="#parameters-4" id="toc-parameters-4" class="nav-link" data-scroll-target="#parameters-4">Parameters</a></li>
-  <li><a href="#returns-4" id="toc-returns-4" class="nav-link" data-scroll-target="#returns-4">Returns</a></li>
-  <li><a href="#see-also-4" id="toc-see-also-4" class="nav-link" data-scroll-target="#see-also-4">See Also</a></li>
-  <li><a href="#examples-4" id="toc-examples-4" class="nav-link" data-scroll-target="#examples-4">Examples</a></li>
-  </ul></li>
+  <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   </ul>
 </nav>
     </div>
@@ -474,7 +446,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">add_interval</h1>
+<h1 class="title">SplitExposedDF</h1>
 </div>
 
 
@@ -489,16 +461,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p><code>dates.add_interval(dates, x, dur_length)</code></p>
-<p>Add years, quarters, months, or weeks to a vector of dates</p>
+<p><code>expose_split.SplitExposedDF(self, expo)</code></p>
+<p>Split calendar exposures by policy year</p>
+<p>Split calendar period exposures that cross a policy anniversary into a pre-anniversary record and a post-anniversary record.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 9%">
-<col style="width: 65%">
+<col style="width: 7%">
 <col style="width: 17%">
-<col style="width: 8%">
+<col style="width: 63%">
+<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -510,274 +483,66 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
+<td><code>expo</code></td>
+<td>actxps.ExposedDF</td>
+<td>An exposure data frame class with calendar-based exposure periods</td>
 <td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-<tr class="odd">
-<td><code>dur_length</code></td>
-<td>(year, quarter, month, week)</td>
-<td>Duration length</td>
-<td><code>'year'</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns" class="level2">
-<h2 class="anchored" data-anchor-id="returns">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also" class="level2">
-<h2 class="anchored" data-anchor-id="see-also">See Also</h2>
-<p>add_yr, add_qtr, add_mth, add_wk</p>
+<section id="notes" class="level2">
+<h2 class="anchored" data-anchor-id="notes">Notes</h2>
+<p>The <code>ExposedDF</code> must have calendar year, quarter, month, or week exposure records. Calendar year exposures are created by passing <code>cal_expo = True</code> to <code>ExposedDF</code> (or alternatively, with the class methods <code>ExposedDF.expose_cy()</code>, <code>ExposedDF.expose_cq()</code>, <code>ExposedDF.expose_cm()</code>, and <code>ExposedDF.expose_cw()</code>).</p>
+<p>After splitting, the resulting data will contain both calendar exposures and policy year exposures. These columns will be named ‘exposure_cal’ and ‘exposure_pol’, respectively. Calendar exposures will be in the original units passed to <code>SplitExposedDF()</code>. Policy exposures will always be expressed in years. Downstream functions like <code>exp_stats()</code> and <code>exp_shiny()</code> will require clarification as to which exposure basis should be used to summarize results.</p>
+<p>After splitting, the column ‘pol_yr’ will contain policy years.</p>
 </section>
 <section id="examples" class="level2">
 <h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>xp.add_interval([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">16</span>, <span class="dv">15</span>], <span class="st">'year'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>toy_census <span class="op">=</span> xp.load_toy_census()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_cy(toy_census, <span class="st">"2022-12-31"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>xp.SplitExposedDF(expo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
-<pre><code>array(['2024-03-14T00:00:00.000000000', '2023-03-14T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
+<pre><code>Exposure data
+
+Exposure type: split_year
+Target status: None
+Study range: 1900-01-01 to 2022-12-31
+
+A DataFrame: 58 x 9
+   pol_num  status issue_date term_date     cal_yr cal_yr_end  pol_yr  \
+0        1  Active 2010-01-01       NaT 2010-01-01 2010-12-31       1   
+1        1  Active 2010-01-01       NaT 2011-01-01 2011-12-31       2   
+2        1  Active 2010-01-01       NaT 2012-01-01 2012-12-31       3   
+3        1  Active 2010-01-01       NaT 2013-01-01 2013-12-31       4   
+4        1  Active 2010-01-01       NaT 2014-01-01 2014-12-31       5   
+5        1  Active 2010-01-01       NaT 2015-01-01 2015-12-31       6   
+6        1  Active 2010-01-01       NaT 2016-01-01 2016-12-31       7   
+7        1  Active 2010-01-01       NaT 2017-01-01 2017-12-31       8   
+8        1  Active 2010-01-01       NaT 2018-01-01 2018-12-31       9   
+9        1  Active 2010-01-01       NaT 2019-01-01 2019-12-31      10   
+
+   exposure_pol  exposure_cal  
+0           1.0           1.0  
+1           1.0           1.0  
+2           1.0           1.0  
+3           1.0           1.0  
+4           1.0           1.0  
+5           1.0           1.0  
+6           1.0           1.0  
+7           1.0           1.0  
+8           1.0           1.0  
+9           1.0           1.0  </code></pre>
 </div>
 </div>
 </section>
-<section id="actxps.dates.add_yr" class="level1">
-<h1>add_yr</h1>
-<p><code>dates.add_yr(dates, x)</code></p>
-<p>Add years to a vector of dates</p>
-<section id="parameters-1" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-1">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 67%">
-<col style="width: 18%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-1" class="level2">
-<h2 class="anchored" data-anchor-id="returns-1">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also-1" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-1">See Also</h2>
-<p>add_interval</p>
-</section>
-<section id="examples-1" class="level2">
-<h2 class="anchored" data-anchor-id="examples-1">Examples</h2>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>xp.add_yr([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">16</span>, <span class="dv">15</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="2">
-<pre><code>array(['2024-03-14T00:00:00.000000000', '2023-03-14T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
-</div>
-</section>
-</section>
-<section id="actxps.dates.add_qtr" class="level1">
-<h1>add_qtr</h1>
-<p><code>dates.add_qtr(dates, x)</code></p>
-<p>Add quarters to a vector of dates</p>
-<section id="parameters-2" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-2">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 67%">
-<col style="width: 18%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-2" class="level2">
-<h2 class="anchored" data-anchor-id="returns-2">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also-2" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-2">See Also</h2>
-<p>add_interval</p>
-</section>
-<section id="examples-2" class="level2">
-<h2 class="anchored" data-anchor-id="examples-2">Examples</h2>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>xp.add_qtr([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">64</span>, <span class="dv">60</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="3">
-<pre><code>array(['2024-03-14T00:00:00.000000000', '2023-03-14T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
-</div>
-</section>
-</section>
-<section id="actxps.dates.add_mth" class="level1">
-<h1>add_mth</h1>
-<p><code>dates.add_mth(dates, x)</code></p>
-<p>Add months to a vector of dates</p>
-<section id="parameters-3" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-3">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 67%">
-<col style="width: 18%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-3" class="level2">
-<h2 class="anchored" data-anchor-id="returns-3">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also-3" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-3">See Also</h2>
-<p>add_interval</p>
-</section>
-<section id="examples-3" class="level2">
-<h2 class="anchored" data-anchor-id="examples-3">Examples</h2>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>xp.add_mth([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">192</span>, <span class="dv">180</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>array(['2024-03-14T00:00:00.000000000', '2023-03-14T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
-</div>
-</section>
-</section>
-<section id="actxps.dates.add_wk" class="level1">
-<h1>add_wk</h1>
-<p><code>dates.add_wk(dates, x)</code></p>
-<p>Add weeks to a vector of dates</p>
-<section id="parameters-4" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-4">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 67%">
-<col style="width: 18%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-4" class="level2">
-<h2 class="anchored" data-anchor-id="returns-4">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also-4" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-4">See Also</h2>
-<p>add_interval</p>
-</section>
-<section id="examples-4" class="level2">
-<h2 class="anchored" data-anchor-id="examples-4">Examples</h2>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>xp.add_wk([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">835</span>, <span class="dv">783</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<pre><code>array(['2024-03-15T00:00:00.000000000', '2023-03-17T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
-</div>
+<section id="see-also" class="level2">
+<h2 class="anchored" data-anchor-id="see-also">See Also</h2>
+<p><code>ExposedDF()</code> for more information on exposure data.</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

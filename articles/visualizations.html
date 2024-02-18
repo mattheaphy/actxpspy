@@ -190,7 +190,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#plotting-termination-studies" id="toc-plotting-termination-studies" class="nav-link active" data-scroll-target="#plotting-termination-studies">Plotting termination studies</a>
+  <ul class="collapse">
+  <li><a href="#expstats.plot" id="toc-expstats.plot" class="nav-link" data-scroll-target="#expstats.plot"><code>ExpStats.plot()</code></a></li>
+  <li><a href="#expstats.plot_termination_rates" id="toc-expstats.plot_termination_rates" class="nav-link" data-scroll-target="#expstats.plot_termination_rates"><code>ExpStats.plot_termination_rates()</code></a></li>
+  <li><a href="#plot_actual_to_expected" id="toc-plot_actual_to_expected" class="nav-link" data-scroll-target="#plot_actual_to_expected"><code>plot_actual_to_expected()</code></a></li>
+  <li><a href="#relationship-of-expstats.plot_termination_rates-and-expstats.plot_actual_to_expected-to-expstats.plot" id="toc-relationship-of-expstats.plot_termination_rates-and-expstats.plot_actual_to_expected-to-expstats.plot" class="nav-link" data-scroll-target="#relationship-of-expstats.plot_termination_rates-and-expstats.plot_actual_to_expected-to-expstats.plot">Relationship of <code>ExpStats.plot_termination_rates()</code> and <code>ExpStats.plot_actual_to_expected()</code> to <code>ExpStats.plot()</code></a></li>
+  </ul></li>
+  <li><a href="#plotting-transaction-studies" id="toc-plotting-transaction-studies" class="nav-link" data-scroll-target="#plotting-transaction-studies">Plotting transaction studies</a>
+  <ul class="collapse">
+  <li><a href="#trxstats.plot_utilization_rates" id="toc-trxstats.plot_utilization_rates" class="nav-link" data-scroll-target="#trxstats.plot_utilization_rates"><code>TrxStats.plot_utilization_rates()</code></a></li>
+  </ul></li>
+  <li><a href="#tables" id="toc-tables" class="nav-link" data-scroll-target="#tables">Tables</a>
+  <ul class="collapse">
+  <li><a href="#termination-study-output-example" id="toc-termination-study-output-example" class="nav-link" data-scroll-target="#termination-study-output-example">Termination study output example</a></li>
+  <li><a href="#transaction-study-output-example" id="toc-transaction-study-output-example" class="nav-link" data-scroll-target="#transaction-study-output-example">Transaction study output example</a></li>
+  </ul></li>
+  <li><a href="#interactive-shiny-app" id="toc-interactive-shiny-app" class="nav-link" data-scroll-target="#interactive-shiny-app">Interactive Shiny app</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -213,13 +235,392 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p>This article describes the data visualization functions available in the actxps package.</p>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<ul>
+<li><p>Both <code>ExpStats</code> and <code>TrxStats</code> objects have a <code>plot()</code> method that creates plots of termination study results (<code>ExpStats</code> objects<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>) or transaction study results (<code>TrxStats</code> objects<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>).</p></li>
+<li><p>Additional plotting methods create special plots that are not possible or difficult to produce using <code>plot()</code>.</p>
+<ul>
+<li><code>plot_termination_rates()</code> produces plots of observed termination rates alongside expected termination rates.</li>
+<li><code>plot_actual_to_expected()</code> draws a plot of all actual-to-expected termination rates.</li>
+<li><code>plot_utilization_rates()</code> creates a side-by-side plot of transaction frequency and severity.</li>
+</ul></li>
+<li><p>The <code>table()</code> function creates HTML tables of termination study or transaction study results.</p></li>
+<li><p>The <code>exp_shiny()</code> function launches a Shiny app that includes interactive filters, grouping variables, and data visualizations.</p></li>
+</ul>
+<section id="plotting-termination-studies" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-termination-studies">Plotting termination studies</h2>
+<p>Before we start plotting, we need to create experience study data. The examples below use the simulated <code>census_dat</code> and <code>withdrawals</code> data sets that come with the actxps package. First, exposure records are created using <code>ExposedDF()</code>. Then, illustrative expected values and withdrawal transactions are added to the data.</p>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create exposure records</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(census_dat, end_date<span class="op">=</span><span class="st">"2019-12-31"</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                            target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># add expected values</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                                 [<span class="fl">.2</span>, <span class="fl">.15</span>], np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>exposed_data.data[<span class="st">'expected_1'</span>] <span class="op">=</span> <span class="op">\</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    expected_table[exposed_data.data.pol_yr <span class="op">-</span> <span class="dv">1</span>]</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>exposed_data.data[<span class="st">'expected_2'</span>] <span class="op">=</span> <span class="op">\</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    np.where(exposed_data.data.inc_guar, <span class="fl">0.015</span>, <span class="fl">0.03</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># add transactions</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>exposed_data.add_transactions(withdrawals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expo-data" class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>Exposure data
+
+Exposure type: policy_year
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+Transaction types: Base, Rider
+
+A DataFrame: 141,252 x 21
+   pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
+0        1  Active 2014-12-17      True  False   56       b      F      77   
+1        1  Active 2014-12-17      True  False   56       b      F      77   
+2        1  Active 2014-12-17      True  False   56       b      F      77   
+3        1  Active 2014-12-17      True  False   56       b      F      77   
+4        1  Active 2014-12-17      True  False   56       b      F      77   
+5        1  Active 2014-12-17      True  False   56       b      F      77   
+6        2  Active 2007-09-24     False  False   71       a      F      71   
+7        2  Active 2007-09-24     False  False   71       a      F      71   
+8        2  Active 2007-09-24     False  False   71       a      F      71   
+9        2  Active 2007-09-24     False  False   71       a      F      71   
+
+   premium  ... pol_yr  pol_date_yr pol_date_yr_end  exposure  expected_1  \
+0    370.0  ...      1   2014-12-17      2015-12-16  1.000000    0.005000   
+1    370.0  ...      2   2015-12-17      2016-12-16  1.000000    0.007778   
+2    370.0  ...      3   2016-12-17      2017-12-16  1.000000    0.010556   
+3    370.0  ...      4   2017-12-17      2018-12-16  1.000000    0.013333   
+4    370.0  ...      5   2018-12-17      2019-12-16  1.000000    0.016111   
+5    370.0  ...      6   2019-12-17      2020-12-16  0.040984    0.018889   
+6    708.0  ...      1   2007-09-24      2008-09-23  1.000000    0.005000   
+7    708.0  ...      2   2008-09-24      2009-09-23  1.000000    0.007778   
+8    708.0  ...      3   2009-09-24      2010-09-23  1.000000    0.010556   
+9    708.0  ...      4   2010-09-24      2011-09-23  1.000000    0.013333   
+
+   expected_2  trx_amt_Base  trx_amt_Rider  trx_n_Base  trx_n_Rider  
+0       0.015           0.0            0.0         0.0          0.0  
+1       0.015           0.0            0.0         0.0          0.0  
+2       0.015           0.0            0.0         0.0          0.0  
+3       0.015           0.0            0.0         0.0          0.0  
+4       0.015           0.0            0.0         0.0          0.0  
+5       0.015           0.0            0.0         0.0          0.0  
+6       0.030          25.0            0.0         1.0          0.0  
+7       0.030          12.0            0.0         1.0          0.0  
+8       0.030           7.0            0.0         1.0          0.0  
+9       0.030          52.0            0.0         1.0          0.0  
+
+[10 rows x 21 columns]</code></pre>
 </div>
+</div>
+<section id="expstats.plot" class="level3">
+<h3 class="anchored" data-anchor-id="expstats.plot"><code>ExpStats.plot()</code></h3>
+<p>The actxps package provides a <code>plot()</code> method for <code>ExpStats</code> objects.</p>
+<p>Below, an <code>ExpStats</code> object is created using <code>exp_stats()</code>.</p>
+<div id="plot-data" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>           exp_stats(conf_int<span class="op">=</span><span class="va">True</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The default plot produced by <code>ExpStats.plot()</code> is a line plot of the observed termination rate (<code>q_obs</code>). The <code>x</code> variable corresponds to the first grouping variable of the <code>ExpStats</code> object<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.</p>
+<div id="plot-basic" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>exp_res.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-basic-output-1.png" id="plot-basic-1" class="img-fluid"></p>
+</div>
+<div id="plot-basic-2" class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>If there is a second grouping variable, it is mapped onto color.</p>
+<div id="plot-color" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    exp_stats().</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    plot())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-color-output-1.png" id="plot-color-1" class="img-fluid"></p>
+</div>
+<div id="plot-color-2" class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>Any additional grouping variables beyond two are used to create facets.</p>
+<div id="plot-facets" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>exp_res2 <span class="op">=</span> (exposed_data. </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>, <span class="st">'product'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    exp_stats())</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>exp_res2.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-facets-output-1.png" id="plot-facets-1" class="img-fluid"></p>
+</div>
+<div id="plot-facets-2" class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p><strong><code>ExpStats.plot()</code> arguments</strong></p>
+<p>There are two means of overriding the default aesthetics selected by <code>ExpStats.plot()</code>.</p>
+<ol type="1">
+<li>The <code>x</code>, <code>y</code>, <code>color</code>, and <code>...</code> arguments can be passed column names to use as the x, y, color / fill, and faceting variables, respectively.</li>
+<li>The <code>mapping</code> argument can be passed an aesthetic mapping using <code>plotnine.aes()</code>. If this argument is supplied, the <code>x</code>, <code>y</code>, and <code>color</code> arguments are ignored.</li>
+</ol>
+<p>Let’s assume we want to plot the number of claims instead of the termination rate, and we want <code>inc_guar</code> to be the color variable instead of <code>product</code>.</p>
+<p>Using the <code>y</code>, <code>color</code>, and <code>...</code> arguments, we could write:</p>
+<div id="plot-alt-map-1" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>exp_res2.plot(y<span class="op">=</span><span class="st">'claims'</span>, color<span class="op">=</span><span class="st">'inc_guar'</span>, facets<span class="op">=</span><span class="st">'product'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-alt-map-1-output-1.png" id="plot-alt-map-1-1" class="img-fluid"></p>
+</div>
+<div id="plot-alt-map-1-2" class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>Alternatively, we could supply a mapping for more fine-grained control. Note that the example below adds an additional mapping for <code>linetype</code> which is otherwise unavailable under the defaults for <code>ExpStats.plot()</code>.</p>
+<div id="plot-alt-map-2" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> aes</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>exp_res2.plot(mapping<span class="op">=</span>aes(x<span class="op">=</span><span class="st">'pol_yr'</span>, y<span class="op">=</span><span class="st">'claims'</span>, color<span class="op">=</span><span class="st">'inc_guar'</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                          linetype<span class="op">=</span><span class="st">'inc_guar'</span>),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>              facets<span class="op">=</span><span class="st">'product'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-alt-map-2-output-1.png" id="plot-alt-map-2-1" class="img-fluid"></p>
+</div>
+<div id="plot-alt-map-2-2" class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>The <code>ExpStats.plot()</code> function defaults to percentages for y-axis labels. As seen in the immediately preceding example, this will not always be appropriate. The <code>y_labels</code> function can be used to pass a different labeling function.</p>
+<div id="plot-y-label" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>exp_res2.plot(mapping<span class="op">=</span>aes(x<span class="op">=</span><span class="st">'pol_yr'</span>, y<span class="op">=</span><span class="st">'claims'</span>, color<span class="op">=</span><span class="st">'inc_guar'</span>,</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                          linetype<span class="op">=</span><span class="st">'inc_guar'</span>),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>              y_labels<span class="op">=</span><span class="kw">lambda</span> l: [<span class="ss">f"</span><span class="sc">{</span>v<span class="sc">:,</span><span class="fl">.0</span><span class="er">f</span><span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> v <span class="kw">in</span> l],</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>              facets<span class="op">=</span><span class="st">'product'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-y-label-output-1.png" id="plot-y-label-1" class="img-fluid"></p>
+</div>
+<div id="plot-y-label-2" class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>To set axis scales that vary by subplot, use the <code>scales</code> argument. This argument is subsequently forwarded to <code>plotnine.facet_wrap()</code>. Under the default value “fixed”, scales are identical across subplots. If “free_y” is passed as shown below, the y-scales will vary. If “free_x” is passed, the x-scales will vary. If “free” is passed, both the x- and y-scales will vary.</p>
+<div id="plot-facet-free" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>exp_res2.plot(scales<span class="op">=</span><span class="st">"free_y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-facet-free-output-1.png" id="plot-facet-free-1" class="img-fluid"></p>
+</div>
+<div id="plot-facet-free-2" class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>The <code>geoms</code> argument can be used to change the plotting geometry. Under the default value of “lines”, points and lines are displayed. If “bars” is passed, a bar plot will be drawn. If “points” is passed, a scatter plot will be drawn.</p>
+<div id="plot-bar" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>exp_res.plot(geoms<span class="op">=</span><span class="st">"bars"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-bar-output-1.png" id="plot-bar-1" class="img-fluid"></p>
+</div>
+<div id="plot-bar-2" class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>If the <code>y_log10</code> argument is set to <code>True</code>, the y-axis will be plotted on a logarithmic base ten scale.</p>
+<div id="plot-log10" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>exp_res.plot(y_log10<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-log10-output-1.png" id="plot-log10-1" class="img-fluid"></p>
+</div>
+<div id="plot-log10-2" class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>Confidence interval error bars can be added to a plot by passing <code>conf_int_bars=True</code>. Confidence intervals will only be displayed if they are available for the selected <code>y</code> variable.</p>
+<div id="plot-conf-int" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>exp_res.plot(conf_int_bars<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-conf-int-output-1.png" id="plot-conf-int-1" class="img-fluid"></p>
+</div>
+<div id="plot-conf-int-2" class="cell-output cell-output-display" data-execution_count="13">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="expstats.plot_termination_rates" class="level3">
+<h3 class="anchored" data-anchor-id="expstats.plot_termination_rates"><code>ExpStats.plot_termination_rates()</code></h3>
+<p>A limitation of <code>ExpStats.plot()</code> is that it doesn’t allow one to plot observed termination rates alongside one or more expected termination rates. This type of plot is common as an alternative to actual-to-expected ratio plots.</p>
+<p>The <code>plot_termination_rates()</code> method produces a plot of the observed termination rates plus any expected termination rates that were passed to the <code>expected</code> argument of <code>exp_stats()</code>.</p>
+<p>In the example below, a new <code>ExpStats</code> object is created that contains two sets of expected surrender rates. This object is then passed into <code>plot_termination_rates()</code>.</p>
+<div id="plot-term-1" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>exp_res3 <span class="op">=</span> (exposed_data .</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>            groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>            exp_stats(expected<span class="op">=</span>[<span class="st">"expected_1"</span>, <span class="st">"expected_2"</span>], credibility<span class="op">=</span><span class="va">True</span>))</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>exp_res3.plot_termination_rates()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-term-1-output-1.png" id="plot-term-1-1" class="img-fluid"></p>
+</div>
+<div id="plot-term-1-2" class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<p>In the plot above, termination rates are mapped to the <code>y</code> variable and the <code>Series</code> variable specifies a color scale. Similar to <code>ExpStats.plot()</code>, the <code>x</code> variable is the first grouping variable (here, <code>pol_yr</code>).</p>
+<p>If the <code>ExpStats</code> object contains credibility-weighted termination rates<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>, these rates can be included in the plot using the argument <code>include_cred_adj=True</code>.</p>
+<div id="plot-term-2" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>exp_res3.plot_termination_rates(include_cred_adj<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/plot-term-2-output-1.png" id="plot-term-2-1" class="img-fluid"></p>
+</div>
+<div id="plot-term-2-2" class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="plot_actual_to_expected" class="level3">
+<h3 class="anchored" data-anchor-id="plot_actual_to_expected"><code>plot_actual_to_expected()</code></h3>
+<p>The <code>plot_actual_to_expected()</code> function is similar to <code>plot_termination_rates()</code> except that all actual-to-expected ratios are plotted on the y-axis instead.</p>
+<div class="cell" data-labels="plot-ae" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>exp_res3.plot_actual_to_expected()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/cell-17-output-1.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="relationship-of-expstats.plot_termination_rates-and-expstats.plot_actual_to_expected-to-expstats.plot" class="level3">
+<h3 class="anchored" data-anchor-id="relationship-of-expstats.plot_termination_rates-and-expstats.plot_actual_to_expected-to-expstats.plot">Relationship of <code>ExpStats.plot_termination_rates()</code> and <code>ExpStats.plot_actual_to_expected()</code> to <code>ExpStats.plot()</code></h3>
+<p>Behind the scenes, <code>plot_termination_rates()</code> and <code>plot_actual_to_expected()</code> call <code>plot()</code> after reshaping the <code>ExpStats</code> object. As such, all arguments passed to <code>ExpStats.plot()</code> described above can also be passed to these functions. However, there is an exception: the <code>y</code> variable is reserved and cannot be modified. In addition, while the <code>color</code> variable can be overridden, this is discouraged because it may result in odd-looking plots.</p>
+<p>Since these functions automatically create a color variable, any grouping variables beyond the <em>first</em> are used to create facets. This differs from <code>ExpStats.plot()</code> which uses grouping variables beyond the <em>second</em> to create facets</p>
+</section>
+</section>
+<section id="plotting-transaction-studies" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-transaction-studies">Plotting transaction studies</h2>
+<p>The actxps package also provides a <code>plot()</code> method for <code>TrxStats</code> objects. The <code>TrxStats.plot()</code> method has the same arguments as <code>ExpStats.plot()</code>, so all options described in the previous section can be used for transaction studies as well.</p>
+<p>The y variable defaults to the observed transaction frequency (<code>trx_util</code>). Like <code>ExpStats.plot()</code>, any numeric column can be mapped onto the y-axis using the <code>y</code> or <code>mapping</code> arguments.</p>
+<p>Under the defaults, <code>TrxStats.plot()</code> handles grouping variables the same as <code>ExpStats.plot()</code>:</p>
+<ul>
+<li>The first grouping variable is mapped onto <code>x</code></li>
+<li>The second grouping variable is mapped onto color</li>
+<li>Any additional grouping variables are used to create subplots</li>
+</ul>
+<p>In addition to the above, facets are also created for each transaction type found in the data.</p>
+<div id="trx-plot" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (exposed_data .</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">"premium"</span>))</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>trx_res.plot(y<span class="op">=</span><span class="st">'pct_of_premium_all'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/trx-plot-output-1.png" id="trx-plot-1" class="img-fluid"></p>
+</div>
+<div id="trx-plot-2" class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+<section id="trxstats.plot_utilization_rates" class="level3">
+<h3 class="anchored" data-anchor-id="trxstats.plot_utilization_rates"><code>TrxStats.plot_utilization_rates()</code></h3>
+<p>The <code>plot_utilization_rates()</code> function creates a side-by-side view of both transaction frequency and severity. This type of plot is useful for answering questions like, <em>“what percentage of customers are taking withdrawals each quarter, and of those taking withdrawals, what is the average percentage of account value taken out?”</em>.</p>
+<p>Transaction frequency is represented by utilization rates (<code>trx_util</code>). Severity is represented by transaction amounts as a percentage of one or more other columns in the data. All severity series begin with the prefix <code>pct_of_</code> and end with the suffix <code>_w_trx</code>. The suffix refers to the fact that the denominator only includes records with non-zero transactions. Severity series are automatically selected based on column names passed to the <code>percent_of</code> argument in <code>trx_stats()</code>. If no “percentage of” columns exist, this function will only plot utilization rates.</p>
+<p>Like <code>plot_termination_rates()</code> and <code>plot_actual_to_expected()</code>, this function calls <code>plot()</code> after reshaping the data. All arguments passed to <code>TrxStats.plot()</code> can be utilized by this function except <code>y</code> and <code>scales</code>. The <code>y</code> argument is reserved for utilization rates, and the <code>scales</code> argument is preset to allow differing scales between the frequency and severity subplots.</p>
+<div id="trx-util-plot" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>trx_res.plot_utilization_rates()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="visualizations_files/figure-html/trx-util-plot-output-1.png" id="trx-util-plot-1" class="img-fluid"></p>
+</div>
+<div id="trx-util-plot-2" class="cell-output cell-output-display" data-execution_count="18">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="tables" class="level2">
+<h2 class="anchored" data-anchor-id="tables">Tables</h2>
+<p>The <code>table()</code> method creates summary tables of termination or transaction study results. This method is available for <code>ExpStats</code> and <code>TrxStats</code> objects.</p>
+<section id="termination-study-output-example" class="level3">
+<h3 class="anchored" data-anchor-id="termination-study-output-example">Termination study output example</h3>
+<center>
+<img src="../images/exp_gt.png" width="55%" height="55%">
+</center>
+</section>
+<section id="transaction-study-output-example" class="level3">
+<h3 class="anchored" data-anchor-id="transaction-study-output-example">Transaction study output example</h3>
+<center>
+<img src="../images/trx_gt.png" width="65%" height="65%">
+</center>
+<p><strong>Arguments</strong>:</p>
+<ul>
+<li><p><code>fontsize</code> is a multiple that increases or decreases the font size. Values less than 100 decrease the font size, and values greater than 100 increase the font size.</p></li>
+<li><p><code>decimals</code> controls the number of decimal places displayed for percentage columns (default=1)</p></li>
+<li><p>If <code>colorful</code> is <code>True</code>, conditional color formatting will be added to the table.</p>
+<ul>
+<li>For termination studies, <code>color_q_obs</code> and <code>color_ae_</code> specify the color palettes used for observed termination rates and actual-to-expected ratios, respectively.</li>
+<li>For transaction studies, <code>color_util</code> and <code>color_pct_of</code> specify the color palettes used for utilization rates and “percentage of” columns, respectively.</li>
+</ul>
+<p>These inputs must be strings referencing a Matplotlib colormap. For a full list of available palettes, see <code>matplotlob.colormaps</code>.</p></li>
+<li><p><code>**rename_cols</code> can be used to relabel columns. Names are equal to original column names and values equal the desired column labels. Most of the column names created by <code>table()</code> are presentation-ready, however, grouping variables on the left side of the table may require updates since they default to the variable names that appear in the data.</p></li>
+<li><p><code>show_conf_int</code> and <code>show_cred_adj</code> can be used to include any confidence intervals and credibility-weighted termination rates, if available. As a default, these columns are not included to avoid producing overcrowded tables.</p></li>
+</ul>
+</section>
+</section>
+<section id="interactive-shiny-app" class="level2">
+<h2 class="anchored" data-anchor-id="interactive-shiny-app">Interactive Shiny app</h2>
+<p><code>ExposedDF.exp_shiny()</code> is a powerful method that launches an interactive Shiny app containing filters, grouping variables, plots produced by <code>plot()</code>, tables produced by <code>table()</code>, and exporting capabilities.</p>
+<p>The left sidebar of the app contains filtering widgets organized by data type for all variables passed to the <code>predictors</code> argument. If <code>predictors</code> is not specified, all columns in the data except policy numbers, statuses, termination dates, exposures, and transaction columns will be used. The type of widget will vary depending on the data type and number of unique values in each predictor.</p>
+<p>At the top of the sidebar, information is shown on the percentage of records remaining after applying filters. A text description of all active filters is also provided.</p>
+<p>The top of the sidebar also includes a “play / pause” switch that can pause reactivity of the app. Pausing is a good option when multiple changes are made in quick succession, especially when the underlying data set is large.</p>
+<p>The “Grouping variables” box includes widgets to select grouping variables for summarizing experience. The “x” widget determines the x variable in the plot output. Similarly, the “Color” and “Facets” widgets are used for color and facets. Multiple faceting variable selections are allowed. For the table output, “x”, “Color”, and “Facets” have no particular meaning beyond the order in which grouping variables are displayed.</p>
+<p>The “Study type” box will always include a tab for termination studies. If transactions are attached to the <code>ExposedDF</code> object<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>, an additional section will be displayed for transaction studies.</p>
+<ul>
+<li>Termination study options include the ability to activate and deactivate expected values and the selection of an optional numeric weighting variable for claims and exposures. Available expected value choices are dictated by the <code>expected</code> argument. If this argument is not specified, any columns containing the word “expected” are assumed to be expected values.</li>
+<li>Transaction study options include the ability to activate and deactivate transaction types, optional numeric columns to use in “percentage of” statistics, and an option to lump all transaction types into a single category.</li>
+</ul>
+<p>The output section includes tabs for plots, tables, and exporting results.</p>
+<p>The plot tab includes a plot and various options for customization:</p>
+<ul>
+<li>y: y variable</li>
+<li>Geometry: plotting geometry - bars, points and lines, or points only</li>
+<li>Add Smoothing: plots smooth loess curves</li>
+<li>Confidence intervals: If available, add confidence intervals error bars for around the selected y variable</li>
+<li>Free y Scales: enables separate y scales in each plot</li>
+<li>Log y-axis: plots all y-axes on a log-10 scale</li>
+<li>The gear icon above the plot contains a pop-up menu for updating the size of the plot.</li>
+</ul>
+<p>The table tab includes the table itself plus a pop-up menu for changing the table’s appearance:</p>
+<ul>
+<li>The “Confidence intervals” and “Credibility-weighted termination rates” switches add these outputs to the table. These values are hidden as a default to prevent over-crowding.</li>
+<li>The “Include color scales” switch disables or re-enables conditional color formatting.</li>
+<li>The “Decimals” slider controls the number of decimals displayed for percentage fields.</li>
+<li>The “Font size multiple” slider impacts the table’s font size</li>
+</ul>
+<p>The export pop-up menu contains options for saving summarized experience data or the plot. Data is saved as a CSV file. The plot is saved as a png file.</p>
+<p><img src="../images/exp_shiny.png" width="100%"></p>
+<p><strong>Other arguments</strong></p>
+<ul>
+<li><code>distinct_max</code>: an upper limit on the number of distinct values a variable is allowed to have to be included as a viable option for the color and facets grouping variables. Default=25.</li>
+<li><code>title</code>: an optional title for the app</li>
+<li><code>credibility</code>, <code>conf_level</code>, <code>cred_r</code>: credibility options for termination studies. See <code>exp_stats()</code> for more information. Limited fluctuation credibility estimates at a 95% confidence within 5% of the theoretical mean assuming a binomial distribution are used as a default.</li>
+<li>The <code>conf_level</code> argument is also used for confidence intervals for both termination and transaction studies. <!-- TODO --> <!-- - `theme`: replace the default theme of the app by passing the name of a theme accepted by the `preset` argument in `bslib::bs_theme()`. Alternatively, a complete theme created by `bslib::bs_theme()` can be passed as well. --></li>
+</ul>
 
 
+</section>
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p><code>ExpStats</code> objects are created by <code>ExposedDF.exp_stats()</code> see <a href="../articles/exp_summary.html">Experience summaries</a> for more information<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><code>TrxStats</code> objects are created by <code>ExposedDF.trx_stats()</code> see <a href="../articles/transactions.html">Transactions</a> for more information<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>If there are no grouping variables, a single point is plotted<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>See the <code>credibility</code> argument of <code>exp_stats()</code> for more information<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>See <code>add_transactions()</code> for information on attaching transactions to an <code>ExposedDF</code> object.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

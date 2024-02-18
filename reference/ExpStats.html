@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -59,6 +93,9 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -195,6 +232,12 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text">ExposedDF.from_DataFrame</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/SplitExposedDF.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SplitExposedDF</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -246,21 +289,38 @@ ul.task-list li input[type="checkbox"] {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
- <span class="menu-text">Sample data sets</span></a>
+ <span class="menu-text">Shiny app</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item sidebar-item-section">
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/exp_shiny.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">exp_shiny</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">
- <span class="menu-text">Toy census data</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Sample data sets</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+ <span class="menu-text">Toy census data</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/load_toy_census.html" class="sidebar-item-text sidebar-link">
@@ -271,13 +331,13 @@ ul.task-list li input[type="checkbox"] {
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
  <span class="menu-text">Simulated annuity data</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/sim_data.html" class="sidebar-item-text sidebar-link">
@@ -288,13 +348,13 @@ ul.task-list li input[type="checkbox"] {
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
  <span class="menu-text">2012 Individual Annuity Mortality Table and Projection Scale G2</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/qx_iamb.html" class="sidebar-item-text sidebar-link">
@@ -307,22 +367,22 @@ ul.task-list li input[type="checkbox"] {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true">
  <span class="menu-text">Date functions</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
  <span class="menu-text">Policy duration functions</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/pol_durations.html" class="sidebar-item-text sidebar-link">
@@ -333,13 +393,13 @@ ul.task-list li input[type="checkbox"] {
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false">
  <span class="menu-text">Fractional duration functions</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/frac_durations.html" class="sidebar-item-text sidebar-link">
@@ -350,13 +410,13 @@ ul.task-list li input[type="checkbox"] {
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
  <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
@@ -377,18 +437,18 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#actxps.exp_stats.ExpStats" id="toc-actxps.exp_stats.ExpStats" class="nav-link active" data-scroll-target="#actxps.exp_stats.ExpStats">ExpStats</a>
-  <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link active" data-scroll-target="#parameters">Parameters</a></li>
   <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
   <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
+  <li><a href="#actxps.exp_stats.ExpStats.from_DataFrame" id="toc-actxps.exp_stats.ExpStats.from_DataFrame" class="nav-link" data-scroll-target="#actxps.exp_stats.ExpStats.from_DataFrame">from_DataFrame</a></li>
   <li><a href="#actxps.exp_stats.ExpStats.plot" id="toc-actxps.exp_stats.ExpStats.plot" class="nav-link" data-scroll-target="#actxps.exp_stats.ExpStats.plot">plot</a></li>
+  <li><a href="#actxps.exp_stats.ExpStats.plot_actual_to_expected" id="toc-actxps.exp_stats.ExpStats.plot_actual_to_expected" class="nav-link" data-scroll-target="#actxps.exp_stats.ExpStats.plot_actual_to_expected">plot_actual_to_expected</a></li>
+  <li><a href="#actxps.exp_stats.ExpStats.plot_termination_rates" id="toc-actxps.exp_stats.ExpStats.plot_termination_rates" class="nav-link" data-scroll-target="#actxps.exp_stats.ExpStats.plot_termination_rates">plot_termination_rates</a></li>
   <li><a href="#actxps.exp_stats.ExpStats.summary" id="toc-actxps.exp_stats.ExpStats.summary" class="nav-link" data-scroll-target="#actxps.exp_stats.ExpStats.summary">summary</a></li>
   <li><a href="#actxps.exp_stats.ExpStats.table" id="toc-actxps.exp_stats.ExpStats.table" class="nav-link" data-scroll-target="#actxps.exp_stats.ExpStats.table">table</a></li>
-  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -396,11 +456,24 @@ ul.task-list li input[type="checkbox"] {
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ExpStats</h1>
+</div>
 
 
-<section id="actxps.exp_stats.ExpStats" class="level1">
-<h1>ExpStats</h1>
-<p><code>exp_stats.ExpStats(self, expo, target_status=None, expected=None, wt=None, credibility=False, cred_p=0.95, cred_r=0.05)</code></p>
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p><code>exp_stats.ExpStats(self, expo, target_status=None, expected=None, wt=None, conf_int=False, credibility=False, conf_level=0.95, cred_r=0.05, col_exposure='exposure')</code></p>
 <p>Experience study summary class</p>
 <p>Create a summary of termination experience for a given target status (an <code>ExpStats</code> object).</p>
 <p>Typically, the <code>ExpStats</code> class constructor should not be called directly. The preferred method for creating an <code>ExpStats</code> object is to call the <code>exp_stats()</code> method on an <code>ExposedDF</code> object.</p>
@@ -409,9 +482,9 @@ ul.task-list li input[type="checkbox"] {
 <table class="table">
 <colgroup>
 <col style="width: 8%">
-<col style="width: 17%">
-<col style="width: 69%">
-<col style="width: 5%">
+<col style="width: 16%">
+<col style="width: 68%">
+<col style="width: 6%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -437,7 +510,7 @@ ul.task-list li input[type="checkbox"] {
 <tr class="odd">
 <td><code>expected</code></td>
 <td>str | list | numpy.numpy.ndarray</td>
-<td>single string, list, or array of column names in the <code>data</code> property of <code>expo</code> with expected values</td>
+<td>Single string, list, or array of column names in the <code>data</code> property of <code>expo</code> with expected values</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
@@ -447,22 +520,34 @@ ul.task-list li input[type="checkbox"] {
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
+<td><code>conf_int</code></td>
+<td>bool</td>
+<td>If <code>True</code>, the output will include confidence intervals around the observed termination rates and any actual-to-expected ratios.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
 <td><code>credibility</code></td>
 <td>bool</td>
 <td>Whether the output should include partial credibility weights and credibility-weighted decrement rates.</td>
 <td><code>False</code></td>
 </tr>
-<tr class="even">
-<td><code>cred_p</code></td>
+<tr class="odd">
+<td><code>conf_level</code></td>
 <td>float</td>
-<td>Confidence level under the Limited Fluctuation credibility method</td>
+<td>Confidence level under the Limited Fluctuation credibility method and confidence intervals</td>
 <td><code>0.95</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>cred_r</code></td>
 <td>float</td>
 <td>Error tolerance under the Limited Fluctuation credibility method</td>
 <td><code>0.05</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_exposure</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing exposures.</td>
+<td><code>'exposure'</code></td>
 </tr>
 </tbody>
 </table>
@@ -473,7 +558,7 @@ ul.task-list li input[type="checkbox"] {
 <colgroup>
 <col style="width: 12%">
 <col style="width: 4%">
-<col style="width: 82%">
+<col style="width: 83%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -484,17 +569,12 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>data</code></td>
+<td>data</td>
 <td>pandas.pandas.DataFrame</td>
 <td>A data frame containing experience study summary results that includes columns for any grouping variables, claims, exposures, and observed decrement rates (<code>q_obs</code>). If any values are passed to <code>expected</code>, additional columns will be added for expected decrements and actual-to-expected ratios. If <code>credibility</code> is set to <code>True</code>, additional columns are added for partial credibility and credibility-weighted decrement rates (assuming values are passed to <code>expected</code>).</td>
 </tr>
 <tr class="even">
-<td><code>target_status</code>, <code>groups</code>, <code>start_date</code>, <code>end_date</code>, <code>expected</code>, <code>wt</code>,</td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><code>cred_params</code></td>
+<td>target_status, groups, start_date, end_date, expected, wt, xp_params</td>
 <td></td>
 <td>Metadata about the experience study inferred from the <code>ExposedDF</code> object (<code>expo</code>) or passed directly to <code>ExpStats</code>.</td>
 </tr>
@@ -507,8 +587,15 @@ ul.task-list li input[type="checkbox"] {
 <p>If nothing is passed to <code>target_status</code>, the <code>target_status</code> property of <code>expo</code> will be used. If that property is <code>None</code>, all status values except the first level will be assumed. This will produce a warning message.</p>
 <p><strong>Expected values</strong></p>
 <p>The <code>expected</code> argument is optional. If provided, this argument must be a string, list, or array with values corresponding to columns in <code>expo.data</code> containing expected experience. More than one expected basis can be provided.</p>
+<p><strong>Confidence intervals</strong></p>
+<p>If <code>conf_int</code> is set to <code>True</code>, the output will contain lower and upper confidence interval limits for the observed termination rate and any actual-to-expected ratios. The confidence level is dictated by <code>conf_level</code>. If no weighting variable is passed to <code>wt</code>, confidence intervals will be constructed assuming a binomial distribution of claims. Otherwise, confidence intervals will be calculated assuming that the aggregate claims distribution is normal with a mean equal to observed claims and a variance equal to:</p>
+<p><code>Var(S) = E(N) * Var(X) + E(X)**2 * Var(N)</code>,</p>
+<p>Where <code>S</code> is the aggregate claim random variable, <code>X</code> is the weighting variable assumed to follow a normal distribution, and <code>N</code> is a binomial random variable for the number of claims.</p>
+<p>If <code>credibility</code> is <code>True</code> and expected values are passed to <code>expected</code>, the output will also contain confidence intervals for any credibility-weighted termination rates.</p>
 <p><strong>Credibility</strong></p>
 <p>If <code>credibility</code> is set to <code>True</code>, the output will contain a <code>credibility</code> column equal to the partial credibility estimate under the Limited Fluctuation credibility method (also known as Classical Credibility) assuming a binomial distribution of claims.</p>
+<p><strong>Alternative class constructor</strong></p>
+<p><code>ExpStats.from_DataFrame()</code> can be used to coerce a data frame containing pre-aggregated experience into an <code>ExpStats</code> object. This is most useful for working with industry study data where individual exposure records are not available.</p>
 </section>
 <section id="see-also" class="level2">
 <h2 class="anchored" data-anchor-id="see-also">See Also</h2>
@@ -525,31 +612,271 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
+<td><a href="#actxps.exp_stats.ExpStats.from_DataFrame">from_DataFrame</a></td>
+<td>Convert a data frame containing aggregate termination experience study</td>
+</tr>
+<tr class="even">
 <td><a href="#actxps.exp_stats.ExpStats.plot">plot</a></td>
 <td>Plot experience study results</td>
 </tr>
+<tr class="odd">
+<td><a href="#actxps.exp_stats.ExpStats.plot_actual_to_expected">plot_actual_to_expected</a></td>
+<td>Plot actual-to-expected termination rates for any expected termination</td>
+</tr>
 <tr class="even">
+<td><a href="#actxps.exp_stats.ExpStats.plot_termination_rates">plot_termination_rates</a></td>
+<td>Plot observed termination rates and any expected termination rates</td>
+</tr>
+<tr class="odd">
 <td><a href="#actxps.exp_stats.ExpStats.summary">summary</a></td>
 <td>Re-summarize termination experience data</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#actxps.exp_stats.ExpStats.table">table</a></td>
 <td>Tabular experience study summary</td>
 </tr>
 </tbody>
 </table>
-<section id="actxps.exp_stats.ExpStats.plot" class="level3">
-<h3 class="anchored" data-anchor-id="actxps.exp_stats.ExpStats.plot">plot</h3>
-<p><code>exp_stats.ExpStats.plot(x=None, y='q_obs', color=None, facets=None, mapping=None, scales='fixed', geoms='lines', y_labels=lambda : [f'{v * 100}%' for v in l])</code></p>
-<p>Plot experience study results</p>
+<section id="actxps.exp_stats.ExpStats.from_DataFrame" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.exp_stats.ExpStats.from_DataFrame">from_DataFrame</h3>
+<p><code>exp_stats.ExpStats.from_DataFrame(data, target_status=None, expected=None, wt=None, conf_int=False, credibility=False, conf_level=0.95, cred_r=0.05, col_claims='claims', col_exposure='exposure', col_n_claims='n_claims', col_weight_sq='weight_sq', col_weight_n='weight_n', start_date=datetime(1900, 1, 1), end_date=None)</code></p>
+<p>Convert a data frame containing aggregate termination experience study results to the <code>ExpStats</code> class.</p>
+<p><code>from_DataFrame()</code> is most useful for working with aggregate summaries of experience that were not created by actxps where individual policy information is not available. After converting the data to the <code>ExpStats</code> class, <code>summary()</code> can be used to summarize data by any grouping variables, and <code>plot()</code> and <code>table()</code> are available for reporting.</p>
 <section id="parameters-1" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-1">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 4%">
+<col style="width: 7%">
+<col style="width: 17%">
+<col style="width: 67%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>data</code></td>
+<td>pandas.pandas.DataFrame</td>
+<td>A DataFrame containing aggregate experience study results. See the Notes section for required columns that must be present.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td><code>target_status</code></td>
+<td>str | list | numpy.numpy.ndarray</td>
+<td>Target status values</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td><code>expected</code></td>
+<td>str | list | numpy.numpy.ndarray</td>
+<td>Column names in x with expected values.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td><code>wt</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing weights to use in the calculation of claims, exposures, partial credibility, and confidence intervals.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td><code>conf_int</code></td>
+<td>bool</td>
+<td>If <code>True</code>, future calls to <code>summary()</code> will include confidence intervals around the observed termination rates and any actual-to-expected ratios.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td><code>credibility</code></td>
+<td>bool</td>
+<td>If <code>True</code>, future calls to <code>summary()</code> will include partial credibility weights and credibility-weighted termination rates.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td><code>conf_level</code></td>
+<td>float</td>
+<td>Confidence level used for the Limited Fluctuation credibility method and confidence intervals.</td>
+<td><code>0.95</code></td>
+</tr>
+<tr class="even">
+<td><code>cred_r</code></td>
+<td>float</td>
+<td>Error tolerance under the Limited Fluctuation credibility method.</td>
+<td><code>0.05</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_claims</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing claims.</td>
+<td><code>'claims'</code></td>
+</tr>
+<tr class="even">
+<td><code>col_exposure</code></td>
+<td>str</td>
+<td>Name of the column in <code>data</code> containing exposures.</td>
+<td><code>'exposure'</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_n_claims</code></td>
+<td>str</td>
+<td>Only used used when <code>wt</code> is passed. Name of the column in <code>data</code> containing the number of claims.</td>
+<td><code>'n_claims'</code></td>
+</tr>
+<tr class="even">
+<td><code>col_weight_sq</code></td>
+<td>default=’weight_sq</td>
+<td>Only used used when <code>wt</code> is passed. Name of the column in <code>data</code> containing the sum of squared weights.</td>
+<td><code>'weight_sq'</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_weight_n</code></td>
+<td>str</td>
+<td>Only used used when <code>wt</code> is passed. Name of the column in <code>data</code> containing exposure record counts.</td>
+<td><code>'weight_n'</code></td>
+</tr>
+<tr class="even">
+<td><code>start_date</code></td>
+<td>datetime.datetime | int | str</td>
+<td>Experience study start date</td>
+<td><code>'1900-01-01'</code></td>
+</tr>
+<tr class="odd">
+<td><code>end_date</code></td>
+<td>datetime | int | str: default=None</td>
+<td>Experience study end date</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level4">
+<h4 class="anchored" data-anchor-id="returns">Returns</h4>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>actxps.exp_stats.ExpStats</td>
+<td>An <code>ExpStats</code> object</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="notes-1" class="level4">
+<h4 class="anchored" data-anchor-id="notes-1">Notes</h4>
+<p>If nothing is passed to <code>wt</code>, the data frame <code>data</code> must include columns containing:</p>
+<ul>
+<li>Exposures (<code>exposure</code>)</li>
+<li>Claim counts (<code>claims</code>)</li>
+</ul>
+<p>If <code>wt</code> is passed, the data must include columns containing:</p>
+<ul>
+<li>Weighted exposures (<code>exposure</code>)</li>
+<li>Weighted claims (<code>claims</code>)</li>
+<li>Claim counts (<code>n_claims</code>)</li>
+<li>The raw sum of weights <strong>NOT</strong> multiplied by exposures</li>
+<li>Exposure record counts (<code>.weight_n</code>)</li>
+<li>The raw sum of squared weights (<code>.weight_sq</code>)</li>
+</ul>
+<p>The names in parentheses above are expected column names. If the data frame passed to <code>from_DataFrame()</code> uses different column names, these can be specified using the <code>col_*</code> arguments.</p>
+<p>When a column name is passed to <code>wt</code>, the columns <code>.weight</code>, <code>.weight_n</code>, and <code>.weight_sq</code> are used to calculate credibility and confidence intervals. If credibility and confidence intervals aren’t required, then it is not necessary to pass anything to <code>wt</code>. The resulting <code>ExpStats</code> class and any downstream summaries will still be weighted as long as the exposures and claims are pre-weighted.</p>
+<p><code>target_status</code>, <code>start_date</code>, and <code>end_date</code> are optional arguments that are only used for printing the resulting <code>ExpStats</code> object.</p>
+</section>
+<section id="examples" class="level4">
+<h4 class="anchored" data-anchor-id="examples">Examples</h4>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># convert pre-aggregated experience into an ExpStats object</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>agg_sim_dat <span class="op">=</span> xp.load_agg_sim_dat()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>dat <span class="op">=</span> xp.ExpStats.from_DataFrame(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    agg_sim_dat,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    col_exposure<span class="op">=</span><span class="st">"exposure_n"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    col_claims<span class="op">=</span><span class="st">"claims_n"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    target_status<span class="op">=</span><span class="st">"Surrender"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    start_date<span class="op">=</span><span class="dv">2005</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    end_date<span class="op">=</span><span class="dv">2019</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    conf_int<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># summary by policy year</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>dat.summary(<span class="st">'pol_yr'</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># repeat the prior exercise on a weighted basis</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>dat_wt <span class="op">=</span> xp.ExpStats.from_DataFrame(</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    agg_sim_dat, wt<span class="op">=</span><span class="st">"av"</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    col_exposure<span class="op">=</span><span class="st">"exposure_amt"</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    col_claims<span class="op">=</span><span class="st">"claims_amt"</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    col_n_claims<span class="op">=</span><span class="st">"claims_n"</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    col_weight_sq<span class="op">=</span><span class="st">"av_sq"</span>,</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    col_weight_n<span class="op">=</span><span class="st">"n"</span>,</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    target_status<span class="op">=</span><span class="st">"Surrender"</span>,</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    start_date<span class="op">=</span><span class="dv">2005</span>, end_date<span class="op">=</span><span class="dv">2019</span>,</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    conf_int<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>dat_wt</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="co"># summary by policy year</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>dat_wt.summary(<span class="st">'pol_yr'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>Experience study results
+
+Groups: pol_yr
+Target status: Surrender
+Study range: 2005 to 2019
+Weighted by: av
+
+
+A DataFrame: 15 x 10
+   pol_yr  n_claims    claims      exposure     q_obs  q_obs_lower  \
+0       1       102   83223.0  2.531281e+07  0.003288     0.001926   
+1       2       160  175428.0  2.401874e+07  0.007304     0.005451   
+2       3       124  132261.0  2.243529e+07  0.005895     0.004092   
+3       4       168  192473.0  2.085983e+07  0.009227     0.006907   
+4       5       164  197240.0  1.911454e+07  0.010319     0.007726   
+5       6       152  192088.0  1.732703e+07  0.011086     0.008227   
+6       7       164  186649.0  1.549636e+07  0.012045     0.008617   
+7       8       190  220055.0  1.362847e+07  0.016147     0.011809   
+8       9       181  232704.0  1.156279e+07  0.020125     0.014950   
+9      10       152  209249.0  9.510599e+06  0.022002     0.016094   
+
+   q_obs_upper      weight     weight_sq  weight_n  
+0     0.004650  26301746.0  6.074299e+10     19995  
+1     0.009156  24966449.0  5.962839e+10     18434  
+2     0.007699  23442831.0  5.796572e+10     16806  
+3     0.011547  21861723.0  5.570664e+10     15266  
+4     0.012911  20104670.0  5.338105e+10     13618  
+5     0.013945  18388593.0  5.103174e+10     12067  
+6     0.015473  16440062.0  4.752761e+10     10541  
+7     0.020484  14647775.0  4.408638e+10      9130  
+8     0.025301  12603553.0  3.952038e+10      7591  
+9     0.027910  10531703.0  3.383567e+10      6185  </code></pre>
+</div>
+</div>
+</section>
+<section id="see-also-1" class="level4">
+<h4 class="anchored" data-anchor-id="see-also-1">See Also</h4>
+<p><code>ExposedDF.exp_stats()</code> for information on how <code>ExpStats</code> objects are typically created from individual exposure records.</p>
+</section>
+</section>
+<section id="actxps.exp_stats.ExpStats.plot" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.exp_stats.ExpStats.plot">plot</h3>
+<p><code>exp_stats.ExpStats.plot(x=None, y='q_obs', color=None, facets=None, mapping=None, scales='fixed', geoms='lines', y_labels=lambda : [f'{v * 100}%' for v in l], y_log10=False, conf_int_bars=False)</code></p>
+<p>Plot experience study results</p>
+<section id="parameters-2" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-2">Parameters</h4>
+<table class="table">
+<colgroup>
 <col style="width: 5%">
-<col style="width: 75%">
-<col style="width: 15%">
+<col style="width: 7%">
+<col style="width: 72%">
+<col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -598,8 +925,8 @@ ul.task-list li input[type="checkbox"] {
 </tr>
 <tr class="odd">
 <td><code>geoms</code></td>
-<td>(lines, bars)</td>
-<td>Type of geometry. If “lines” is passed, the plot will display lines and points. If “bars”, the plot will display bars.</td>
+<td>(lines, bars, points)</td>
+<td>Type of geometry. If “lines” is passed, the plot will display lines and points. If “bars”, the plot will display bars. If “points”, the plot will display points only.</td>
 <td><code>'lines'</code></td>
 </tr>
 <tr class="even">
@@ -608,13 +935,179 @@ ul.task-list li input[type="checkbox"] {
 <td>Label function passed to <code>plotnine.scale_y_continuous()</code>.</td>
 <td><code>lambda l: [f"{v * 100:.1f}%" for v in l]</code></td>
 </tr>
+<tr class="odd">
+<td><code>y_log10</code></td>
+<td>bool</td>
+<td>If <code>True</code>, the y-axes are plotted on a log-10 scale.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td><code>conf_int_bars</code></td>
+<td>bool</td>
+<td>If <code>True</code>, confidence interval error bars are included in the plot. This option is only available for termination rates and actual-to-expected ratios.</td>
+<td><code>False</code></td>
+</tr>
 </tbody>
 </table>
 </section>
-<section id="notes-1" class="level4">
-<h4 class="anchored" data-anchor-id="notes-1">Notes</h4>
+<section id="notes-2" class="level4">
+<h4 class="anchored" data-anchor-id="notes-2">Notes</h4>
 <p>If no aesthetic map is supplied, the plot will use the first grouping variable in the <code>groups</code> property on the x axis and <code>q_obs</code> on the y axis. In addition, the second grouping variable in <code>groups</code> will be used for color and fill.</p>
 <p>If no faceting variables are supplied, the plot will use grouping variables 3 and up as facets. These variables are passed into <code>plotnine.facet_wrap()</code>.</p>
+</section>
+<section id="examples-1" class="level4">
+<h4 class="anchored" data-anchor-id="examples-1">Examples</h4>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (xp.ExposedDF(xp.load_census_dat(),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                        <span class="st">"2019-12-31"</span>, </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                        target_status<span class="op">=</span><span class="st">"Surrender"</span>).</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>           exp_stats())</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>exp_res.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="ExpStats_files/figure-html/cell-3-output-1.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="actxps.exp_stats.ExpStats.plot_actual_to_expected" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.exp_stats.ExpStats.plot_actual_to_expected">plot_actual_to_expected</h3>
+<p><code>exp_stats.ExpStats.plot_actual_to_expected(add_hline=True, **kwargs)</code></p>
+<p>Plot actual-to-expected termination rates for any expected termination rates found in the <code>expected</code> property.</p>
+<section id="parameters-3" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-3">Parameters</h4>
+<table class="table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 8%">
+<col style="width: 67%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>add_hline</code></td>
+<td>bool</td>
+<td>If <code>True</code>, a blue dashed horizontal line will be drawn at 100%.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="even">
+<td><code>**kwargs</code></td>
+<td></td>
+<td>Additional arguments passed to <code>plot()</code></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples-2" class="level4">
+<h4 class="anchored" data-anchor-id="examples-2">Examples</h4>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF(xp.load_census_dat(),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"2019-12-31"</span>, </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                    target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>), </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                                 np.array([<span class="fl">0.2</span>, <span class="fl">0.15</span>]), </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                                 np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)))</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>expo.data[<span class="st">'expected_1'</span>] <span class="op">=</span> expected_table[expo.data.pol_yr <span class="op">-</span> <span class="dv">1</span>]</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>expo.data[<span class="st">'expected_2'</span>] <span class="op">=</span> np.where(expo.data.inc_guar, <span class="fl">0.015</span>, <span class="fl">0.03</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (expo.</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>           exp_stats(expected<span class="op">=</span>[<span class="st">'expected_1'</span>, <span class="st">'expected_2'</span>]))</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>exp_res.plot_actual_to_expected()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="ExpStats_files/figure-html/cell-4-output-1.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="actxps.exp_stats.ExpStats.plot_termination_rates" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.exp_stats.ExpStats.plot_termination_rates">plot_termination_rates</h3>
+<p><code>exp_stats.ExpStats.plot_termination_rates(include_cred_adj=False, **kwargs)</code></p>
+<p>Plot observed termination rates and any expected termination rates found in the <code>expected</code> property.</p>
+<section id="parameters-4" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-4">Parameters</h4>
+<table class="table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 6%">
+<col style="width: 66%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>include_cred_adj</code></td>
+<td>bool</td>
+<td>If <code>True</code>, credibility-weighted termination rates will be plotted as well.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td><code>**kwargs</code></td>
+<td></td>
+<td>Additional arguments passed to <code>plot()</code></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples-3" class="level4">
+<h4 class="anchored" data-anchor-id="examples-3">Examples</h4>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF(xp.load_census_dat(),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"2019-12-31"</span>, </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                    target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>), </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                                 np.array([<span class="fl">0.2</span>, <span class="fl">0.15</span>]), </span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                                 np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)))</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>expo.data[<span class="st">'expected_1'</span>] <span class="op">=</span> expected_table[expo.data.pol_yr <span class="op">-</span> <span class="dv">1</span>]</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>expo.data[<span class="st">'expected_2'</span>] <span class="op">=</span> np.where(expo.data.inc_guar, <span class="fl">0.015</span>, <span class="fl">0.03</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (expo.</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>           exp_stats(expected<span class="op">=</span>[<span class="st">'expected_1'</span>, <span class="st">'expected_2'</span>]))</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>exp_res.plot_termination_rates()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="ExpStats_files/figure-html/cell-5-output-1.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>&lt;Figure Size: (640 x 480)&gt;</code></pre>
+</div>
+</div>
 </section>
 </section>
 <section id="actxps.exp_stats.ExpStats.summary" class="level3">
@@ -622,8 +1115,8 @@ ul.task-list li input[type="checkbox"] {
 <p><code>exp_stats.ExpStats.summary(*by)</code></p>
 <p>Re-summarize termination experience data</p>
 <p>Re-summarize the data while retaining any grouping variables passed to the <code>*by</code> argument.</p>
-<section id="parameters-2" class="level4">
-<h4 class="anchored" data-anchor-id="parameters-2">Parameters</h4>
+<section id="parameters-5" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-5">Parameters</h4>
 <table class="table">
 <colgroup>
 <col style="width: 3%">
@@ -649,8 +1142,8 @@ ul.task-list li input[type="checkbox"] {
 </tbody>
 </table>
 </section>
-<section id="returns" class="level4">
-<h4 class="anchored" data-anchor-id="returns">Returns</h4>
+<section id="returns-1" class="level4">
+<h4 class="anchored" data-anchor-id="returns-1">Returns</h4>
 <table class="table">
 <colgroup>
 <col style="width: 27%">
@@ -670,20 +1163,47 @@ ul.task-list li input[type="checkbox"] {
 </tbody>
 </table>
 </section>
+<section id="examples-4" class="level4">
+<h4 class="anchored" data-anchor-id="examples-4">Examples</h4>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (xp.ExposedDF(xp.load_census_dat(),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                        <span class="st">"2019-12-31"</span>, </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                        target_status<span class="op">=</span><span class="st">"Surrender"</span>).</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>           exp_stats())</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>exp_res.summary(<span class="st">'inc_guar'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>Experience study results
+
+Groups: inc_guar
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+
+
+A DataFrame: 2 x 5
+   inc_guar  n_claims  claims      exposure     q_obs
+0     False      1601    1601  52123.245243  0.030716
+1      True      1268    1268  80510.750415  0.015749</code></pre>
+</div>
+</div>
+</section>
 </section>
 <section id="actxps.exp_stats.ExpStats.table" class="level3">
 <h3 class="anchored" data-anchor-id="actxps.exp_stats.ExpStats.table">table</h3>
-<p><code>exp_stats.ExpStats.table(fontsize=100, decimals=1, colorful=True, color_q_obs='GnBu', color_ae_='RdBu_r', rename_cols=None)</code></p>
+<p><code>exp_stats.ExpStats.table(fontsize=100, decimals=1, colorful=True, color_q_obs='GnBu', color_ae_='RdBu', show_conf_int=False, show_cred_adj=False, decimals_amt=0, suffix_amt=False, **rename_cols)</code></p>
 <p>Tabular experience study summary</p>
 <p>Convert experience study results to a presentation-friendly format.</p>
-<section id="parameters-3" class="level4">
-<h4 class="anchored" data-anchor-id="parameters-3">Parameters</h4>
+<section id="parameters-6" class="level4">
+<h4 class="anchored" data-anchor-id="parameters-6">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 85%">
 <col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 87%">
+<col style="width: 2%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -715,34 +1235,58 @@ ul.task-list li input[type="checkbox"] {
 <tr class="even">
 <td><code>color_q_obs</code></td>
 <td>str or colormap</td>
-<td>Matplotlib colormap used for the observed decrement rate.</td>
+<td>ColorBrewer palette used for the observed decrement rate.</td>
 <td><code>'GnBu'</code></td>
 </tr>
 <tr class="odd">
 <td><code>color_ae_</code></td>
 <td>str or colormap</td>
-<td>Matplotlib colormap used for actual-to-expected rates.</td>
-<td><code>'RdBu_r'</code></td>
+<td>ColorBrewer palette used for actual-to-expected rates.</td>
+<td><code>'RdBu'</code></td>
+</tr>
+<tr class="even">
+<td><code>show_conf_int</code></td>
+<td>bool</td>
+<td>If <code>True</code> any confidence intervals will be displayed.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td><code>show_cred_adj</code></td>
+<td>bool</td>
+<td>If <code>True</code> any credibility-weighted termination rates will be displayed.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td><code>decimals_amt</code></td>
+<td>int</td>
+<td>Number of decimals to display for amount columns (number of claims, claim amounts, and exposures.</td>
+<td><code>0</code></td>
+</tr>
+<tr class="odd">
+<td><code>suffix_amt</code></td>
+<td>bool</td>
+<td>This argument has the same meaning as the <code>compact</code> argument in great_tables.gt.GT.fmt_number() for amount columns. If <code>False</code>, no scaling or suffixing are applied to amount columns. If <code>True</code>, all amount columns are automatically scaled and suffixed by “K” (thousands), “M” (millions), “B” (billions), or “T” (trillions).</td>
+<td><code>False</code></td>
 </tr>
 <tr class="even">
 <td><code>rename_cols</code></td>
-<td>dict</td>
-<td>A dictionary of key-value pairs where keys are column names and values are labels that will appear on the output table. This parameter is useful for renaming grouping variables that will appear under their original variable names if left unchanged.</td>
+<td>str</td>
+<td>Key-value pairs where keys are column names and values are labels that will appear on the output table. This parameter is useful for renaming grouping variables that will appear under their original variable names if left unchanged.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="notes-2" class="level4">
-<h4 class="anchored" data-anchor-id="notes-2">Notes</h4>
-<p>Further customizations can be added using Pandas Styler functions. See <code>pd.DataFrame.style</code> for more information.</p>
+<section id="notes-3" class="level4">
+<h4 class="anchored" data-anchor-id="notes-3">Notes</h4>
+<p>Further customizations can be added using great_tables.gt.GT methods. See the <code>great_tables</code> package documentation for more information.</p>
 </section>
-<section id="returns-1" class="level4">
-<h4 class="anchored" data-anchor-id="returns-1">Returns</h4>
+<section id="returns-2" class="level4">
+<h4 class="anchored" data-anchor-id="returns-2">Returns</h4>
 <table class="table">
 <colgroup>
-<col style="width: 64%">
-<col style="width: 35%">
+<col style="width: 67%">
+<col style="width: 32%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -752,14 +1296,291 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td>pandas.pandas.io.pandas.io.formats.pandas.io.formats.style.pandas.io.formats.style.Styler</td>
-<td>A formatted HTML table of the Pandas styler class</td>
+<td>great_tables.great_tables.gt.great_tables.gt.GT</td>
+<td>A formatted HTML table</td>
 </tr>
 </tbody>
 </table>
-
-
 </section>
+<section id="examples-5" class="level4">
+<h4 class="anchored" data-anchor-id="examples-5">Examples</h4>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF(xp.load_census_dat(),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"2019-12-31"</span>, </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                    target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>), </span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                                 np.array([<span class="fl">0.2</span>, <span class="fl">0.15</span>]), </span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>                                 np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)))</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>expo.data[<span class="st">'expected_1'</span>] <span class="op">=</span>             expected_table[expo.data.pol_yr <span class="op">-</span> <span class="dv">1</span>]</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>expo.data[<span class="st">'expected_2'</span>] <span class="op">=</span>             np.where(expo.data.inc_guar, <span class="fl">0.015</span>, <span class="fl">0.03</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (expo.</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>           exp_stats(expected<span class="op">=</span>[<span class="st">'expected_1'</span>, <span class="st">'expected_2'</span>],</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>                     credibility<span class="op">=</span><span class="va">True</span>))</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>exp_res.table()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+
+<div id="xwsgxtgkns" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#xwsgxtgkns table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#xwsgxtgkns thead, tbody, tfoot, tr, td, th { border-style: none; }
+#xwsgxtgkns p { margin: 0; padding: 0; }
+ #xwsgxtgkns .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 100%; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: auto; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #xwsgxtgkns .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #xwsgxtgkns .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #xwsgxtgkns .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #xwsgxtgkns .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #xwsgxtgkns .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #xwsgxtgkns .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #xwsgxtgkns .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: bold; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #xwsgxtgkns .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: bold; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #xwsgxtgkns .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #xwsgxtgkns .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #xwsgxtgkns .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #xwsgxtgkns .gt_spanner_row { border-bottom-style: hidden; }
+ #xwsgxtgkns .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #xwsgxtgkns .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #xwsgxtgkns .gt_from_md> :first-child { margin-top: 0; }
+ #xwsgxtgkns .gt_from_md> :last-child { margin-bottom: 0; }
+ #xwsgxtgkns .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #xwsgxtgkns .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #xwsgxtgkns .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #xwsgxtgkns .gt_row_group_first td { border-top-width: 2px; }
+ #xwsgxtgkns .gt_row_group_first th { border-top-width: 2px; }
+ #xwsgxtgkns .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #xwsgxtgkns .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #xwsgxtgkns .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; }
+ #xwsgxtgkns .gt_left { text-align: left; }
+ #xwsgxtgkns .gt_center { text-align: center; }
+ #xwsgxtgkns .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #xwsgxtgkns .gt_font_normal { font-weight: normal; }
+ #xwsgxtgkns .gt_font_bold { font-weight: bold; }
+ #xwsgxtgkns .gt_font_italic { font-style: italic; }
+ #xwsgxtgkns .gt_super { font-size: 65%; }
+ #xwsgxtgkns .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #xwsgxtgkns .gt_asterisk { font-size: 100%; vertical-align: 0; }
+ 
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead class="gt_header">  <tr>
+    <th colspan="9" class="gt_heading gt_title gt_font_normal">Experience Study Results
+  </th></tr>
+  <tr>
+    <th colspan="9" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">Target status: Surrender
+  </th></tr></thead>
+<tbody><tr class="gt_col_headings gt_spanner_row">
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="2" colspan="1" scope="col" id="pol_yr">pol_yr</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="2" colspan="1" scope="col" id="Claims">Claims</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="2" colspan="1" scope="col" id="Exposures">Exposures</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="2" colspan="1" scope="col" id="<em>q<sup>obs</sup></em>"><em>q<sup>obs</sup></em></th>
+  <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="<code>expected_1</code>">
+    <span class="gt_column_spanner"><code>expected_1</code></span>
+  </th>
+  <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="<code>expected_2</code>">
+    <span class="gt_column_spanner"><code>expected_2</code></span>
+  </th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="2" colspan="1" scope="col" id="<em>Z<sup>cred</sup></em>"><em>Z<sup>cred</sup></em></th>
+</tr>
+<tr class="gt_col_headings">
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>q<sup>exp</sup></em>"><em>q<sup>exp</sup></em></th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>A/E</em>"><em>A/E</em></th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>q<sup>exp</sup></em>"><em>q<sup>exp</sup></em></th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>A/E</em>"><em>A/E</em></th>
+</tr>
+</tbody><tbody class="gt_table_body">
+<tr>
+  <td class="gt_row gt_right">1</td>
+  <td class="gt_row gt_right">102</td>
+  <td class="gt_row gt_right">19,252</td>
+  <td style="color: #000000; background-color: #f7fcf0;" class="gt_row gt_right">0.5%</td>
+  <td class="gt_row gt_right">0.5%</td>
+  <td style="color: #FFFFFF; background-color: #1f63a8;" class="gt_row gt_right">106.0%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #053061;" class="gt_row gt_right">25.2%</td>
+  <td class="gt_row gt_right">25.8%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">2</td>
+  <td class="gt_row gt_right">160</td>
+  <td class="gt_row gt_right">17,715</td>
+  <td style="color: #000000; background-color: #f3fbed;" class="gt_row gt_right">0.9%</td>
+  <td class="gt_row gt_right">0.8%</td>
+  <td style="color: #FFFFFF; background-color: #2369ad;" class="gt_row gt_right">116.1%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #0a3b70;" class="gt_row gt_right">43.0%</td>
+  <td class="gt_row gt_right">32.4%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">3</td>
+  <td class="gt_row gt_right">124</td>
+  <td class="gt_row gt_right">16,097</td>
+  <td style="color: #000000; background-color: #f5fbee;" class="gt_row gt_right">0.8%</td>
+  <td class="gt_row gt_right">1.1%</td>
+  <td style="color: #FFFFFF; background-color: #144e8a;" class="gt_row gt_right">73.0%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #08366a;" class="gt_row gt_right">36.7%</td>
+  <td class="gt_row gt_right">28.5%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">4</td>
+  <td class="gt_row gt_right">168</td>
+  <td class="gt_row gt_right">14,536</td>
+  <td style="color: #000000; background-color: #f1f9ea;" class="gt_row gt_right">1.2%</td>
+  <td class="gt_row gt_right">1.3%</td>
+  <td style="color: #FFFFFF; background-color: #195696;" class="gt_row gt_right">86.7%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #0e4179;" class="gt_row gt_right">55.1%</td>
+  <td class="gt_row gt_right">33.3%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">5</td>
+  <td class="gt_row gt_right">164</td>
+  <td class="gt_row gt_right">12,916</td>
+  <td style="color: #000000; background-color: #f0f9e9;" class="gt_row gt_right">1.3%</td>
+  <td class="gt_row gt_right">1.6%</td>
+  <td style="color: #FFFFFF; background-color: #175290;" class="gt_row gt_right">78.8%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #10457e;" class="gt_row gt_right">60.7%</td>
+  <td class="gt_row gt_right">32.9%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">6</td>
+  <td class="gt_row gt_right">152</td>
+  <td class="gt_row gt_right">11,376</td>
+  <td style="color: #000000; background-color: #eff9e9;" class="gt_row gt_right">1.3%</td>
+  <td class="gt_row gt_right">1.9%</td>
+  <td style="color: #FFFFFF; background-color: #134c87;" class="gt_row gt_right">70.7%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #114781;" class="gt_row gt_right">63.9%</td>
+  <td class="gt_row gt_right">31.7%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">7</td>
+  <td class="gt_row gt_right">164</td>
+  <td class="gt_row gt_right">9,917</td>
+  <td style="color: #000000; background-color: #ebf7e5;" class="gt_row gt_right">1.7%</td>
+  <td class="gt_row gt_right">2.2%</td>
+  <td style="color: #FFFFFF; background-color: #15508d;" class="gt_row gt_right">76.3%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #175290;" class="gt_row gt_right">79.1%</td>
+  <td class="gt_row gt_right">32.9%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">8</td>
+  <td class="gt_row gt_right">190</td>
+  <td class="gt_row gt_right">8,448</td>
+  <td style="color: #000000; background-color: #e6f5e0;" class="gt_row gt_right">2.2%</td>
+  <td class="gt_row gt_right">2.4%</td>
+  <td style="color: #FFFFFF; background-color: #1a5899;" class="gt_row gt_right">92.0%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #1f63a8;" class="gt_row gt_right">107.9%</td>
+  <td class="gt_row gt_right">35.6%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">9</td>
+  <td class="gt_row gt_right">181</td>
+  <td class="gt_row gt_right">6,960</td>
+  <td style="color: #000000; background-color: #e2f4dd;" class="gt_row gt_right">2.6%</td>
+  <td class="gt_row gt_right">2.7%</td>
+  <td style="color: #FFFFFF; background-color: #1c5c9f;" class="gt_row gt_right">95.5%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #266caf;" class="gt_row gt_right">125.1%</td>
+  <td class="gt_row gt_right">34.8%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">10</td>
+  <td class="gt_row gt_right">152</td>
+  <td class="gt_row gt_right">5,604</td>
+  <td style="color: #000000; background-color: #e1f3dc;" class="gt_row gt_right">2.7%</td>
+  <td class="gt_row gt_right">3.0%</td>
+  <td style="color: #FFFFFF; background-color: #1a5899;" class="gt_row gt_right">90.4%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #2870b1;" class="gt_row gt_right">130.6%</td>
+  <td class="gt_row gt_right">31.9%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">11</td>
+  <td class="gt_row gt_right">804</td>
+  <td class="gt_row gt_right">4,390</td>
+  <td style="color: #FFFFFF; background-color: #084081;" class="gt_row gt_right">18.3%</td>
+  <td class="gt_row gt_right">20.0%</td>
+  <td style="color: #FFFFFF; background-color: #1a5899;" class="gt_row gt_right">91.6%</td>
+  <td class="gt_row gt_right">2.1%</td>
+  <td style="color: #FFFFFF; background-color: #67001f;" class="gt_row gt_right">881.0%</td>
+  <td class="gt_row gt_right">80.0%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">12</td>
+  <td class="gt_row gt_right">330</td>
+  <td class="gt_row gt_right">2,663</td>
+  <td style="color: #000000; background-color: #42a6cc;" class="gt_row gt_right">12.4%</td>
+  <td class="gt_row gt_right">15.0%</td>
+  <td style="color: #FFFFFF; background-color: #185493;" class="gt_row gt_right">82.6%</td>
+  <td class="gt_row gt_right">2.0%</td>
+  <td style="color: #000000; background-color: #f5a886;" class="gt_row gt_right">618.2%</td>
+  <td class="gt_row gt_right">49.5%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">13</td>
+  <td class="gt_row gt_right">99</td>
+  <td class="gt_row gt_right">1,620</td>
+  <td style="color: #000000; background-color: #bae4bd;" class="gt_row gt_right">6.1%</td>
+  <td class="gt_row gt_right">5.0%</td>
+  <td style="color: #FFFFFF; background-color: #266caf;" class="gt_row gt_right">122.2%</td>
+  <td class="gt_row gt_right">2.0%</td>
+  <td style="color: #000000; background-color: #a7d0e4;" class="gt_row gt_right">310.9%</td>
+  <td class="gt_row gt_right">26.2%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">14</td>
+  <td class="gt_row gt_right">62</td>
+  <td class="gt_row gt_right">872</td>
+  <td style="color: #000000; background-color: #aadeb6;" class="gt_row gt_right">7.1%</td>
+  <td class="gt_row gt_right">5.0%</td>
+  <td style="color: #FFFFFF; background-color: #2e77b5;" class="gt_row gt_right">142.2%</td>
+  <td class="gt_row gt_right">2.0%</td>
+  <td style="color: #000000; background-color: #cfe4ef;" class="gt_row gt_right">364.3%</td>
+  <td class="gt_row gt_right">20.8%</td>
+</tr>
+<tr>
+  <td class="gt_row gt_right">15</td>
+  <td class="gt_row gt_right">17</td>
+  <td class="gt_row gt_right">268</td>
+  <td style="color: #000000; background-color: #b6e3bb;" class="gt_row gt_right">6.3%</td>
+  <td class="gt_row gt_right">5.0%</td>
+  <td style="color: #FFFFFF; background-color: #276eb0;" class="gt_row gt_right">126.8%</td>
+  <td class="gt_row gt_right">1.9%</td>
+  <td style="color: #000000; background-color: #b6d7e8;" class="gt_row gt_right">331.2%</td>
+  <td class="gt_row gt_right">10.9%</td>
+</tr>
+</tbody>
+  <tfoot class="gt_sourcenotes">
+  
+  <tr>
+    <td class="gt_sourcenote" colspan="9">Study range: 1900-01-01 to 2019-12-31</td>
+  </tr>
+
+</tfoot>
+
+</table>
+
+</div>
+        
+</div>
+</div>
+
+
 </section>
 </section>
 </section>

@@ -93,7 +93,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
 
@@ -190,7 +195,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-exp_stats-method" id="toc-the-exp_stats-method" class="nav-link active" data-scroll-target="#the-exp_stats-method">The <code>exp_stats()</code> method</a>
+  <ul class="collapse">
+  <li><a href="#grouped-data" id="toc-grouped-data" class="nav-link" data-scroll-target="#grouped-data">Grouped data</a></li>
+  <li><a href="#target-status" id="toc-target-status" class="nav-link" data-scroll-target="#target-status">Target status</a></li>
+  </ul></li>
+  <li><a href="#weighted-results" id="toc-weighted-results" class="nav-link" data-scroll-target="#weighted-results">Weighted results</a></li>
+  <li><a href="#expected-values-and-ae-ratios" id="toc-expected-values-and-ae-ratios" class="nav-link" data-scroll-target="#expected-values-and-ae-ratios">Expected values and A/E ratios</a></li>
+  <li><a href="#credibility" id="toc-credibility" class="nav-link" data-scroll-target="#credibility">Credibility</a></li>
+  <li><a href="#confidence-intervals" id="toc-confidence-intervals" class="nav-link" data-scroll-target="#confidence-intervals">Confidence intervals</a></li>
+  <li><a href="#miscellaneous" id="toc-miscellaneous" class="nav-link" data-scroll-target="#miscellaneous">Miscellaneous</a>
+  <ul class="collapse">
+  <li><a href="#summary-method" id="toc-summary-method" class="nav-link" data-scroll-target="#summary-method">Summary method</a></li>
+  <li><a href="#column-names" id="toc-column-names" class="nav-link" data-scroll-target="#column-names">Column names</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -212,14 +237,1410 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>After experience data has been prepared for analysis, the next step is to summarize results. The actxps package’s workhorse function for summarizing termination experience is <code>exp_stats()</code>. This function returns an <code>exp_df</code> object, which is a type of data frame containing additional attributes about the experience study.</p>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>After experience data has been prepared for analysis, the next step is to summarize results. The actxps package’s workhorse function for summarizing termination experience is the <code>exp_stats()</code> method of the <code>ExposedDF</code> class. This function returns an <code>ExpStats</code> object, which is a type of data frame containing additional attributes about the experience study.</p>
+<p>At a minimum, an <code>ExpStats</code> includes:</p>
+<ul>
+<li>The number of claims (termination events, <code>n_claims</code>)</li>
+<li>The amount of claims (weighted by a variable of the user’s choice; more on this below, <code>claims</code>)</li>
+<li>The total exposure (<code>exposure</code>)</li>
+<li>The observed termination rate (<code>q_obs</code>)</li>
+</ul>
+<p>Optionally, an <code>ExpStats</code> can also include:</p>
+<ul>
+<li>Any grouping variables attached to the input data</li>
+<li>Expected termination rates and actual-to-expected (A/E) ratios (<code>ae_*</code>)</li>
+<li>Limited fluctuation credibility estimates (<code>credibility</code>) and credibility-adjusted expected termination rates (<code>adj_*</code>)</li>
+</ul>
+<p>To demonstrate this function, we’re going to use a data frame containing simulated census data for a theoretical deferred annuity product that has an optional guaranteed income rider. Before <code>exp_stats()</code> can be used, we must convert our census data into exposure records using the <code>ExposedDF()</code> class<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. In addition, let’s assume we’re interested in studying surrender rates, so we’ll pass the argument <code>target_status = 'Surrender'</code> to <code>ExposedDF()</code>.</p>
+<div id="packages" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(census_dat, end_date<span class="op">=</span><span class="st">"2019-12-31"</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                            target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<section id="the-exp_stats-method" class="level2">
+<h2 class="anchored" data-anchor-id="the-exp_stats-method">The <code>exp_stats()</code> method</h2>
+<p>To use <code>exp_stats()</code>, simply call the method from an <code>ExposedDF</code> object.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>exposed_data.exp_stats()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="xp-basic" class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>Experience study results
+
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
 
 
+A DataFrame: 1 x 4
+   n_claims  claims       exposure     q_obs
+0      2869    2869  132633.995658  0.021631</code></pre>
+</div>
+</div>
+<p>The results show us that we specified no groups, which is why the output data is a single row. In addition, we can see that we’re looking at surrender rates through the end of 2019, which <code>exp_stats()</code> inferred from <code>exposed_data</code>.</p>
+<p>The number of claims (<code>n_claims</code>) is equal to the number of “Surrender” statuses in <code>exposed_data</code>. Since we didn’t specify any weighting variable, the amount of claims (<code>claims</code>) equals the number of claims.</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>amount <span class="op">=</span> <span class="bu">sum</span>(exposed_data.data.status <span class="op">==</span> <span class="st">"Surrender"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>amount</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="claim-check" class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>2869</code></pre>
+</div>
+</div>
+<p>The total exposure (<code>exposure</code>) is equal to the sum of the exposures in <code>exposed_data</code>. Had we specified a weighting variable, this would be equal to the sum of weighted exposures.</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sum_expo <span class="op">=</span> <span class="bu">sum</span>(exposed_data.data.exposure)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sum_expo</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="expo-check" class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>132633.99565835952</code></pre>
+</div>
+</div>
+<p>Lastly, the observed termination rate (<code>q_obs</code>) equals the amount of claims divided by the exposures.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>amount <span class="op">/</span> sum_expo</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="q-check" class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>0.021630955063662638</code></pre>
+</div>
+</div>
+<section id="grouped-data" class="level3">
+<h3 class="anchored" data-anchor-id="grouped-data">Grouped data</h3>
+<p>If the data is grouped using the <code>groupby()</code> method, future calls to <code>exp_stats()</code> will contain one record for each unique group.</p>
+<p>In the following, <code>exposed_data</code> is grouped by policy year before <code>exp_stats()</code> is called. This results in one row per policy year found in the data.</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    exp_stats())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="grouped-1" class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>Experience study results
 
-</main> <!-- /main -->
+Groups: pol_yr
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+
+
+A DataFrame: 15 x 5
+   pol_yr  n_claims  claims      exposure     q_obs
+0       1       102     102  19252.212366  0.005298
+1       2       160     160  17714.780418  0.009032
+2       3       124     124  16097.137376  0.007703
+3       4       168     168  14535.864406  0.011558
+4       5       164     164  12915.526244  0.012698
+5       6       152     152  11375.931769  0.013362
+6       7       164     164   9916.841762  0.016538
+7       8       190     190   8447.895074  0.022491
+8       9       181     181   6959.806363  0.026006
+9      10       152     152   5604.283330  0.027122</code></pre>
+</div>
+</div>
+<p>Multiple grouping variables are allowed. Below, the presence of an income guarantee (<code>inc_guar</code>) is added as a second grouping variable.</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'inc_guar'</span>, <span class="st">'pol_yr'</span>).</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    exp_stats())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="grouped-2" class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>Experience study results
+
+Groups: inc_guar, pol_yr
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+
+
+A DataFrame: 30 x 6
+   inc_guar  pol_yr  n_claims  claims     exposure     q_obs
+0     False       1        56      56  7719.807740  0.007254
+1     False       2        92      92  7102.813160  0.012953
+2     False       3        67      67  6446.916146  0.010393
+3     False       4       123     123  5798.909986  0.021211
+4     False       5        97      97  5105.875799  0.018998
+5     False       6        96      96  4493.780156  0.021363
+6     False       7        92      92  3899.012179  0.023596
+7     False       8       103     103  3287.113197  0.031334
+8     False       9        87      87  2684.492110  0.032408
+9     False      10        60      60  2156.379362  0.027824</code></pre>
+</div>
+</div>
+<p>Grouping persists after <code>groupby()</code> is called. To remove groups, the <code>ungroup()</code> method can be used.</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check groups</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(exposed_data.groups)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>['inc_guar', 'pol_yr']</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ungroup, then check groups again</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>exposed_data.ungroup()</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(exposed_data.groups <span class="kw">is</span> <span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>True</code></pre>
+</div>
+</div>
+</section>
+<section id="target-status" class="level3">
+<h3 class="anchored" data-anchor-id="target-status">Target status</h3>
+<p>The <code>target_status</code> argument of <code>exp_stats()</code> specifies which status levels count as claims in the experience study summary. If the <code>ExposedDF</code> object already has a specified target status (from the original call to <code>ExposedDF()</code>), then this argument is not necessary because the target status is automatically inferred.</p>
+<p>Even if the target status exists, it can be overridden. However care should be taken to ensure that exposure values in the data are appropriate for the new status.</p>
+<p>Using the example data, a total termination rate can be estimated by including both death and surrender statuses in <code>target_status</code>. To ensure exposures are accurate, an adjustment is made to fully expose deaths prior to calling <code>exp_stats()</code><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> copy <span class="im">import</span> deepcopy</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>exposed_data2 <span class="op">=</span> deepcopy(exposed_data)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>exposed_data2.data[<span class="st">'exposure'</span>] <span class="op">=</span> np.where(</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    exposed_data2.data.status <span class="op">==</span> <span class="st">"Death"</span>, <span class="dv">1</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    exposed_data2.data.exposure)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>(exposed_data2.groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    exp_stats(target_status<span class="op">=</span>[<span class="st">"Surrender"</span>, <span class="st">"Death"</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="targ-status" class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>Experience study results
+
+Groups: pol_yr
+Target status: Surrender, Death
+Study range: 1900-01-01 to 2019-12-31
+
+
+A DataFrame: 15 x 5
+   pol_yr  n_claims  claims      exposure     q_obs
+0       1       290     290  19348.986084  0.014988
+1       2       325     325  17796.251718  0.018262
+2       3       292     292  16180.430159  0.018046
+3       4       329     329  14611.270484  0.022517
+4       5       329     329  12997.512119  0.025313
+5       6       334     334  11471.385164  0.029116
+6       7       297     297   9984.937046  0.029745
+7       8       340     340   8524.699236  0.039884
+8       9       308     308   7032.227891  0.043798
+9      10       260     260   5663.139973  0.045911</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="weighted-results" class="level2">
+<h2 class="anchored" data-anchor-id="weighted-results">Weighted results</h2>
+<p>Experience studies often weight output by key policy values. Examples include account values, cash values, face amount, premiums, and more. Weighting can be accomplished by passing the name of a weighting column to the <code>wt</code> argument of <code>exp_stats()</code>.</p>
+<p>Our sample data contains a column called <code>premium</code> that we can weight by. When weights are supplied, the <code>claims</code>, <code>exposure</code>, and <code>q_obs</code> columns will be weighted. If expected termination rates are supplied (see below), these rates and A/E values will also be weighted.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  label: weight-res</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    exp_stats(wt<span class="op">=</span><span class="st">'premium'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>Experience study results
+
+Groups: pol_yr
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+Weighted by: premium
+
+
+A DataFrame: 15 x 8
+   pol_yr  n_claims    claims      exposure     q_obs      weight  \
+0       1       102   83223.0  2.531281e+07  0.003288  26301746.0   
+1       2       160  170058.0  2.335248e+07  0.007282  24275265.0   
+2       3       124  123554.0  2.124677e+07  0.005815  22201817.0   
+3       4       168  176751.0  1.927087e+07  0.009172  20200019.0   
+4       5       164  173273.0  1.722898e+07  0.010057  18134795.0   
+5       6       152  163034.0  1.524652e+07  0.010693  16192950.0   
+6       7       164  153238.0  1.332878e+07  0.011497  14159437.0   
+7       8       190  174200.0  1.147644e+07  0.015179  12346124.0   
+8       9       181  187337.0  9.546258e+06  0.019624  10420172.0   
+9      10       152  157603.0  7.707064e+06  0.020449   8543150.0   
+
+      weight_sq  weight_n  
+0  6.074299e+10     19995  
+1  5.623285e+10     18434  
+2  5.174683e+10     16806  
+3  4.714244e+10     15266  
+4  4.288792e+10     13618  
+5  3.882895e+10     12067  
+6  3.429145e+10     10541  
+7  3.012131e+10      9130  
+8  2.578114e+10      7591  
+9  2.088264e+10      6185  </code></pre>
+</div>
+</div>
+</section>
+<section id="expected-values-and-ae-ratios" class="level2">
+<h2 class="anchored" data-anchor-id="expected-values-and-ae-ratios">Expected values and A/E ratios</h2>
+<p>As common metric in experience studies is the actual-to-expected, or A/E ratio.</p>
+<p><span class="math display">\[
+A/E\ ratio = \frac{observed\ value}{expected\ value}
+\]</span></p>
+<p>If the data passed to <code>exp_stats()</code> has one or more columns containing expected termination rates, A/E ratios can be calculated by passing the names of these columns to the <code>expected</code> argument.</p>
+<p>Let’s assume we have two sets of expected rates. The first set is a vector that varies by policy year. The second set is either 1.5% or 3.0% depending on whether the policy has a guaranteed income benefit. First, we need to attach these assumptions to our exposure data. We will use the names <code>expected_1</code> and <code>expected_2</code>. Then we pass these names to the <code>expected</code> argument when we call <code>exp_stats()</code>.</p>
+<p>In the output, 4 new columns are created for expected rates and A/E ratios.</p>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>),</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>                                 [<span class="fl">.2</span>, <span class="fl">.15</span>], np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)))</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># using 2 different expected termination rates</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>exposed_data.data[<span class="st">'expected_1'</span>] <span class="op">=</span> <span class="op">\</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    expected_table[exposed_data.data.pol_yr <span class="op">-</span> <span class="dv">1</span>]</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>exposed_data.data[<span class="st">'expected_2'</span>] <span class="op">=</span> <span class="op">\</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    np.where(exposed_data.data.inc_guar, <span class="fl">0.015</span>, <span class="fl">0.03</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">"pol_yr"</span>, <span class="st">"inc_guar"</span>).</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>           exp_stats(expected<span class="op">=</span>[<span class="st">"expected_1"</span>, <span class="st">"expected_2"</span>]))</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>exp_res.data[[<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>, <span class="st">'q_obs'</span>, <span class="st">'expected_1'</span>, <span class="st">'expected_2'</span>,</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>              <span class="st">'ae_expected_1'</span>, <span class="st">'ae_expected_2'</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="act-exp" class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">inc_guar</th>
+<th data-quarto-table-cell-role="th">q_obs</th>
+<th data-quarto-table-cell-role="th">expected_1</th>
+<th data-quarto-table-cell-role="th">expected_2</th>
+<th data-quarto-table-cell-role="th">ae_expected_1</th>
+<th data-quarto-table-cell-role="th">ae_expected_2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>False</td>
+<td>0.007254</td>
+<td>0.005000</td>
+<td>0.030</td>
+<td>1.450813</td>
+<td>0.241802</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>True</td>
+<td>0.003989</td>
+<td>0.005000</td>
+<td>0.015</td>
+<td>0.797752</td>
+<td>0.265917</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+<td>False</td>
+<td>0.012953</td>
+<td>0.007778</td>
+<td>0.030</td>
+<td>1.665336</td>
+<td>0.431754</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>True</td>
+<td>0.006408</td>
+<td>0.007778</td>
+<td>0.015</td>
+<td>0.823868</td>
+<td>0.427191</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>3</td>
+<td>False</td>
+<td>0.010393</td>
+<td>0.010556</td>
+<td>0.030</td>
+<td>0.984559</td>
+<td>0.346419</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>13</td>
+<td>True</td>
+<td>0.043862</td>
+<td>0.050000</td>
+<td>0.015</td>
+<td>0.877242</td>
+<td>2.924141</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>14</td>
+<td>False</td>
+<td>0.125656</td>
+<td>0.050000</td>
+<td>0.030</td>
+<td>2.513115</td>
+<td>4.188525</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>14</td>
+<td>True</td>
+<td>0.047602</td>
+<td>0.050000</td>
+<td>0.015</td>
+<td>0.952043</td>
+<td>3.173475</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">28</td>
+<td>15</td>
+<td>False</td>
+<td>0.108035</td>
+<td>0.050000</td>
+<td>0.030</td>
+<td>2.160699</td>
+<td>3.601165</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>15</td>
+<td>True</td>
+<td>0.046361</td>
+<td>0.050000</td>
+<td>0.015</td>
+<td>0.927220</td>
+<td>3.090735</td>
+</tr>
+</tbody>
+</table>
+
+<p>30 rows × 7 columns</p>
+</div>
+</div>
+</div>
+<p>As noted above, if weights are passed to <code>exp_stats()</code> then A/E ratios will also be weighted.</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>exp_res_wt <span class="op">=</span> (exposed_data.</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>              groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>              exp_stats(expected<span class="op">=</span>[<span class="st">"expected_1"</span>, <span class="st">"expected_2"</span>],</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                        wt<span class="op">=</span><span class="st">"premium"</span>))</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>exp_res_wt.data[[<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>, <span class="st">'q_obs'</span>, <span class="st">'expected_1'</span>, <span class="st">'expected_2'</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>                 <span class="st">'ae_expected_1'</span>, <span class="st">'ae_expected_2'</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="act-exp-wt" class="cell-output cell-output-display" data-execution_count="14">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">inc_guar</th>
+<th data-quarto-table-cell-role="th">q_obs</th>
+<th data-quarto-table-cell-role="th">expected_1</th>
+<th data-quarto-table-cell-role="th">expected_2</th>
+<th data-quarto-table-cell-role="th">ae_expected_1</th>
+<th data-quarto-table-cell-role="th">ae_expected_2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>False</td>
+<td>0.004709</td>
+<td>0.005000</td>
+<td>0.030</td>
+<td>0.941820</td>
+<td>0.156970</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>True</td>
+<td>0.002351</td>
+<td>0.005000</td>
+<td>0.015</td>
+<td>0.470113</td>
+<td>0.156704</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+<td>False</td>
+<td>0.010540</td>
+<td>0.007778</td>
+<td>0.030</td>
+<td>1.355163</td>
+<td>0.351339</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>True</td>
+<td>0.005132</td>
+<td>0.007778</td>
+<td>0.015</td>
+<td>0.659867</td>
+<td>0.342153</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>3</td>
+<td>False</td>
+<td>0.007373</td>
+<td>0.010556</td>
+<td>0.030</td>
+<td>0.698464</td>
+<td>0.245756</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>13</td>
+<td>True</td>
+<td>0.038539</td>
+<td>0.050000</td>
+<td>0.015</td>
+<td>0.770787</td>
+<td>2.569291</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>14</td>
+<td>False</td>
+<td>0.096951</td>
+<td>0.050000</td>
+<td>0.030</td>
+<td>1.939013</td>
+<td>3.231688</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>14</td>
+<td>True</td>
+<td>0.036829</td>
+<td>0.050000</td>
+<td>0.015</td>
+<td>0.736585</td>
+<td>2.455285</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">28</td>
+<td>15</td>
+<td>False</td>
+<td>0.066549</td>
+<td>0.050000</td>
+<td>0.030</td>
+<td>1.330984</td>
+<td>2.218307</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>15</td>
+<td>True</td>
+<td>0.039654</td>
+<td>0.050000</td>
+<td>0.015</td>
+<td>0.793086</td>
+<td>2.643620</td>
+</tr>
+</tbody>
+</table>
+
+<p>30 rows × 7 columns</p>
+</div>
+</div>
+</div>
+</section>
+<section id="credibility" class="level2">
+<h2 class="anchored" data-anchor-id="credibility">Credibility</h2>
+<p>If the <code>credibility</code> argument is set to <code>True</code>, <code>exp_stats()</code> will produce an estimate of partial credibility under the Limited Fluctuation credibility method (also known as Classical Credibility) assuming a binomial distribution of claims.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    exp_stats(credibility<span class="op">=</span><span class="va">True</span>).</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>, <span class="st">'claims'</span>, <span class="st">'q_obs'</span>, <span class="st">'credibility'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cred1" class="cell-output cell-output-display" data-execution_count="15">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">inc_guar</th>
+<th data-quarto-table-cell-role="th">claims</th>
+<th data-quarto-table-cell-role="th">q_obs</th>
+<th data-quarto-table-cell-role="th">credibility</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>False</td>
+<td>56</td>
+<td>0.007254</td>
+<td>0.191601</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>True</td>
+<td>46</td>
+<td>0.003989</td>
+<td>0.173368</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+<td>False</td>
+<td>92</td>
+<td>0.012953</td>
+<td>0.246290</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>True</td>
+<td>68</td>
+<td>0.006408</td>
+<td>0.211044</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>3</td>
+<td>False</td>
+<td>67</td>
+<td>0.010393</td>
+<td>0.209907</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>13</td>
+<td>True</td>
+<td>49</td>
+<td>0.043862</td>
+<td>0.182625</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>14</td>
+<td>False</td>
+<td>33</td>
+<td>0.125656</td>
+<td>0.156725</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>14</td>
+<td>True</td>
+<td>29</td>
+<td>0.047602</td>
+<td>0.140771</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">28</td>
+<td>15</td>
+<td>False</td>
+<td>8</td>
+<td>0.108035</td>
+<td>0.076400</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>15</td>
+<td>True</td>
+<td>9</td>
+<td>0.046361</td>
+<td>0.078370</td>
+</tr>
+</tbody>
+</table>
+
+<p>30 rows × 5 columns</p>
+</div>
+</div>
+</div>
+<p>Under the default arguments, credibility calculations assume a 95% confidence of being within 5% of the true value. These parameters can be overridden using the <code>conf_level</code> and <code>cred_r</code> arguments, respectively.</p>
+<div class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    exp_stats(credibility<span class="op">=</span><span class="va">True</span>, conf_level<span class="op">=</span><span class="fl">0.98</span>, cred_r<span class="op">=</span><span class="fl">0.03</span>).</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>, <span class="st">'claims'</span>, <span class="st">'q_obs'</span>, <span class="st">'credibility'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cred2" class="cell-output cell-output-display" data-execution_count="16">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">inc_guar</th>
+<th data-quarto-table-cell-role="th">claims</th>
+<th data-quarto-table-cell-role="th">q_obs</th>
+<th data-quarto-table-cell-role="th">credibility</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>False</td>
+<td>56</td>
+<td>0.007254</td>
+<td>0.096855</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>True</td>
+<td>46</td>
+<td>0.003989</td>
+<td>0.087638</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+<td>False</td>
+<td>92</td>
+<td>0.012953</td>
+<td>0.124501</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>True</td>
+<td>68</td>
+<td>0.006408</td>
+<td>0.106683</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>3</td>
+<td>False</td>
+<td>67</td>
+<td>0.010393</td>
+<td>0.106109</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>13</td>
+<td>True</td>
+<td>49</td>
+<td>0.043862</td>
+<td>0.092318</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>14</td>
+<td>False</td>
+<td>33</td>
+<td>0.125656</td>
+<td>0.079225</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>14</td>
+<td>True</td>
+<td>29</td>
+<td>0.047602</td>
+<td>0.071160</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">28</td>
+<td>15</td>
+<td>False</td>
+<td>8</td>
+<td>0.108035</td>
+<td>0.038620</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>15</td>
+<td>True</td>
+<td>9</td>
+<td>0.046361</td>
+<td>0.039616</td>
+</tr>
+</tbody>
+</table>
+
+<p>30 rows × 5 columns</p>
+</div>
+</div>
+</div>
+<p>If expected values are passed to <code>exp_stats()</code> and <code>credibility</code> is set to <code>True</code>, then the output will also contain credibility-weighted expected values:</p>
+<p><span class="math display">\[
+q^{adj} = Z^{cred} \times q^{obs} + (1-Z^{cred}) \times q^{exp}
+\]</span> where,</p>
+<ul>
+<li><span class="math inline">\(q^{adj}\)</span> = credibility-weighted estimate</li>
+<li><span class="math inline">\(Z^{cred}\)</span> = partial credibility factor</li>
+<li><span class="math inline">\(q^{obs}\)</span> = observed termination rate</li>
+<li><span class="math inline">\(q^{exp}\)</span> = expected termination rate</li>
+</ul>
+<div class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    exp_stats(credibility<span class="op">=</span><span class="va">True</span>, expected<span class="op">=</span><span class="st">'expected_1'</span>).</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>, <span class="st">'claims'</span>, <span class="st">'q_obs'</span>, <span class="st">'credibility'</span>,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>       <span class="st">'adj_expected_1'</span>, <span class="st">'expected_1'</span>, <span class="st">'ae_expected_1'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cred3" class="cell-output cell-output-display" data-execution_count="17">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">inc_guar</th>
+<th data-quarto-table-cell-role="th">claims</th>
+<th data-quarto-table-cell-role="th">q_obs</th>
+<th data-quarto-table-cell-role="th">credibility</th>
+<th data-quarto-table-cell-role="th">adj_expected_1</th>
+<th data-quarto-table-cell-role="th">expected_1</th>
+<th data-quarto-table-cell-role="th">ae_expected_1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>False</td>
+<td>56</td>
+<td>0.007254</td>
+<td>0.191601</td>
+<td>0.005432</td>
+<td>0.005000</td>
+<td>1.450813</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>True</td>
+<td>46</td>
+<td>0.003989</td>
+<td>0.173368</td>
+<td>0.004825</td>
+<td>0.005000</td>
+<td>0.797752</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+<td>False</td>
+<td>92</td>
+<td>0.012953</td>
+<td>0.246290</td>
+<td>0.009052</td>
+<td>0.007778</td>
+<td>1.665336</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>True</td>
+<td>68</td>
+<td>0.006408</td>
+<td>0.211044</td>
+<td>0.007489</td>
+<td>0.007778</td>
+<td>0.823868</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>3</td>
+<td>False</td>
+<td>67</td>
+<td>0.010393</td>
+<td>0.209907</td>
+<td>0.010521</td>
+<td>0.010556</td>
+<td>0.984559</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>13</td>
+<td>True</td>
+<td>49</td>
+<td>0.043862</td>
+<td>0.182625</td>
+<td>0.048879</td>
+<td>0.050000</td>
+<td>0.877242</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>14</td>
+<td>False</td>
+<td>33</td>
+<td>0.125656</td>
+<td>0.156725</td>
+<td>0.061857</td>
+<td>0.050000</td>
+<td>2.513115</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>14</td>
+<td>True</td>
+<td>29</td>
+<td>0.047602</td>
+<td>0.140771</td>
+<td>0.049662</td>
+<td>0.050000</td>
+<td>0.952043</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">28</td>
+<td>15</td>
+<td>False</td>
+<td>8</td>
+<td>0.108035</td>
+<td>0.076400</td>
+<td>0.054434</td>
+<td>0.050000</td>
+<td>2.160699</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>15</td>
+<td>True</td>
+<td>9</td>
+<td>0.046361</td>
+<td>0.078370</td>
+<td>0.049715</td>
+<td>0.050000</td>
+<td>0.927220</td>
+</tr>
+</tbody>
+</table>
+
+<p>30 rows × 8 columns</p>
+</div>
+</div>
+</div>
+</section>
+<section id="confidence-intervals" class="level2">
+<h2 class="anchored" data-anchor-id="confidence-intervals">Confidence intervals</h2>
+<p>If <code>conf_int</code> is set to <code>True</code>, <code>exp_stats()</code> will produce lower and upper confidence interval limits for the observed termination rate.</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    exp_stats(conf_int<span class="op">=</span><span class="va">True</span>).</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>, <span class="st">'q_obs'</span>, <span class="st">'q_obs_lower'</span>, <span class="st">'q_obs_upper'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="conf1" class="cell-output cell-output-display" data-execution_count="18">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">inc_guar</th>
+<th data-quarto-table-cell-role="th">q_obs</th>
+<th data-quarto-table-cell-role="th">q_obs_lower</th>
+<th data-quarto-table-cell-role="th">q_obs_upper</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>False</td>
+<td>0.007254</td>
+<td>0.005441</td>
+<td>0.009197</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>True</td>
+<td>0.003989</td>
+<td>0.002862</td>
+<td>0.005203</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+<td>False</td>
+<td>0.012953</td>
+<td>0.010418</td>
+<td>0.015628</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>True</td>
+<td>0.006408</td>
+<td>0.004900</td>
+<td>0.008010</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>3</td>
+<td>False</td>
+<td>0.010393</td>
+<td>0.008066</td>
+<td>0.012874</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>13</td>
+<td>True</td>
+<td>0.043862</td>
+<td>0.032225</td>
+<td>0.056394</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>14</td>
+<td>False</td>
+<td>0.125656</td>
+<td>0.087578</td>
+<td>0.167541</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>14</td>
+<td>True</td>
+<td>0.047602</td>
+<td>0.031188</td>
+<td>0.065658</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">28</td>
+<td>15</td>
+<td>False</td>
+<td>0.108035</td>
+<td>0.040513</td>
+<td>0.189061</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>15</td>
+<td>True</td>
+<td>0.046361</td>
+<td>0.020605</td>
+<td>0.077268</td>
+</tr>
+</tbody>
+</table>
+
+<p>30 rows × 5 columns</p>
+</div>
+</div>
+</div>
+<p>If no weighting variable is passed to <code>wt</code>, confidence intervals will be constructed assuming a binomial distribution of claims. However, if a weighting variable is supplied, a normal distribution for aggregate claims will be assumed with a mean equal to observed claims and a variance equal to:</p>
+<p><span class="math display">\[
+Var(S) = E(N) \times Var(X) + E(X)^2 \times Var(N)
+\]</span></p>
+<p>Where <code>S</code> is the aggregate claim random variable, <code>X</code> is the weighting variable assumed to follow a normal distribution, and <code>N</code> is a binomial random variable for the number of claims.</p>
+<p>The default confidence level is 95%. This can be changed using the <code>conf_level</code> argument. Below, tighter confidence intervals are constructed by decreasing the confidence level to 90%.</p>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    exp_stats(conf_int <span class="op">=</span> <span class="va">True</span>, conf_level <span class="op">=</span> <span class="fl">0.9</span>).</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>, <span class="st">'q_obs'</span>, <span class="st">'q_obs_lower'</span>, <span class="st">'q_obs_upper'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="conf2" class="cell-output cell-output-display" data-execution_count="19">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">inc_guar</th>
+<th data-quarto-table-cell-role="th">q_obs</th>
+<th data-quarto-table-cell-role="th">q_obs_lower</th>
+<th data-quarto-table-cell-role="th">q_obs_upper</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>False</td>
+<td>0.007254</td>
+<td>0.005700</td>
+<td>0.008938</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>True</td>
+<td>0.003989</td>
+<td>0.003035</td>
+<td>0.004943</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+<td>False</td>
+<td>0.012953</td>
+<td>0.010841</td>
+<td>0.015205</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>True</td>
+<td>0.006408</td>
+<td>0.005183</td>
+<td>0.007727</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>3</td>
+<td>False</td>
+<td>0.010393</td>
+<td>0.008376</td>
+<td>0.012564</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>13</td>
+<td>True</td>
+<td>0.043862</td>
+<td>0.034016</td>
+<td>0.053709</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>14</td>
+<td>False</td>
+<td>0.125656</td>
+<td>0.091386</td>
+<td>0.159926</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>14</td>
+<td>True</td>
+<td>0.047602</td>
+<td>0.034471</td>
+<td>0.062375</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">28</td>
+<td>15</td>
+<td>False</td>
+<td>0.108035</td>
+<td>0.054017</td>
+<td>0.175557</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>15</td>
+<td>True</td>
+<td>0.046361</td>
+<td>0.020605</td>
+<td>0.072117</td>
+</tr>
+</tbody>
+</table>
+
+<p>30 rows × 5 columns</p>
+</div>
+</div>
+</div>
+<p>If expected values are passed to <code>expected</code>, the output will also contain confidence intervals around any actual-to-expected ratios.</p>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    exp_stats(conf_int <span class="op">=</span> <span class="va">True</span>, expected<span class="op">=</span><span class="st">'expected_1'</span>).</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>, <span class="st">'ae_expected_1'</span>, </span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>          <span class="st">'ae_expected_1_lower'</span>, <span class="st">'ae_expected_1_lower'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="conf3" class="cell-output cell-output-display" data-execution_count="20">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">inc_guar</th>
+<th data-quarto-table-cell-role="th">ae_expected_1</th>
+<th data-quarto-table-cell-role="th">ae_expected_1_lower</th>
+<th data-quarto-table-cell-role="th">ae_expected_1_lower</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>False</td>
+<td>1.450813</td>
+<td>1.088110</td>
+<td>1.088110</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>True</td>
+<td>0.797752</td>
+<td>0.572300</td>
+<td>0.572300</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+<td>False</td>
+<td>1.665336</td>
+<td>1.339510</td>
+<td>1.339510</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>True</td>
+<td>0.823868</td>
+<td>0.630016</td>
+<td>0.630016</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>3</td>
+<td>False</td>
+<td>0.984559</td>
+<td>0.764135</td>
+<td>0.764135</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">25</td>
+<td>13</td>
+<td>True</td>
+<td>0.877242</td>
+<td>0.644504</td>
+<td>0.644504</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26</td>
+<td>14</td>
+<td>False</td>
+<td>2.513115</td>
+<td>1.751565</td>
+<td>1.751565</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27</td>
+<td>14</td>
+<td>True</td>
+<td>0.952043</td>
+<td>0.623752</td>
+<td>0.623752</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">28</td>
+<td>15</td>
+<td>False</td>
+<td>2.160699</td>
+<td>0.810262</td>
+<td>0.810262</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>15</td>
+<td>True</td>
+<td>0.927220</td>
+<td>0.412098</td>
+<td>0.412098</td>
+</tr>
+</tbody>
+</table>
+
+<p>30 rows × 5 columns</p>
+</div>
+</div>
+</div>
+<p>Lastly, if <code>credibility</code> is <code>True</code> <em>and</em> expected values are passed to <code>expected</code>, confidence intervals will also be calculated for any credibility-weighted termination rates.</p>
+</section>
+<section id="miscellaneous" class="level2">
+<h2 class="anchored" data-anchor-id="miscellaneous">Miscellaneous</h2>
+<section id="summary-method" class="level3">
+<h3 class="anchored" data-anchor-id="summary-method">Summary method</h3>
+<p>As noted above, the result of <code>exp_stats()</code> is an <code>ExpStats</code> object. If the <code>summary()</code> function is applied to an <code>ExpStats</code> object, the data will be summarized again and return a higher level <code>ExpStats</code> object.</p>
+<p>If no additional arguments are passed, <code>summary()</code> returns a single row of aggregate results.</p>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>exp_res.summary()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="summary1" class="cell-output cell-output-display" data-execution_count="21">
+<pre><code>Experience study results
+
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+Expected values: expected_1, expected_2
+
+
+A DataFrame: 1 x 8
+   n_claims  claims       exposure     q_obs  expected_1  expected_2  \
+0      2869    2869  132633.995658  0.021631    0.024242    0.020895   
+
+   ae_expected_1  ae_expected_2  
+0       0.892303       1.035232  </code></pre>
+</div>
+</div>
+<p>If additional variable names are passed to the <code>summary()</code> method, then the output will group the data by those variables. In our example, if <code>pol_yr</code> is passed to <code>summary()</code>, the output will contain one row per policy year.</p>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>exp_res.summary(<span class="st">'pol_yr'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="summary2" class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>Experience study results
+
+Groups: pol_yr
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+Expected values: expected_1, expected_2
+
+
+A DataFrame: 15 x 9
+   pol_yr  n_claims  claims      exposure     q_obs  expected_1  expected_2  \
+0       1       102     102  19252.212366  0.005298    0.005000    0.021015   
+1       2       160     160  17714.780418  0.009032    0.007778    0.021014   
+2       3       124     124  16097.137376  0.007703    0.010556    0.021008   
+3       4       168     168  14535.864406  0.011558    0.013333    0.020984   
+4       5       164     164  12915.526244  0.012698    0.016111    0.020930   
+5       6       152     152  11375.931769  0.013362    0.018889    0.020925   
+6       7       164     164   9916.841762  0.016538    0.021667    0.020898   
+7       8       190     190   8447.895074  0.022491    0.024444    0.020837   
+8       9       181     181   6959.806363  0.026006    0.027222    0.020786   
+9      10       152     152   5604.283330  0.027122    0.030000    0.020772   
+
+   ae_expected_1  ae_expected_2  
+0       1.059618       0.252113  
+1       1.161258       0.429803  
+2       0.729780       0.366689  
+3       0.866822       0.550781  
+4       0.788145       0.606686  
+5       0.707376       0.638533  
+6       0.763270       0.791361  
+7       0.920079       1.079391  
+8       0.955340       1.251171  
+9       0.904070       1.305730  </code></pre>
+</div>
+</div>
+<p>Similarly, if <code>inc_guar</code> is passed to <code>summary()</code>, the output will contain a row for each unique value in <code>inc_guar</code>.</p>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>exp_res.summary(<span class="st">'inc_guar'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="summary3" class="cell-output cell-output-display" data-execution_count="23">
+<pre><code>Experience study results
+
+Groups: inc_guar
+Target status: Surrender
+Study range: 1900-01-01 to 2019-12-31
+Expected values: expected_1, expected_2
+
+
+A DataFrame: 2 x 9
+   inc_guar  n_claims  claims      exposure     q_obs  expected_1  expected_2  \
+0     False      1601    1601  52123.245243  0.030716    0.023481       0.030   
+1      True      1268    1268  80510.750415  0.015749    0.024734       0.015   
+
+   ae_expected_1  ae_expected_2  
+0       1.308098       1.023855  
+1       0.636751       1.049963  </code></pre>
+</div>
+</div>
+</section>
+<section id="column-names" class="level3">
+<h3 class="anchored" data-anchor-id="column-names">Column names</h3>
+<p>As a default, <code>exp_stats()</code> assumes the input data frame uses the following naming conventions:</p>
+<ul>
+<li>The exposure column is called <code>exposure</code></li>
+<li>The status column is called <code>status</code></li>
+</ul>
+<p>These default names can be overridden using the <code>col_exposure</code> and <code>col_status</code> arguments.</p>
+<p>For example, if the status column was called <code>curr_stat</code> in our data, we could write:</p>
+<div id="col-names" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>exposed_data.exp_stats(col_status<span class="op">=</span><span class="st">"curr_stat"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="limitations" class="level3">
+<h3 class="anchored" data-anchor-id="limitations">Limitations</h3>
+<p>The <code>exp_stats()</code> method only supports termination studies. It does not contain support for transaction studies or studies with multiple changes from an active to an inactive status. For information on transaction studies, see <a href="../articles/transactions.html">Transactions</a>.</p>
+
+
+</section>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>See <a href="../articles/exposures.html">Exposures</a> for more information on creating exposure records.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>This adjustment is not necessary on surrenders because the <code>expose()</code> function previously did this for us.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>When weights are supplied, additional columns are created containing the sum of weights, the sum of squared weights, and the number of records. These columns are used for re-summarizing the data (see the “Summary method” section on this page).<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>See Herzog, Thomas (1999). Introduction to Credibility Theory for more information on Limited Fluctuation Credibility.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

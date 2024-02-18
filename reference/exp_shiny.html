@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>actxps – add_durations</title>
+<title>actxps – exp_shiny</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -190,7 +190,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Date functions</li><li class="breadcrumb-item"><a href="../reference/add_durations.html">Add durations to a vector of dates</a></li><li class="breadcrumb-item"><a href="../reference/add_durations.html">add_interval</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/exp_shiny.html">Shiny app</a></li><li class="breadcrumb-item"><a href="../reference/exp_shiny.html">exp_shiny</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
     </div>
@@ -294,7 +294,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/exp_shiny.html" class="sidebar-item-text sidebar-link">
+  <a href="../reference/exp_shiny.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">exp_shiny</span></a>
   </div>
 </li>
@@ -407,16 +407,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
  <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 show">  
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link active">
+  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">add_interval</span></a>
   </div>
 </li>
@@ -435,37 +435,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#parameters" id="toc-parameters" class="nav-link active" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
-  <li><a href="#actxps.dates.add_yr" id="toc-actxps.dates.add_yr" class="nav-link" data-scroll-target="#actxps.dates.add_yr">add_yr</a>
-  <ul class="collapse">
-  <li><a href="#parameters-1" id="toc-parameters-1" class="nav-link" data-scroll-target="#parameters-1">Parameters</a></li>
-  <li><a href="#returns-1" id="toc-returns-1" class="nav-link" data-scroll-target="#returns-1">Returns</a></li>
-  <li><a href="#see-also-1" id="toc-see-also-1" class="nav-link" data-scroll-target="#see-also-1">See Also</a></li>
-  <li><a href="#examples-1" id="toc-examples-1" class="nav-link" data-scroll-target="#examples-1">Examples</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.add_qtr" id="toc-actxps.dates.add_qtr" class="nav-link" data-scroll-target="#actxps.dates.add_qtr">add_qtr</a>
-  <ul class="collapse">
-  <li><a href="#parameters-2" id="toc-parameters-2" class="nav-link" data-scroll-target="#parameters-2">Parameters</a></li>
-  <li><a href="#returns-2" id="toc-returns-2" class="nav-link" data-scroll-target="#returns-2">Returns</a></li>
-  <li><a href="#see-also-2" id="toc-see-also-2" class="nav-link" data-scroll-target="#see-also-2">See Also</a></li>
-  <li><a href="#examples-2" id="toc-examples-2" class="nav-link" data-scroll-target="#examples-2">Examples</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.add_mth" id="toc-actxps.dates.add_mth" class="nav-link" data-scroll-target="#actxps.dates.add_mth">add_mth</a>
-  <ul class="collapse">
-  <li><a href="#parameters-3" id="toc-parameters-3" class="nav-link" data-scroll-target="#parameters-3">Parameters</a></li>
-  <li><a href="#returns-3" id="toc-returns-3" class="nav-link" data-scroll-target="#returns-3">Returns</a></li>
-  <li><a href="#see-also-3" id="toc-see-also-3" class="nav-link" data-scroll-target="#see-also-3">See Also</a></li>
-  <li><a href="#examples-3" id="toc-examples-3" class="nav-link" data-scroll-target="#examples-3">Examples</a></li>
-  </ul></li>
-  <li><a href="#actxps.dates.add_wk" id="toc-actxps.dates.add_wk" class="nav-link" data-scroll-target="#actxps.dates.add_wk">add_wk</a>
-  <ul class="collapse">
-  <li><a href="#parameters-4" id="toc-parameters-4" class="nav-link" data-scroll-target="#parameters-4">Parameters</a></li>
-  <li><a href="#returns-4" id="toc-returns-4" class="nav-link" data-scroll-target="#returns-4">Returns</a></li>
-  <li><a href="#see-also-4" id="toc-see-also-4" class="nav-link" data-scroll-target="#see-also-4">See Also</a></li>
-  <li><a href="#examples-4" id="toc-examples-4" class="nav-link" data-scroll-target="#examples-4">Examples</a></li>
-  </ul></li>
   </ul>
 </nav>
     </div>
@@ -474,7 +445,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">add_interval</h1>
+<h1 class="title">exp_shiny</h1>
 </div>
 
 
@@ -489,16 +460,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p><code>dates.add_interval(dates, x, dur_length)</code></p>
-<p>Add years, quarters, months, or weeks to a vector of dates</p>
+<p><code>exp_shiny.exp_shiny(self, predictors=None, expected=None, distinct_max=25, title=None, credibility=True, conf_level=0.95, cred_r=0.05, bootswatch_theme=None, col_exposure='exposure')</code></p>
+<p>Interactively explore experience data</p>
+<p>Launch a Shiny application to interactively explore drivers of experience.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 9%">
-<col style="width: 65%">
-<col style="width: 17%">
-<col style="width: 8%">
+<col style="width: 6%">
+<col style="width: 11%">
+<col style="width: 77%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -510,274 +482,127 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
+<td><code>predictors</code></td>
+<td>str | list | numpy.numpy.ndarray</td>
+<td>A character vector of independent variables in the <code>data</code> property to include in the shiny app.</td>
+<td><code>None</code></td>
 </tr>
 <tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
+<td><code>expected</code></td>
+<td>str | list | numpy.numpy.ndarray</td>
+<td>A character vector of expected values in the <code>data</code> property to include in the shiny app.</td>
+<td><code>None</code></td>
 </tr>
 <tr class="odd">
-<td><code>dur_length</code></td>
-<td>(year, quarter, month, week)</td>
-<td>Duration length</td>
-<td><code>'year'</code></td>
+<td><code>distinct_max</code></td>
+<td>int</td>
+<td>Maximum number of distinct values allowed for <code>predictors</code> to be included as “Color” and “Facets” grouping variables. This input prevents the drawing of overly complex plots. Default value = 25.</td>
+<td><code>25</code></td>
+</tr>
+<tr class="even">
+<td><code>title</code></td>
+<td>str</td>
+<td>Title of the Shiny app. If no title is provided, a descriptive title will be generated based on attributes of the <code>ExposedDF</code> object.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td><code>credibility</code></td>
+<td>bool</td>
+<td>If <code>True</code>, future calls to <code>summary()</code> will include partial credibility weights and credibility-weighted termination rates.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td><code>conf_level</code></td>
+<td>float</td>
+<td>Confidence level used for the Limited Fluctuation credibility method and confidence intervals.</td>
+<td><code>0.95</code></td>
+</tr>
+<tr class="odd">
+<td><code>cred_r</code></td>
+<td>float</td>
+<td>Error tolerance under the Limited Fluctuation credibility method.</td>
+<td><code>0.05</code></td>
+</tr>
+<tr class="even">
+<td><code>bootswatch_theme</code></td>
+<td>str</td>
+<td>The name of a preset bootswatch theme passed to shinyswatch.get_theme.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td><code>col_exposure</code></td>
+<td>str</td>
+<td>Name of the column in the <code>data</code> property containing exposures. This input is only used to clarify the exposure basis when the <code>ExposedDF</code> is also a <code>SplitExposedDF</code> object. For more information on split exposures, see ExposedDF.expose_split().</td>
+<td><code>'exposure'</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns" class="level2">
-<h2 class="anchored" data-anchor-id="returns">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also" class="level2">
-<h2 class="anchored" data-anchor-id="see-also">See Also</h2>
-<p>add_yr, add_qtr, add_mth, add_wk</p>
+<section id="notes" class="level2">
+<h2 class="anchored" data-anchor-id="notes">Notes</h2>
+<p>If transactions have been attached to the <code>ExposedDF</code> object, the app will contain features for both termination and transaction studies. Otherwise, the app will only support termination studies.</p>
+<p>If nothing is passed to <code>predictors</code>, all columns names in <code>dat</code> will be used (excluding the policy number, status, termination date, exposure, transaction counts, and transaction amounts columns).</p>
+<p>The <code>expected</code> argument is optional. As a default, any column names containing the word “expected” are used.</p>
+<p><strong>Layout</strong></p>
+<p><em>Filters</em></p>
+<p>The sidebar contains filtering widgets organized by data type for all variables passed to the <code>predictors</code> argument.</p>
+<p>At the top of the sidebar, information is shown on the percentage of records remaining after applying filters. A description of all active filters is also provided.</p>
+<p>The top of the sidebar also includes a “play / pause” switch that can pause reactivity of the application. Pausing is a good option when multiple changes are made in quick succession, especially when the underlying data set is large.</p>
+<p><em>Grouping variables</em></p>
+<p>This box includes widgets to select grouping variables for summarizing experience. The “x” widget is also used as the x variable in the plot output. Similarly, the “Color” and “Facets” widgets are used for color and facets. Multiple faceting variables are allowed. For the table output, “x”, “Color”, and “Facets” have no particular meaning beyond the order in which of grouping variables are displayed.</p>
+<p><em>Study type</em></p>
+<p>This box includes a toggle to switch between termination studies and transaction studies (if available). Different options are available for each study type.</p>
+<p>Termination studies</p>
+<p>The expected values checkboxes are used to activate and deactivate expected values passed to the <code>expected</code> argument. This impacts the table output directly and the available “y” variables for the plot. If there are no expected values available, this widget will not appear. The “Weight by” widget is used to specify which column, if any, contains weights for summarizing experience.</p>
+<p>Transaction studies</p>
+<p>The transaction types checkboxes are used to activate and deactivate transaction types that appear in the plot and table outputs. The available transaction types are taken from the <code>trx_types</code> property of the <code>ExposedDF</code> object. In the plot output, transaction type will always appear as a faceting variable. The “Transactions as % of” selector will expand the list of available “y” variables for the plot and impact the table output directly. Lastly, a checkbox exists that allows for all transaction types to be aggregated into a single group.</p>
+<p><em>Output</em></p>
+<p>Plot</p>
+<p>This tab includes a plot and various options for customization:</p>
+<ul>
+<li>y: y variable</li>
+<li>Geometry: plotting geometry</li>
+<li>Add Smoothing: activate to plot loess curves</li>
+<li>Confidence intervals: If available, add error bars for confidence intervals around the selected y variable</li>
+<li>Free y Scales: activate to enable separate y scales in each plot</li>
+<li>Log y-axis: activate to plot all y-axes on a log-10 scale</li>
+</ul>
+<p>The gear icon above the plot contains a pop-up menu that can be used to change the size of the plot for exporting.</p>
+<p>Table</p>
+<p>The gear icon above the table contains a pop-up menu that can be used to change the appearance of the table:</p>
+<ul>
+<li>The “Confidence intervals” and “Credibility-weighted termination rates” switches add these outputs to the table. These values are hidden as a default to prevent over-crowding.</li>
+<li>The “Include color scales” switch disables or re-enables conditional color formatting.</li>
+<li>The “Decimals” slider controls the number of decimals displayed for percentage fields.</li>
+<li>The “Font size multiple” slider impacts the table’s font size</li>
+</ul>
+<p>Export</p>
+<p>This pop-up menu contains options for saving summarized experience data or the plot. Data is saved as a CSV file. The plot is saved as a png file.</p>
 </section>
 <section id="examples" class="level2">
 <h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>xp.add_interval([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">16</span>, <span class="dv">15</span>], <span class="st">'year'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="1">
-<pre><code>array(['2024-03-14T00:00:00.000000000', '2023-03-14T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
-</div>
-</section>
-<section id="actxps.dates.add_yr" class="level1">
-<h1>add_yr</h1>
-<p><code>dates.add_yr(dates, x)</code></p>
-<p>Add years to a vector of dates</p>
-<section id="parameters-1" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-1">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 67%">
-<col style="width: 18%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-1" class="level2">
-<h2 class="anchored" data-anchor-id="returns-1">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also-1" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-1">See Also</h2>
-<p>add_interval</p>
-</section>
-<section id="examples-1" class="level2">
-<h2 class="anchored" data-anchor-id="examples-1">Examples</h2>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>xp.add_yr([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">16</span>, <span class="dv">15</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="2">
-<pre><code>array(['2024-03-14T00:00:00.000000000', '2023-03-14T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
-</div>
-</section>
-</section>
-<section id="actxps.dates.add_qtr" class="level1">
-<h1>add_qtr</h1>
-<p><code>dates.add_qtr(dates, x)</code></p>
-<p>Add quarters to a vector of dates</p>
-<section id="parameters-2" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-2">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 67%">
-<col style="width: 18%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-2" class="level2">
-<h2 class="anchored" data-anchor-id="returns-2">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also-2" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-2">See Also</h2>
-<p>add_interval</p>
-</section>
-<section id="examples-2" class="level2">
-<h2 class="anchored" data-anchor-id="examples-2">Examples</h2>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>xp.add_qtr([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">64</span>, <span class="dv">60</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="3">
-<pre><code>array(['2024-03-14T00:00:00.000000000', '2023-03-14T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
-</div>
-</section>
-</section>
-<section id="actxps.dates.add_mth" class="level1">
-<h1>add_mth</h1>
-<p><code>dates.add_mth(dates, x)</code></p>
-<p>Add months to a vector of dates</p>
-<section id="parameters-3" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-3">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 67%">
-<col style="width: 18%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-3" class="level2">
-<h2 class="anchored" data-anchor-id="returns-3">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also-3" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-3">See Also</h2>
-<p>add_interval</p>
-</section>
-<section id="examples-3" class="level2">
-<h2 class="anchored" data-anchor-id="examples-3">Examples</h2>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>xp.add_mth([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">192</span>, <span class="dv">180</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>array(['2024-03-14T00:00:00.000000000', '2023-03-14T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
-</div>
-</section>
-</section>
-<section id="actxps.dates.add_wk" class="level1">
-<h1>add_wk</h1>
-<p><code>dates.add_wk(dates, x)</code></p>
-<p>Add weeks to a vector of dates</p>
-<section id="parameters-4" class="level2">
-<h2 class="anchored" data-anchor-id="parameters-4">Parameters</h2>
-<table class="table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 67%">
-<col style="width: 18%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>dates</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex | pandas.pandas.Series</td>
-<td>Dates</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td><code>x</code></td>
-<td>int | pandas.pandas.Series | numpy.numpy.ndarray</td>
-<td>Number of periods to add</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-4" class="level2">
-<h2 class="anchored" data-anchor-id="returns-4">Returns</h2>
-<p>np.ndarray</p>
-</section>
-<section id="see-also-4" class="level2">
-<h2 class="anchored" data-anchor-id="see-also-4">See Also</h2>
-<p>add_interval</p>
-</section>
-<section id="examples-4" class="level2">
-<h2 class="anchored" data-anchor-id="examples-4">Examples</h2>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>xp.add_wk([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>], [<span class="dv">835</span>, <span class="dv">783</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<pre><code>array(['2024-03-15T00:00:00.000000000', '2023-03-17T00:00:00.000000000'],
-      dtype='datetime64[ns]')</code></pre>
-</div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>account_vals <span class="op">=</span> xp.load_account_vals()</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF(census_dat, <span class="st">"2019-12-31"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                    target_status <span class="op">=</span> <span class="st">"Surrender"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                                [<span class="fl">.2</span>, <span class="fl">.15</span>], np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>expo.data[<span class="st">'expected_1'</span>] <span class="op">=</span> expected_table[expo.data.pol_yr <span class="op">-</span> <span class="dv">1</span>]</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>expo.data[<span class="st">'expected_2'</span>] <span class="op">=</span> np.where(expo.data.inc_guar, <span class="fl">0.015</span>, <span class="fl">0.03</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>expo.data <span class="op">=</span> expo.data.merge(account_vals, how<span class="op">=</span><span class="st">'left'</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                            on<span class="op">=</span>[<span class="st">"pol_num"</span>, <span class="st">"pol_date_yr"</span>])</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> expo.exp_shiny(expected<span class="op">=</span>[<span class="st">'expected_1'</span>, <span class="st">'expected_2'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

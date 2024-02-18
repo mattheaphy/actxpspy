@@ -160,7 +160,8 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#v0.0.0.9000-2023-12-14" id="toc-v0.0.0.9000-2023-12-14" class="nav-link active" data-scroll-target="#v0.0.0.9000-2023-12-14">v0.0.0.9000 (2023-12-14)</a></li>
+  <li><a href="#v0.0.1-2024-02-18" id="toc-v0.0.1-2024-02-18" class="nav-link active" data-scroll-target="#v0.0.1-2024-02-18">v0.0.1 (2024-02-18)</a></li>
+  <li><a href="#v0.0.0.9000-2023-12-14" id="toc-v0.0.0.9000-2023-12-14" class="nav-link" data-scroll-target="#v0.0.0.9000-2023-12-14">v0.0.0.9000 (2023-12-14)</a></li>
   </ul>
 </nav>
     </div>
@@ -184,6 +185,34 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
+<section id="v0.0.1-2024-02-18" class="level2">
+<h2 class="anchored" data-anchor-id="v0.0.1-2024-02-18">v0.0.1 (2024-02-18)</h2>
+<ul>
+<li><p>Several updates to align with the R version of actxps</p>
+<ul>
+<li>Added optional confidence interval outputs to <code>ExpStats</code> and <code>TrxStats</code> objects</li>
+<li>Added an <code>expose_split()</code> method to <code>ExposedDF</code> classes, which divides calendar period exposures into pre- and post-policy anniversary segments. This creates a <code>SplitExposedDF</code> object, which is a subclass of <code>ExposedDF</code>.</li>
+<li>Added special plotting functions <code>ExpStats.plot_termination_rates()</code>, <code>ExpStats.plot_actual_to_expected()</code>, and <code>TrxStats.plot_utilization_rates()</code></li>
+<li>Added <code>from_DataFrame</code> class methods to ExpStats and TrxStats objects that enables the creation of experience summary objects pre-aggregated data sets.</li>
+<li>Added the <code>great_tables</code> package as the backend for table() methods</li>
+<li>Shiny UI updates<br>
+</li>
+<li>Added a ‘points’ geom, log 10 y-axis, and confidence interval options to plot methods</li>
+<li>Added sample data for pre-aggregated exposures (<code>load_agg_sim_dat()</code>)</li>
+<li>Bug fix - the target status wasn’t being fully exposed when using calendar period exposures</li>
+<li>The assumed default status on <code>ExposedDF</code> objects is now the most common status instead of the first observed status.</li>
+<li>Added helper background functions for column selection</li>
+<li>Added several articles to the package’s website</li>
+</ul></li>
+<li><p>Current differences from the R version are:</p>
+<ul>
+<li>No support for plotting a second variable on the y-axis for <code>.plot()</code> methods</li>
+<li>No predictive modeling support function (<code>add_predictions()</code>, <code>step_expose()</code>)</li>
+<li>Table output cannot be saved to a png directly in the shiny app</li>
+<li>functions like <code>pol_interval()</code> don’t accept arbitrary durations. Only ‘year’, ‘quarter’, ‘month’, or ‘week’ are allowed.</li>
+</ul></li>
+</ul>
+</section>
 <section id="v0.0.0.9000-2023-12-14" class="level2">
 <h2 class="anchored" data-anchor-id="v0.0.0.9000-2023-12-14">v0.0.0.9000 (2023-12-14)</h2>
 <ul>

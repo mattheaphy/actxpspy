@@ -147,7 +147,7 @@ def _plot_experience(xp_obj,
          scale_y_continuous(labels=y_labels, trans=y_trans))
 
     global _use_default_colors
-    if _use_default_colors and color is not None:
+    if _use_default_colors and (color or 'color' in mapping.keys()) is not None:
         colors = ["#1367D4", "#7515EB", "#EB15E4", "#1AC4F2",
                   "#1FF2C1", "#C6E531", "#FFA13D", "#FF7647"]
         p = (p +

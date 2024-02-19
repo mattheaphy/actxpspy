@@ -118,7 +118,7 @@ income rider.
 
 ``` python
 exp_res = (exposed_data.
-           groupby('pol_yr', 'inc_guar').
+           group_by('pol_yr', 'inc_guar').
            exp_stats())
 
 exp_res
@@ -164,7 +164,7 @@ exposed_data.data['expected_2'] = \
     np.where(exposed_data.data.inc_guar, 0.015, 0.03)
 
 exp_res = (exposed_data.
-           groupby('pol_yr', 'inc_guar').
+           group_by('pol_yr', 'inc_guar').
            exp_stats(expected = ["expected_1", "expected_2"]))
 
 exp_res

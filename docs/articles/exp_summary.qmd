@@ -77,14 +77,14 @@ amount / sum_expo
 
 ### Grouped data
 
-If the data is grouped using the `groupby()` method, future calls to `exp_stats()` will contain one record for each unique group.
+If the data is grouped using the `group_by()` method, future calls to `exp_stats()` will contain one record for each unique group.
 
 In the following, `exposed_data` is grouped by policy year before `exp_stats()` is called. This results in one row per policy year found in the data.
 
 ```{python}
 #| label: grouped-1
 (exposed_data.
-    groupby('pol_yr').
+    group_by('pol_yr').
     exp_stats())
 ```
 
@@ -93,11 +93,11 @@ Multiple grouping variables are allowed. Below, the presence of an income guaran
 ```{python}
 #| label: grouped-2
 (exposed_data.
-    groupby('inc_guar', 'pol_yr').
+    group_by('inc_guar', 'pol_yr').
     exp_stats())
 ```
 
-Grouping persists after `groupby()` is called. To remove groups, the `ungroup()` method can be used.
+Grouping persists after `group_by()` is called. To remove groups, the `ungroup()` method can be used.
 
 ```{python}
 # check groups
@@ -128,7 +128,7 @@ exposed_data2.data['exposure'] = np.where(
     exposed_data2.data.status == "Death", 1,
     exposed_data2.data.exposure)
 
-(exposed_data2.groupby('pol_yr').
+(exposed_data2.group_by('pol_yr').
     exp_stats(target_status=["Surrender", "Death"]))
 
 ```
@@ -143,7 +143,7 @@ Our sample data contains a column called `premium` that we can weight by. When w
 ```{python}
 #  label: weight-res
 (exposed_data.
-    groupby('pol_yr').
+    group_by('pol_yr').
     exp_stats(wt='premium'))
 ```
 
@@ -175,7 +175,7 @@ exposed_data.data['expected_2'] = \
     np.where(exposed_data.data.inc_guar, 0.015, 0.03)
 
 exp_res = (exposed_data.
-           groupby("pol_yr", "inc_guar").
+           group_by("pol_yr", "inc_guar").
            exp_stats(expected=["expected_1", "expected_2"]))
 
 exp_res.data[['pol_yr', 'inc_guar', 'q_obs', 'expected_1', 'expected_2',
@@ -187,7 +187,7 @@ As noted above, if weights are passed to `exp_stats()` then A/E ratios will also
 ```{python}
 #| label: act-exp-wt
 exp_res_wt = (exposed_data.
-              groupby('pol_yr', 'inc_guar').
+              group_by('pol_yr', 'inc_guar').
               exp_stats(expected=["expected_1", "expected_2"],
                         wt="premium"))
 
@@ -202,7 +202,7 @@ If the `credibility` argument is set to `True`, `exp_stats()` will produce an es
 ```{python}
 #| label: cred1
 (exposed_data.
-    groupby('pol_yr', 'inc_guar').
+    group_by('pol_yr', 'inc_guar').
     exp_stats(credibility=True).
     data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility']])
 ```
@@ -212,7 +212,7 @@ Under the default arguments, credibility calculations assume a 95% confidence of
 ```{python}
 #| label: cred2
 (exposed_data.
-    groupby('pol_yr', 'inc_guar').
+    group_by('pol_yr', 'inc_guar').
     exp_stats(credibility=True, conf_level=0.98, cred_r=0.03).
     data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility']])
 ```
@@ -233,7 +233,7 @@ where,
 ```{python}
 #| label: cred3
 (exposed_data.
-    groupby('pol_yr', 'inc_guar').
+    group_by('pol_yr', 'inc_guar').
     exp_stats(credibility=True, expected='expected_1').
     data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility',
        'adj_expected_1', 'expected_1', 'ae_expected_1']])
@@ -247,7 +247,7 @@ If `conf_int` is set to `True`, `exp_stats()` will produce lower and upper confi
 ```{python}
 #| label: conf1
 (exposed_data.
-    groupby('pol_yr', 'inc_guar').
+    group_by('pol_yr', 'inc_guar').
     exp_stats(conf_int=True).
     data[['pol_yr', 'inc_guar', 'q_obs', 'q_obs_lower', 'q_obs_upper']])
 ```
@@ -265,7 +265,7 @@ The default confidence level is 95%. This can be changed using the `conf_level` 
 ```{python}
 #| label: conf2
 (exposed_data.
-    groupby('pol_yr', 'inc_guar').
+    group_by('pol_yr', 'inc_guar').
     exp_stats(conf_int = True, conf_level = 0.9).
     data[['pol_yr', 'inc_guar', 'q_obs', 'q_obs_lower', 'q_obs_upper']])
 ```
@@ -275,7 +275,7 @@ If expected values are passed to `expected`, the output will also contain confid
 ```{python}
 #| label: conf3
 (exposed_data.
-    groupby('pol_yr', 'inc_guar').
+    group_by('pol_yr', 'inc_guar').
     exp_stats(conf_int = True, expected='expected_1').
     data[['pol_yr', 'inc_guar', 'ae_expected_1', 
           'ae_expected_1_lower', 'ae_expected_1_lower']])

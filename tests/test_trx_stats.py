@@ -17,7 +17,7 @@ expo.data = expo.data.merge(account_vals, how='left',
                             on=["pol_num", "pol_date_yr"])
 
 res = (expo.
-       groupby('pol_yr', 'inc_guar').
+       group_by('pol_yr', 'inc_guar').
        trx_stats(percent_of=["av_anniv", "premium"],
                  conf_int=True))
 # results with non-zero transactions only
@@ -88,7 +88,7 @@ class TestTrxStats():
 
     def test_part_expo_lte_full_expo(self):
         assert all(res.data.exposure <=
-                   (expo.groupby('pol_yr', 'inc_guar').
+                   (expo.group_by('pol_yr', 'inc_guar').
                     trx_stats(full_exposures_only=False).data.exposure))
 
     def test_combine_single_trx(self):
@@ -112,7 +112,7 @@ class TestTrxStats():
 res2 = deepcopy(res)
 res2.data = res2.data[res2.data.trx_util > 0]
 less_confident = (expo.
-                  groupby('pol_yr', 'inc_guar').
+                  group_by('pol_yr', 'inc_guar').
                   trx_stats(percent_of=["av_anniv", "premium"],
                             conf_int=True, conf_level=0.5))
 less_confident.data = less_confident.data[less_confident.data.trx_util > 0]

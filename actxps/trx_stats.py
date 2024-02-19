@@ -91,7 +91,7 @@ class TrxStats():
 
     Notes
     ----------
-    If the `ExposedDF` object is grouped (see the `groupby()` method), the
+    If the `ExposedDF` object is grouped (see the `group_by()` method), the
     returned `TrxStats` object's data will contain one row per group.
 
     Any number of transaction types can be passed to the `trx_types` 
@@ -589,7 +589,7 @@ class TrxStats():
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        trx_res = (expo.groupby('inc_guar', 'pol_yr').
+        trx_res = (expo.group_by('inc_guar', 'pol_yr').
                    trx_stats(percent_of='premium'))
         trx_res.summary('inc_guar')
         ```            
@@ -706,7 +706,7 @@ class TrxStats():
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        trx_res = (expo.groupby('pol_yr').
+        trx_res = (expo.group_by('pol_yr').
                    trx_stats(percent_of='premium'))
 
         trx_res.plot()
@@ -752,7 +752,7 @@ class TrxStats():
         expo.data = expo.data.merge(account_vals, how='left',
                                     on=["pol_num", "pol_date_yr"])        
 
-        trx_res = (expo.groupby('pol_yr').
+        trx_res = (expo.group_by('pol_yr').
                    trx_stats(percent_of='av_anniv', combine_trx=True))
 
         trx_res.plot_utilization_rates()
@@ -854,7 +854,7 @@ class TrxStats():
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        trx_res = (expo.groupby('pol_yr').
+        trx_res = (expo.group_by('pol_yr').
                    trx_stats(percent_of='premium'))
 
         trx_res.table()

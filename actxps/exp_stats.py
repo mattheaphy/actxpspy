@@ -89,7 +89,7 @@ class ExpStats():
 
     Notes
     ----------
-    If `expo` is grouped (see the `ExposedDF.groupby()` method),
+    If `expo` is grouped (see the `ExposedDF.group_by()` method),
     the returned `ExpStats` object's data will contain one row per group.
 
     If nothing is passed to `target_status`, the `target_status` property
@@ -617,7 +617,7 @@ class ExpStats():
         exp_res = (xp.ExposedDF(xp.load_census_dat(),
                                 "2019-12-31", 
                                 target_status="Surrender").
-                   groupby('pol_yr', 'inc_guar').
+                   group_by('pol_yr', 'inc_guar').
                    exp_stats())
 
         exp_res.summary('inc_guar')
@@ -738,7 +738,7 @@ class ExpStats():
         exp_res = (xp.ExposedDF(xp.load_census_dat(),
                                 "2019-12-31", 
                                 target_status="Surrender").
-                   groupby('pol_yr').
+                   group_by('pol_yr').
                    exp_stats())
 
         exp_res.plot()
@@ -781,7 +781,7 @@ class ExpStats():
         expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
 
         exp_res = (expo.
-                   groupby('pol_yr').
+                   group_by('pol_yr').
                    exp_stats(expected=['expected_1', 'expected_2']))
 
         exp_res.plot_termination_rates()
@@ -831,7 +831,7 @@ class ExpStats():
         expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
 
         exp_res = (expo.
-                   groupby('pol_yr').
+                   group_by('pol_yr').
                    exp_stats(expected=['expected_1', 'expected_2']))
 
         exp_res.plot_actual_to_expected()
@@ -941,7 +941,7 @@ class ExpStats():
             np.where(expo.data.inc_guar, 0.015, 0.03)
 
         exp_res = (expo.
-                   groupby('pol_yr').
+                   group_by('pol_yr').
                    exp_stats(expected=['expected_1', 'expected_2'],
                              credibility=True))
 

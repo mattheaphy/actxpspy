@@ -58,7 +58,7 @@ Below, an `ExpStats` object is created using `exp_stats()`.
 ```{python}
 #| label: plot-data
 exp_res = (exposed_data.
-           groupby('pol_yr').
+           group_by('pol_yr').
            exp_stats(conf_int=True))
 ```
 
@@ -75,7 +75,7 @@ If there is a second grouping variable, it is mapped onto color.
 ```{python}
 #| label: plot-color
 (exposed_data.
-    groupby('pol_yr', 'inc_guar').
+    group_by('pol_yr', 'inc_guar').
     exp_stats().
     plot())
 ```
@@ -85,7 +85,7 @@ Any additional grouping variables beyond two are used to create facets.
 ```{python}
 #| label: plot-facets
 exp_res2 = (exposed_data. 
-    groupby('pol_yr', 'product', 'inc_guar').
+    group_by('pol_yr', 'product', 'inc_guar').
     exp_stats())
 
 exp_res2.plot()
@@ -175,7 +175,7 @@ In the example below, a new `ExpStats` object is created that contains two sets 
 ```{python}
 #| label: plot-term-1
 exp_res3 = (exposed_data .
-            groupby('pol_yr').
+            group_by('pol_yr').
             exp_stats(expected=["expected_1", "expected_2"], credibility=True))
 
 exp_res3.plot_termination_rates()
@@ -224,7 +224,7 @@ In addition to the above, facets are also created for each transaction type foun
 ```{python}
 # | label: trx-plot
 trx_res = (exposed_data .
-           groupby('pol_yr', 'inc_guar').
+           group_by('pol_yr', 'inc_guar').
            trx_stats(percent_of="premium"))
 
 trx_res.plot(y='pct_of_premium_all')

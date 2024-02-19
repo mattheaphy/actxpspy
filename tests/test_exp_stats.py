@@ -20,11 +20,11 @@ study_py.data['expected_2'] = np.where(study_py.data.inc_guar, 0.015, 0.03)
 study_py.data['weights'] = np.abs(
     np.random.normal(100, 50, len(study_py.data)))
 
-exp_res = study_py.groupby('pol_yr', 'inc_guar').\
+exp_res = study_py.group_by('pol_yr', 'inc_guar').\
     exp_stats(expected=["expected_1", "expected_2"], credibility=True,
               conf_int=True)
 
-exp_res_weighted = study_py.groupby('pol_yr', 'inc_guar').\
+exp_res_weighted = study_py.group_by('pol_yr', 'inc_guar').\
     exp_stats(expected=["expected_1", "expected_2"], credibility=True,
               wt='weights', conf_int=True)
 
@@ -111,7 +111,7 @@ class TestExpConfInt():
 
     # verify that confidence intervals are tighter using lower confidence
     def test_lower_confidence(self):
-        less_confident = (study_py.groupby('pol_yr', 'inc_guar').
+        less_confident = (study_py.group_by('pol_yr', 'inc_guar').
                           exp_stats(expected=["expected_1", "expected_2"],
                                     credibility=True, conf_int=True,
                                     conf_level=0.5))

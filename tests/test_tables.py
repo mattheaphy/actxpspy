@@ -10,7 +10,7 @@ expo = ExposedDF.expose_py(census_dat, "2019-12-31",
                            target_status="Surrender")
 expo.add_transactions(xp.load_withdrawals())
 expo.data['q_exp'] = np.where(expo.data.inc_guar, 0.015, 0.03)
-expo.groupby('pol_yr', 'inc_guar')
+expo.group_by('pol_yr', 'inc_guar')
 
 exp_res = expo.exp_stats()
 exp_res2 = expo.exp_stats(wt="premium", credibility=True,

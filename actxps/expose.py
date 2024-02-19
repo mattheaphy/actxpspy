@@ -670,7 +670,7 @@ class ExposedDF():
 
         return repr
 
-    def groupby(self, *by):
+    def group_by(self, *by):
         """
         Set grouping variables for summary methods like `exp_stats()` and
         `trx_stats()`.
@@ -682,7 +682,7 @@ class ExposedDF():
 
         Notes
         ----------
-        This function will not directly apply the `DataFrame.groupby()` method
+        This function will not directly apply the `DataFrame.group_by()` method
         to the `data` property. Instead, it will set the `groups` property of
         the `ExposedDF` object. The `groups` property is subsequently used to
         group data within summary methods like `exp_stats()` and `trx_stats()`.
@@ -749,7 +749,7 @@ class ExposedDF():
 
         Notes
         ----------
-        If the `ExposedDF` object is grouped (see the `groupby()` method), the
+        If the `ExposedDF` object is grouped (see the `group_by()` method), the
         returned `ExpStats` object's data will contain one row per group.
 
         If nothing is passed to `target_status`, the `target_status` property
@@ -826,7 +826,7 @@ class ExposedDF():
         (xp.ExposedDF(xp.load_census_dat(),
                       "2019-12-31", 
                       target_status="Surrender").
-                   groupby('pol_yr', 'inc_guar').
+                   group_by('pol_yr', 'inc_guar').
                    exp_stats(conf_int=True))
         ```        
         """
@@ -992,7 +992,7 @@ class ExposedDF():
 
         Notes
         ----------
-        If the `ExposedDF` object is grouped (see the `groupby()` method), the
+        If the `ExposedDF` object is grouped (see the `group_by()` method), the
         returned `TrxStats` object's data will contain one row per group.
 
         Any number of transaction types can be passed to the `trx_types` 
@@ -1102,9 +1102,9 @@ class ExposedDF():
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        expo.groupby('inc_guar').trx_stats(percent_of="premium",
-                                           combine_trx=True,
-                                           conf_int=True)
+        expo.group_by('inc_guar').trx_stats(percent_of="premium",
+                                            combine_trx=True,
+                                            conf_int=True)
         ```            
         """
         from actxps.trx_stats import TrxStats

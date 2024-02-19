@@ -882,7 +882,7 @@ def exp_shiny(self,
 
             if input.study_type() == "exp":
                 return (expo.
-                        groupby(*groups).
+                        group_by(*groups).
                         exp_stats(wt=wt,
                                   credibility=credibility,
                                   expected=ex,
@@ -891,7 +891,7 @@ def exp_shiny(self,
                                   conf_int=True))
             else:
                 return (expo.
-                        groupby(*groups).
+                        group_by(*groups).
                         trx_stats(percent_of=list(input.pct_checks()),
                                   trx_types=list(input.trx_types_checks()),
                                   combine_trx=input.trx_combine(),

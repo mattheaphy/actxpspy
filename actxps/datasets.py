@@ -1,9 +1,11 @@
 from importlib import resources
+import polars as pl
 import pandas as pd
+from datetime import date
 from joblib import load
 
 
-def load_toy_census() -> pd.DataFrame:
+def load_toy_census() -> pl.DataFrame:
     """
     Toy policy census data
 
@@ -19,14 +21,14 @@ def load_toy_census() -> pd.DataFrame:
 
     Returns
     ----------
-    pd.DataFrame
+    pl.DataFrame
     """
     stream = resources.files('actxps').joinpath('data/toy_census.csv')
-    return pd.read_csv(stream,
-                       index_col=0,
-                       dtype={'pol_num': int,
-                              'status': 'category'},
-                       parse_dates=['issue_date', 'term_date'])
+    return pl.read_csv(stream,
+                       dtypes={'pol_num': int,
+                               'status': pl.Categorical,
+                               'issue_date': date,
+                               'term_date': date})
 
 
 def load_census_dat() -> pd.DataFrame:
@@ -165,15 +167,15 @@ def load_scale_g2():
 def load_agg_sim_dat():
     """
     Aggregate simulated annuity data
-    
+
     A pre-aggregated version of surrender and withdrawal experience from the
     simulated data sets `census_dat`, `withdrawals`, and `account_vals`. This
     data is theoretical only and does not represent the experience on any
     specific product. Experience is grouped by policy year, income guarantee 
     presence, tax-qualified status, and product.
-    
+
     A data frame with 180 rows and 16 columns:
-    
+
     - `pol_yr - Policy year
     - `inc_guar - Indicates whether the policy was issued with an income
       guarantee
@@ -194,11 +196,10 @@ def load_agg_sim_dat():
     - `wd_sq - Sum of squared partial withdrawal transactions
     - `av_w_wd - Sum of account value for exposure records with partial
       withdrawal transactions
-    
+
     See Also
     ----------
     load_census_dat(), load_withdrawals(), load_account_vals()
     """
     stream = resources.files('actxps').joinpath('data/agg_sim_dat')
     return load(stream)
-    

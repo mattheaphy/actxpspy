@@ -185,7 +185,7 @@ def pol_wk(dates: str | date | list | pl.Series,
     return pol_interval(dates, issue_date, 'week')
 
 
-def len2(x, default: int = 1) -> int:
+def _len2(x, default: int = 1) -> int:
     """
     Length function with non-iterables and strings returning 1
 
@@ -426,7 +426,7 @@ def _convert_date(x):
     This function should not be called directly.
     """
     if not isinstance(x, pl.Series):
-        if len2(x, None) is None:
+        if _len2(x, None) is None:
             x = [x]
         x = pl.Series(x)
     if not isinstance(x.dtype, pl.Date):

@@ -18,7 +18,7 @@ from actxps.col_select import (
     col_starts_with
 )
 from actxps.expose_split import _check_split_expose_basis
-from actxps.dates import len2
+from actxps.dates import _len2
 from plotnine import aes
 from great_tables import (
     GT,
@@ -763,7 +763,7 @@ class TrxStats():
             [f"pct_of_{x}_w_trx" for x in self.percent_of],
             self.data.columns))
 
-        if len2(self.groups) == 1:
+        if _len2(self.groups) == 1:
             kwargs.update({'color': '_no_color'})
 
         if 'facets' not in kwargs:

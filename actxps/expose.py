@@ -1,7 +1,8 @@
+import polars as pl
 import pandas as pd
 from pandas.tseries.offsets import Day
 import numpy as np
-from datetime import datetime
+from datetime import datetime, date
 from actxps.tools import (
     arg_match,
     _verify_col_names
@@ -22,11 +23,11 @@ class ExposedDF():
 
     Parameters
     ----------
-    data : pd.DataFrame
+    data : pl.DataFrame | pd.DataFrame
         A data frame with census-level records
-    end_date : datetime
+    end_date : date
         Experience study end date
-    start_date : datetime, default='1900-01-01'
+    start_date : date, default='1900-01-01'
         Experience study start date
     target_status : str | list | np.ndarray, default=`None`
         Target status values
@@ -41,7 +42,7 @@ class ExposedDF():
         name of the column in `data` containing the policy status
     col_issue_date : str, default='issue_date'
         name of the column in `data` containing the issue date
-    col_term_date str, default='term_date'
+    col_term_date : str, default='term_date'
         name of the column in `data` containing the termination date
     default_status : str, default=`None`
         Default active status code. If `None`, the most common status is
@@ -50,8 +51,8 @@ class ExposedDF():
 
     Attributes
     ----------
-    data : pd.DataFrame
-        A data frame with exposure level records. The results include all
+    data : pl.DataFrame
+        A Polars data frame with exposure level records. The results include all
         existing columns in the original input data plus new columns for
         exposures and observation periods. Observation periods include counters
         for policy exposures, start dates, and end dates. Both start dates and
@@ -143,14 +144,14 @@ class ExposedDF():
         "month": "mth",
         "week": "wk"
     }
-    
+
     from actxps.exp_shiny import exp_shiny
 
     @singledispatchmethod
     def __init__(self,
-                 data: pd.DataFrame,
-                 end_date: datetime,
-                 start_date: datetime = datetime(1900, 1, 1),
+                 data: pl.DataFrame | pd.DataFrame,
+                 end_date: date,
+                 start_date: date = date(1900, 1, 1),
                  target_status: str | list | np.ndarray = None,
                  cal_expo: bool = False,
                  expo_length: str = 'year',
@@ -373,35 +374,40 @@ class ExposedDF():
             self.trx_types = trx_types
 
     @classmethod
-    def expose_py(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_py(cls, data: pl.DataFrame | pd.DataFrame, 
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy year exposures
         """
         return cls(data, end_date, expo_length='year', **kwargs)
 
     @classmethod
-    def expose_pq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_pq(cls, data: pl.DataFrame | pd.DataFrame, 
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy quarter exposures
         """
         return cls(data, end_date, expo_length='quarter', **kwargs)
 
     @classmethod
-    def expose_pm(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_pm(cls, data: pl.DataFrame | pd.DataFrame, 
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy month exposures
         """
         return cls(data, end_date, expo_length='month', **kwargs)
 
     @classmethod
-    def expose_pw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_pw(cls, data: pl.DataFrame | pd.DataFrame, 
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy week exposures
         """
         return cls(data, end_date, expo_length='week', **kwargs)
 
     @classmethod
-    def expose_cy(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_cy(cls, data: pl.DataFrame | pd.DataFrame, 
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar year exposures
         """
@@ -409,7 +415,8 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_cq(cls, data: pl.DataFrame | pd.DataFrame, 
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar quarter exposures
         """
@@ -417,7 +424,8 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cm(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_cm(cls, data: pl.DataFrame | pd.DataFrame, 
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar month exposures
         """
@@ -425,7 +433,8 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_cw(cls, data: pl.DataFrame | pd.DataFrame, 
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar week exposures
         """
@@ -434,9 +443,9 @@ class ExposedDF():
 
     @classmethod
     def from_DataFrame(cls,
-                       data: pd.DataFrame,
-                       end_date: datetime,
-                       start_date: datetime = datetime(1900, 1, 1),
+                       data: pl.DataFrame | pd.DataFrame,
+                       end_date: date,
+                       start_date: date = date(1900, 1, 1),
                        target_status: str = None,
                        cal_expo: bool = False,
                        expo_length: str = 'year',
@@ -461,11 +470,11 @@ class ExposedDF():
 
         Parameters
         ----------
-        data : pd.DataFrame
+        data : pl.DataFrame | pd.DataFrame
             A data frame with exposure-level records
-        end_date : datetime
+        end_date : date
             Experience study end date
-        start_date : datetime, default='1900-01-01'
+        start_date : date, default='1900-01-01'
             Experience study start date
         target_status : str | list | np.ndarray, default=`None`
             Target status values
@@ -520,8 +529,8 @@ class ExposedDF():
         arg_match('expo_length', expo_length,
                   ["year", "quarter", "month", "week"])
 
-        assert isinstance(data, pd.DataFrame), \
-            '`data` must be a Pandas DataFrame'
+        assert isinstance(data, pl.DataFrame | pd.DataFrame), \
+            '`data` must be a DataFrame'
 
         # column name alignment
         data = data.rename(columns={
@@ -583,9 +592,9 @@ class ExposedDF():
     @__init__.register(str)
     def _special_init(self,
                       style,
-                      data: pd.DataFrame,
-                      end_date: datetime,
-                      start_date: datetime = datetime(1900, 1, 1),
+                      data: pl.DataFrame,
+                      end_date: date,
+                      start_date: date = date(1900, 1, 1),
                       target_status: str = None,
                       cal_expo: bool = False,
                       expo_length: str = 'year',
@@ -835,7 +844,7 @@ class ExposedDF():
                         credibility, conf_level, cred_r, col_exposure)
 
     def add_transactions(self,
-                         trx_data: pd.DataFrame,
+                         trx_data: pl.DataFrame | pd.DataFrame,
                          col_pol_num: str = "pol_num",
                          col_trx_date: str = "trx_date",
                          col_trx_type: str = "trx_type",
@@ -845,7 +854,7 @@ class ExposedDF():
 
         Parameters
         ----------
-        trx_data : pd.DataFrame
+        trx_data : pl.DataFrame | pd.DataFrame
             A data frame containing transactions details. This data frame must
             have columns for policy numbers, transaction dates, transaction
             types, and transaction amounts.
@@ -883,7 +892,7 @@ class ExposedDF():
         ```
         """
 
-        assert isinstance(trx_data, pd.DataFrame), \
+        assert isinstance(trx_data, pl.DataFrame | pd.DataFrame), \
             "`data` must be a DataFrame"
         date_cols = list(self.date_cols)
 
@@ -1111,6 +1120,7 @@ class ExposedDF():
         return TrxStats(self, trx_types, percent_of, combine_trx,
                         full_exposures_only,
                         conf_int, conf_level, col_exposure)
+
 
 def _most_common(x: pd.Series):
     """

@@ -1,6 +1,5 @@
 from importlib import resources
 import polars as pl
-import pandas as pd
 from datetime import date
 from joblib import load
 
@@ -31,7 +30,7 @@ def load_toy_census() -> pl.DataFrame:
                                'term_date': date})
 
 
-def load_census_dat() -> pd.DataFrame:
+def load_census_dat() -> pl.DataFrame:
     """
     Simulated annuity census data
 
@@ -55,13 +54,13 @@ def load_census_dat() -> pd.DataFrame:
 
     Returns
     ----------
-    pd.DataFrame
+    pl.DataFrame
     """
     stream = resources.files('actxps').joinpath('data/census_dat')
     return load(stream)
 
 
-def load_withdrawals() -> pd.DataFrame:
+def load_withdrawals() -> pl.DataFrame:
     """
     Simulated annuity withdrawal data
 
@@ -78,13 +77,13 @@ def load_withdrawals() -> pd.DataFrame:
 
     Returns
     ----------
-    pd.DataFrame
+    pl.DataFrame
     """
     stream = resources.files('actxps').joinpath('data/withdrawals')
     return load(stream)
 
 
-def load_account_vals() -> pd.DataFrame:
+def load_account_vals() -> pl.DataFrame:
     """
     Simulated annuity account value data
 
@@ -100,7 +99,7 @@ def load_account_vals() -> pd.DataFrame:
 
     Returns
     ----------
-    pd.DataFrame
+    pl.DataFrame
     """
     stream = resources.files('actxps').joinpath('data/account_vals')
     return load(stream)
@@ -121,7 +120,7 @@ def load_qx_iamb():
 
     Returns
     ----------
-    pd.DataFrame    
+    pl.DataFrame    
 
     References
     ----------
@@ -129,10 +128,10 @@ def load_qx_iamb():
     - [2012 Individual Annuity Reserving Table](https://www.actuary.org/sites/default/files/files/publications/Payout_Annuity_Report_09-28-11.pdf)
     """
     stream = resources.files('actxps').joinpath('data/qx_iamb.csv')
-    return pd.read_csv(stream, index_col=0,
-                       dtype={'age': int,
-                              'qx': float,
-                              'gender': str})
+    return pl.read_csv(stream, 
+                       dtypes={'age': int,
+                               'qx': float,
+                               'gender': str})
 
 
 def load_scale_g2():
@@ -150,7 +149,7 @@ def load_scale_g2():
 
     Returns
     ----------
-    pd.DataFrame
+    pl.DataFrame
 
     References
     ----------
@@ -158,13 +157,13 @@ def load_scale_g2():
     - [2012 Individual Annuity Reserving Table](https://www.actuary.org/sites/default/files/files/publications/Payout_Annuity_Report_09-28-11.pdf)
     """
     stream = resources.files('actxps').joinpath('data/scaleG2.csv')
-    return pd.read_csv(stream, index_col=0,
-                       dtype={'age': int,
-                              'mi': float,
-                              'gender': str})
+    return pl.read_csv(stream, 
+                       dtypes={'age': int,
+                               'mi': float,
+                               'gender': str})
 
 
-def load_agg_sim_dat():
+def load_agg_sim_dat() -> pl.DataFrame:
     """
     Aggregate simulated annuity data
 
@@ -196,6 +195,10 @@ def load_agg_sim_dat():
     - `wd_sq - Sum of squared partial withdrawal transactions
     - `av_w_wd - Sum of account value for exposure records with partial
       withdrawal transactions
+
+    Returns
+    ----------
+    pl.DataFrame      
 
     See Also
     ----------

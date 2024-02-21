@@ -1,13 +1,13 @@
 import polars as pl
 import pandas as pd
-from pandas.tseries.offsets import Day
 import numpy as np
-from datetime import datetime, date
+from datetime import date
 from actxps.tools import (
     arg_match,
-    _verify_col_names
+    _verify_col_names,
+    _check_convert_df
 )
-from actxps.dates import frac_interval, add_interval
+from actxps.dates import frac_interval, _date_str
 from warnings import warn
 from functools import singledispatchmethod
 from itertools import product
@@ -25,10 +25,12 @@ class ExposedDF():
     ----------
     data : pl.DataFrame | pd.DataFrame
         A data frame with census-level records
-    end_date : date
-        Experience study end date
-    start_date : date, default='1900-01-01'
-        Experience study start date
+    end_date : date | str
+        Experience study end date. If a string is passed, it must be in 
+        %Y-%m-%d format.
+    start_date : date | str, default=date(1900, 1, 1)
+        Experience study start date. If a string is passed, it must be in 
+        %Y-%m-%d format.
     target_status : str | list | np.ndarray, default=`None`
         Target status values
     cal_expo : bool, default=`False`
@@ -145,6 +147,14 @@ class ExposedDF():
         "week": "wk"
     }
 
+    # helper dictionary for polars interval abbreviations
+    abbr_pl = {
+        "year": "y",
+        "quarter": "q",
+        "month": "mo",
+        "week": "w"
+    }
+
     from actxps.exp_shiny import exp_shiny
 
     @singledispatchmethod
@@ -161,39 +171,34 @@ class ExposedDF():
                  col_term_date: str = "term_date",
                  default_status: str = None):
 
-        end_date = pd.to_datetime(end_date)
-        start_date = pd.to_datetime(start_date)
+        end_date = _date_str(end_date, "end_date")
+        start_date = _date_str(start_date, "start_date")
         target_status = np.atleast_1d(target_status)
+        abbrev = ExposedDF.abbr_period[expo_length]
+        interval = ExposedDF.abbr_pl[expo_length]
+
+        # convert data to polars dataframe if necessary
+        data = _check_convert_df(data)
 
         # column rename helper function
-        def rename_col(prefix: str,
-                       suffix: str = ""):
-            res = ExposedDF.abbr_period[expo_length]
-            return prefix + "_" + res + suffix
+        def rename_col(prefix: str, suffix: str = ""):
+            return prefix + "_" + abbrev + suffix
 
         # set up exposure period lengths
         arg_match('expo_length', expo_length,
                   ["year", "quarter", "month", "week"])
 
-        def per_frac(start, end): return frac_interval(start, end, expo_length)
-        def per_add(dates, x): return add_interval(dates, x, expo_length)
+        def per_frac(x):
+            return frac_interval(x.struct[0], x.struct[1], expo_length)
 
         if cal_expo:
-            match expo_length:
-                case 'year':
-                    floor_date = pd.offsets.YearBegin()
-
-                case 'quarter':
-                    floor_date = pd.offsets.QuarterBegin(startingMonth=1)
-
-                case 'month':
-                    floor_date = pd.offsets.MonthBegin()
-
-                case 'week':
-                    floor_date = pd.offsets.Week(weekday=6)
+            if expo_length != 'week':
+                floor_date = '1' + interval,
+            else:
+                floor_date = ('1' + interval, '-1d')
 
         # column renames and name conflicts
-        data = data.rename(columns={
+        data = data.rename({
             col_pol_num: 'pol_num',
             col_status: 'status',
             col_issue_date: 'issue_date',
@@ -201,16 +206,13 @@ class ExposedDF():
         })
 
         # check for potential name conflicts
-        abbrev = ExposedDF.abbr_period[expo_length]
-        x = np.array([
-            "exposure",
-            ("cal_" if cal_expo else "pol_") + abbrev,
-            'pol_date_' + abbrev if not cal_expo else None,
-            ('cal_' if cal_expo else 'pol_date_') + abbrev + '_end'
-        ])
+        x = {"exposure",
+             ("cal_" if cal_expo else "pol_") + abbrev,
+             'pol_date_' + abbrev if not cal_expo else None,
+             ('cal_' if cal_expo else 'pol_date_') + abbrev + '_end'}
 
-        x = x[np.isin(x, data.columns)]
-        data = data.drop(columns=x)
+        x = x.intersection(data.columns)
+        data = data.drop(x)
 
         if len(x) > 0:
             warn("`data` contains the following conflicting columns that "
@@ -219,60 +221,93 @@ class ExposedDF():
                  "`ExposedDF` object.")
 
         # set up default status
-        status_levels = data.status.unique()
+        status_levels = data['status'].unique().to_list()
         if default_status is None:
-            default_status = pd.Categorical(
-                [_most_common(data.status)],
-                categories=status_levels)
+            status_levels = pl.Enum(status_levels)
+            default_status = pl.Series([_most_common(data['status'])],
+                                       dtype=status_levels)
         else:
-            status_levels = np.union1d(status_levels, default_status)
-            default_status = pd.Categorical(
-                [default_status],
-                categories=status_levels
-            )
+            status_levels = list(set(status_levels).union([default_status]))
+            status_levels = pl.Enum(status_levels)
+            default_status = pl.Series([default_status],
+                                       dtype=status_levels)
 
         # pre-exposure updates
         # drop policies issued after the study end and
         #   policies that terminated before the study start
-        data = data.loc[(data.issue_date < end_date) &
-                        (data.term_date.isna() | (data.term_date > start_date))]
-        data.term_date = pd.to_datetime(
-            np.where(data.term_date > end_date,
-                     pd.NaT, data.term_date))
-        data.status = np.where(data.term_date.isna(),
-                               default_status, data.status)
-        data['last_date'] = data.term_date.fillna(end_date)
+        data = data.filter(
+            pl.col('issue_date') < end_date,
+            (pl.col('term_date').is_null()) | (
+                pl.col('term_date') > start_date)
+        ).with_columns(
+            term_date=(pl.when(pl.col('term_date') > end_date).
+                       then(None).
+                       otherwise(pl.col('term_date')))
+        ).with_columns(
+            status=(pl.when(pl.col('term_date').is_null()).
+                    then(default_status).
+                    otherwise(pl.col('status').cast(status_levels))),
+            last_date=pl.col('term_date').fill_null(end_date)
+        )
 
         if cal_expo:
 
-            start_dates = pd.Series(np.repeat(start_date, len(data)),
-                                    index=data.index)
-            data['first_date'] = np.maximum(data.issue_date, start_dates)
-            data['cal_b'] = data.first_date + Day() - floor_date
-            data['tot_per'] = per_frac((data.cal_b - Day()), data.last_date)
+            start_dates = pl.Series(pl.repeat(start_date, len(data),
+                                              eager=True))
+            data = data.with_columns(
+                first_date=pl.max_horizontal('issue_date', start_dates),
+            ).with_columns(
+                cal_b=pl.col('first_date').dt.truncate(*floor_date)
+            ).with_columns(
+                tot_per=pl.struct(pl.col('cal_b').dt.offset_by('-1d'),
+                                  pl.col('last_date')).
+                map_batches(per_frac)
+            )
 
         else:
-            data['tot_per'] = per_frac((data.issue_date - Day()),
-                                       data.last_date)
+            data = data.with_columns(
+                tot_per=pl.struct(pl.col('issue_date').dt.offset_by('-1d'),
+                                  pl.col('last_date')).
+                map_batches(per_frac)
+            )
 
-        data['rep_n'] = np.ceil(data.tot_per)
+        data = (data.with_columns(rep_n=pl.col('tot_per').ceil()).
+                with_row_index('index'))
 
         # apply exposures
-        ndx = data.index
-        data = data.loc[np.repeat(ndx, data.rep_n)].reset_index(drop=True)
-        data['time'] = data.groupby('pol_num').cumcount() + 1
-        data['last_per'] = data.time == data.rep_n
-        data.status = np.where(data.last_per, data.status, default_status)
-        data.term_date = pd.to_datetime(
-            np.where(data.last_per, data.term_date, pd.NaT))
+        data = (
+            data[np.repeat(data['index'], data['rep_n'])].
+            with_columns(
+                time=pl.cum_count('index').over('pol_num')
+            ).
+            with_columns(
+                last_per=pl.col('time') == pl.col('rep_n')
+            ).
+            with_columns(
+                status=(pl.when(pl.col('last_per')).
+                        then(pl.col('status')).
+                        otherwise(default_status)),
+                term_date=(pl.when(pl.col('last_per')).
+                           then(pl.col('term_date')).
+                           otherwise(None))
+            ).
+            drop('index'))
 
         if cal_expo:
-            data['first_per'] = data.time == 1
-            # necessary to convert to a series to avoid an error when Day() \
-            # is subtracted
-            data['cal_e'] = pd.Series(per_add(data.cal_b, data.time)) - Day(1)
-            data['cal_b'] = per_add(data.cal_b, data.time - 1)
-            data['cal_days'] = (data.cal_e - data.cal_b).dt.days + 1
+            data = data.with_columns(
+                first_per=pl.col('time') == 1,
+                cal_e=(pl.col('cal_b').
+                       dt.offset_by(pl.format('{}', pl.col('time').cast(str) +
+                                              interval)).
+                       dt.offset_by('-1d')),
+                cal_b=(pl.col('cal_b').
+                       dt.offset_by(pl.format('{}',
+                                              (pl.col('time') - 1).cast(str) +
+                                              interval)))
+            ).with_columns(
+                cal_days=(pl.col('cal_e') - pl.col('cal_b')
+                          ).dt.total_days() + 1
+            )
 
             def cal_frac(x):
                 """
@@ -280,63 +315,63 @@ class ExposedDF():
                 between two calendar dates. Only works for partial periods
                 less than 1 full period.
                 """
-                numer = (x - data.cal_b).dt.days + 1
-                return numer / data.cal_days
+                numer = (x - data['cal_b']).dt.total_days() + 1
+                return numer / data['cal_days']
 
-            # partial exposure calculations
-            expo_cond = [
-                data.status.isin(target_status),
-                data.first_per & data.last_per,
-                data.first_per,
-                data.last_per
-            ]
-
-            expo_choice = [
-                1,
-                cal_frac(data.last_date) - cal_frac(data.first_date - Day(1)),
-                1 - cal_frac(data.first_date - Day(1)),
-                cal_frac(data.last_date)
-            ]
-
-            data['exposure'] = np.select(expo_cond, expo_choice, 1)
-
-            data = (data.
-                    drop(columns={'rep_n', 'first_date', 'last_date', 'cal_days',
-                                  'first_per', 'last_per', 'time', 'tot_per'}).
-                    rename(columns={
-                        'cal_b': rename_col('cal'),
-                        'cal_e': rename_col('cal', '_end')
-                    })
-                    )
+            data = data.with_columns(
+                exposure=(
+                    # fully expose target status
+                    pl.when(pl.col('status').is_in(target_status)).
+                    then(1).
+                    # partially expose all else
+                    # first period and last period
+                    when(pl.col('first_per') & pl.col('last_per')).
+                    then(pl.col('last_date').map_batches(cal_frac) -
+                         pl.col('first_date').dt.offset_by('-1d').
+                         map_batches(cal_frac)).
+                    # first period
+                    when(pl.col('first_per')).
+                    then(1 - pl.col('first_date').dt.offset_by('-1d').
+                         map_batches(cal_frac)).
+                    # last period
+                    when(pl.col('last_per')).
+                    then(pl.col('last_date').map_batches(cal_frac)).
+                    # default
+                    otherwise(1))
+            ).drop(
+                ['rep_n', 'first_date', 'last_date', 'cal_days',
+                    'first_per', 'last_per', 'time', 'tot_per']
+            ).rename(
+                {'cal_b': rename_col('cal'),
+                 'cal_e': rename_col('cal', '_end')})
 
         else:
-            data['cal_b'] = per_add(data.issue_date, data.time - 1)
-            # necessary to convert to a series to avoid an error when Day() \
-            # is subtracted
-            data['cal_e'] = pd.Series(per_add(data.issue_date, data.time)) - \
-                Day(1)
 
-            # partial exposure calculations
-            data['exposure'] = np.where(
-                data.last_per & ~data.status.isin(target_status),
-                data.tot_per % 1, 1)
-            # exposure = 0 is possible if exactly 1 period has elapsed.
-            # replace these with 1's
-            data['exposure'] = np.where(data.exposure == 0, 1, data.exposure)
-
-            data = (data.
-                    drop(columns={'last_per', 'last_date', 'tot_per', 'rep_n'}).
-                    loc[(data.cal_b >= start_date) & (data.cal_b <= end_date)].
-                    rename(columns={
-                        'time': rename_col('pol'),
-                        'cal_b': rename_col('pol_date'),
-                        'cal_e': rename_col('pol_date', '_end')
-                    })
-                    )
-
-        # convert status to categorical
-        data.status = data.status.astype('category')
-        data.status = data.status.cat.set_categories(status_levels)
+            data = data.with_columns(
+                cal_b=(pl.col('issue_date').
+                       dt.offset_by(pl.format('{}',
+                                              (pl.col('time') - 1).cast(str) +
+                                              interval))),
+                cal_e=(pl.col('issue_date').
+                       dt.offset_by(pl.format('{}', pl.col('time').cast(str) +
+                                              interval)).
+                       dt.offset_by('-1d')),
+                exposure=(pl.when(pl.col('last_per') & ~pl.col('status').
+                                  is_in(target_status)).
+                          then(pl.col('tot_per') % 1).
+                          otherwise(1).
+                          # exposure = 0 is possible if exactly 1 period
+                          # has elapsed. replace these with 1's.
+                          replace(0, 1))
+            ).drop(
+                ['last_per', 'last_date', 'tot_per', 'rep_n']
+            ).filter(
+                pl.col('cal_b') >= start_date,
+                pl.col('cal_b') <= end_date
+            ).rename(
+                {'time': rename_col('pol'),
+                 'cal_b': rename_col('pol_date'),
+                 'cal_e': rename_col('pol_date', '_end')})
 
         # set up other properties
         self._finalize(data, end_date, start_date, target_status,
@@ -374,7 +409,7 @@ class ExposedDF():
             self.trx_types = trx_types
 
     @classmethod
-    def expose_py(cls, data: pl.DataFrame | pd.DataFrame, 
+    def expose_py(cls, data: pl.DataFrame | pd.DataFrame,
                   end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy year exposures
@@ -382,7 +417,7 @@ class ExposedDF():
         return cls(data, end_date, expo_length='year', **kwargs)
 
     @classmethod
-    def expose_pq(cls, data: pl.DataFrame | pd.DataFrame, 
+    def expose_pq(cls, data: pl.DataFrame | pd.DataFrame,
                   end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy quarter exposures
@@ -390,7 +425,7 @@ class ExposedDF():
         return cls(data, end_date, expo_length='quarter', **kwargs)
 
     @classmethod
-    def expose_pm(cls, data: pl.DataFrame | pd.DataFrame, 
+    def expose_pm(cls, data: pl.DataFrame | pd.DataFrame,
                   end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy month exposures
@@ -398,7 +433,7 @@ class ExposedDF():
         return cls(data, end_date, expo_length='month', **kwargs)
 
     @classmethod
-    def expose_pw(cls, data: pl.DataFrame | pd.DataFrame, 
+    def expose_pw(cls, data: pl.DataFrame | pd.DataFrame,
                   end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy week exposures
@@ -406,7 +441,7 @@ class ExposedDF():
         return cls(data, end_date, expo_length='week', **kwargs)
 
     @classmethod
-    def expose_cy(cls, data: pl.DataFrame | pd.DataFrame, 
+    def expose_cy(cls, data: pl.DataFrame | pd.DataFrame,
                   end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar year exposures
@@ -415,7 +450,7 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cq(cls, data: pl.DataFrame | pd.DataFrame, 
+    def expose_cq(cls, data: pl.DataFrame | pd.DataFrame,
                   end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar quarter exposures
@@ -424,7 +459,7 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cm(cls, data: pl.DataFrame | pd.DataFrame, 
+    def expose_cm(cls, data: pl.DataFrame | pd.DataFrame,
                   end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar month exposures
@@ -433,7 +468,7 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cw(cls, data: pl.DataFrame | pd.DataFrame, 
+    def expose_cw(cls, data: pl.DataFrame | pd.DataFrame,
                   end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar week exposures
@@ -1136,4 +1171,4 @@ def _most_common(x: pd.Series):
     str
         Label of the most common policy status
     """
-    return x.value_counts(sort=True).index[0]
+    return x.value_counts(sort=True)[x.name][0]

@@ -1,5 +1,6 @@
 # This module contains helper functions used by other modules
 import numpy as np
+import polars as pl
 import pandas as pd
 from plotnine import (
     ggplot,
@@ -360,3 +361,24 @@ def relocate(data: pd.DataFrame,
     else:
         pos = list(columns2).index(before)
     return data[list(columns2[:pos]) + list(x) + list(columns2[pos:])]
+
+
+def _check_convert_df(data: pl.DataFrame | pd.DataFrame):
+    """
+    Internal function to check if `data` is a pandas or polars data frame.
+
+    Parameters
+    ----------
+    data : pl.DataFrame | pd.DataFrame
+
+    Returns
+    -------
+    pl.DataFrame
+    """
+    if isinstance(data, pd.DataFrame):
+        data = pl.from_pandas(data)
+    
+    assert isinstance(data, pl.DataFrame), \
+        '`data` must be a DataFrame'
+        
+    return data

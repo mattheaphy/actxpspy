@@ -260,6 +260,11 @@ class TestFromDataFrame():
     def test_only_dataframe(self):
         with pytest.raises(AssertionError, match='must be a DataFrame'):
             ExposedDF.from_DataFrame(1, '2020-12-31')
+            
+    def test_pandas_works(self):
+        assert isinstance(
+            ExposedDF.from_DataFrame(expo2.to_pandas(), '2019-12-31'),
+            ExposedDF)
 
 
 expo6 = expo2

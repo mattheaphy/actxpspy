@@ -1,6 +1,7 @@
 # This module contains helper functions used by other modules
 import numpy as np
 import polars as pl
+import polars.selectors as cs
 import pandas as pd
 from plotnine import (
     ggplot,
@@ -13,9 +14,6 @@ from plotnine import (
     scale_y_continuous,
     scale_color_manual,
     scale_fill_manual)
-from matplotlib import colormaps
-from matplotlib.colors import rgb2hex
-from great_tables import style, loc, from_column, GT
 from warnings import warn
 from scipy.stats import norm
 _use_default_colors = False
@@ -365,7 +363,9 @@ def relocate(data: pd.DataFrame,
 
 def _check_convert_df(data: pl.DataFrame | pd.DataFrame):
     """
-    Internal function to check if `data` is a pandas or polars data frame.
+    Internal function to check if `data` is a pandas or polars data frame. If a 
+    pandas data frame is passed, it will be converted to a polars data frame and 
+    all datetime columns will be converted to dates.
 
     Parameters
     ----------
@@ -376,7 +376,9 @@ def _check_convert_df(data: pl.DataFrame | pd.DataFrame):
     pl.DataFrame
     """
     if isinstance(data, pd.DataFrame):
-        data = pl.from_pandas(data)
+        data = pl.from_pandas(data).with_columns(
+            cs.datetime().cast(pl.Date)
+        )
     
     assert isinstance(data, pl.DataFrame), \
         '`data` must be a DataFrame'

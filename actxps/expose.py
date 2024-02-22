@@ -673,7 +673,7 @@ class ExposedDF():
         ----------
         The `ExposedDF` must have calendar year, quarter, month, or week 
         exposure records. Calendar year exposures are created by passing 
-        `cal_expo = True` to `ExposedDF` (or alternatively, with the class 
+        `cal_expo=True` to `ExposedDF` (or alternatively, with the class 
         methods `ExposedDF.expose_cy()`, `ExposedDF.expose_cq()`, 
         `ExposedDF.expose_cm()`, and `ExposedDF.expose_cw()`).
 
@@ -712,8 +712,7 @@ class ExposedDF():
         if self.trx_types != []:
             repr += f"Transaction types: {', '.join(self.trx_types)}\n"
 
-        repr += (f"\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}"
-                 f'\n{self.data.head(10)}')
+        repr += f"\n{self.data}"
 
         return repr
 

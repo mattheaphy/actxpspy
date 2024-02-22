@@ -174,8 +174,6 @@ class ExposedDF():
         end_date = _date_str(end_date, "end_date")
         start_date = _date_str(start_date, "start_date")
         target_status = np.atleast_1d(target_status)
-        abbrev = ExposedDF.abbr_period[expo_length]
-        interval = ExposedDF.abbr_pl[expo_length]
 
         # convert data to polars dataframe if necessary
         data = _check_convert_df(data)
@@ -187,6 +185,8 @@ class ExposedDF():
         # set up exposure period lengths
         arg_match('expo_length', expo_length,
                   ["year", "quarter", "month", "week"])
+        abbrev = ExposedDF.abbr_period[expo_length]
+        interval = ExposedDF.abbr_pl[expo_length]
 
         def per_frac(x):
             return frac_interval(x.struct[0], x.struct[1], expo_length)
@@ -321,7 +321,8 @@ class ExposedDF():
             data = data.with_columns(
                 exposure=(
                     # fully expose target status
-                    pl.when(pl.col('status').is_in(target_status)).
+                    pl.when(pl.col('status').is_in(
+                        pl.Series(target_status, dtype=status_levels))).
                     then(1).
                     # partially expose all else
                     # first period and last period
@@ -357,7 +358,8 @@ class ExposedDF():
                                               interval)).
                        dt.offset_by('-1d')),
                 exposure=(pl.when(pl.col('last_per') & ~pl.col('status').
-                                  is_in(target_status)).
+                                  is_in(pl.Series(target_status,
+                                                  dtype=status_levels))).
                           then(pl.col('tot_per') % 1).
                           otherwise(1).
                           # exposure = 0 is possible if exactly 1 period
@@ -557,9 +559,12 @@ class ExposedDF():
             An `ExposedDF` object.
         """
 
-        end_date = pd.to_datetime(end_date)
-        start_date = pd.to_datetime(start_date)
+        end_date = _date_str(end_date, "end_date")
+        start_date = _date_str(start_date, "start_date")
         target_status = np.atleast_1d(target_status)
+
+        # convert data to polars dataframe if necessary
+        data = _check_convert_df(data)
 
         arg_match('expo_length', expo_length,
                   ["year", "quarter", "month", "week"])
@@ -568,7 +573,7 @@ class ExposedDF():
             '`data` must be a DataFrame'
 
         # column name alignment
-        data = data.rename(columns={
+        data = data.rename({
             col_pol_num: 'pol_num',
             col_status: 'status',
             col_exposure: 'exposure'
@@ -578,9 +583,7 @@ class ExposedDF():
         if not cal_expo:
             exp_col_pol_per = 'pol_' + ExposedDF.abbr_period[expo_length]
             if col_pol_per is not None:
-                data = data.rename(columns={
-                    col_pol_per: exp_col_pol_per
-                })
+                data = data.rename({col_pol_per: exp_col_pol_per})
         else:
             exp_col_pol_per = None
 
@@ -591,7 +594,7 @@ class ExposedDF():
             assert len(cols_dates) == 2, \
                 "`cols_dates` must be a length 2 character vector"
 
-            data = data.rename(columns={
+            data = data.rename({
                 cols_dates[0]: exp_cols_dates[0],
                 cols_dates[1]: exp_cols_dates[1]
             })
@@ -618,7 +621,7 @@ class ExposedDF():
         _verify_col_names(data.columns, req_names)
 
         if default_status is None:
-            default_status = _most_common(data.status)
+            default_status = _most_common(data['status'])
 
         return cls('already_exposed',
                    data, end_date, start_date, target_status, cal_expo,
@@ -922,7 +925,7 @@ class ExposedDF():
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
         expo = xp.ExposedDF.expose_py(census, "2019-12-31",
-                                      target_status = "Surrender")
+                                      target_status="Surrender")
         expo.add_transactions(withdrawals)
         ```
         """
@@ -935,7 +938,7 @@ class ExposedDF():
         date_lookup = self.data.copy()[['pol_num'] + date_cols]
 
         # column renames
-        trx_data = trx_data.rename(columns={
+        trx_data = trx_data.rename({
             col_pol_num: 'pol_num',
             col_trx_date: 'trx_date',
             col_trx_type: 'trx_type',

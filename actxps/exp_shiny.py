@@ -176,7 +176,7 @@ def exp_shiny(self,
     account_vals = xp.load_account_vals()
 
     expo = xp.ExposedDF(census_dat, "2019-12-31",
-                        target_status = "Surrender")
+                        target_status="Surrender")
     expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
                                     [.2, .15], np.repeat(0.05, 3)))
     expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]

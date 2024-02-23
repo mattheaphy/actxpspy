@@ -282,6 +282,7 @@ class ExposedDF():
         # apply exposures
         data = (
             data[np.repeat(data['index'], data['rep_n'])].
+            lazy().
             with_columns(
                 time=pl.cum_count('index').over('pol_num')
             ).
@@ -370,7 +371,7 @@ class ExposedDF():
                  'cal_e': rename_col('pol_date', '_end')})
 
         # set up other properties
-        self._finalize(data, end_date, start_date, target_status,
+        self._finalize(data.collect(), end_date, start_date, target_status,
                        cal_expo, expo_length, default_status=default_status[0])
 
         return None

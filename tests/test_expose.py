@@ -1,7 +1,6 @@
 from actxps.expose import *
 from actxps.datasets import *
 from actxps.expose_split import SplitExposedDF
-import pandas as pd
 from datetime import date
 from pandas.tseries.offsets import Day
 import pytest

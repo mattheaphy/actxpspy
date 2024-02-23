@@ -211,7 +211,7 @@ class TestRenames():
 
 
 expo = ExposedDF(toy_census, "2020-12-31", target_status="Surrender")
-expo2 = expo.data
+expo2 = expo.data.clone()
 expo3 = expo2.rename({'pol_num': 'pnum'})
 expo4 = expo3.rename({'status': 'stat',
                       'exposure': 'expo',
@@ -267,13 +267,13 @@ class TestFromDataFrame():
             ExposedDF)
 
 
-expo6 = expo2
+expo6 = expo2.clone()
 expo6 = expo6.with_columns(
     trx_n_A = 1,
     trx_amt_A = 2,
     trx_n_B = 3,
     trx_amt_B = 4)
-expo7 = expo6.rename({
+expo7 = expo6.clone().rename({
     'trx_n_A': 'n_A',
     'trx_n_B': 'n_B',
     'trx_amt_A': 'amt_A',

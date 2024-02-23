@@ -930,7 +930,7 @@ class ExposedDF():
         date_cols = list(self.date_cols)
 
         # select a minimum subset of columns
-        date_lookup = self.data[['pol_num'] + date_cols].lazy()
+        date_lookup = self.data.clone()[['pol_num'] + date_cols].lazy()
 
         # column renames
         trx_data = trx_data.rename({

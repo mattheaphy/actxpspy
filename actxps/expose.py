@@ -188,8 +188,13 @@ class ExposedDF():
         abbrev = ExposedDF.abbr_period[expo_length]
         interval = ExposedDF.abbr_pl[expo_length]
 
+        # call frac_intervals using a polars struct
         def per_frac(x):
             return frac_interval(x.struct[0], x.struct[1], expo_length)
+
+        # add time intervals to a date expression
+        def add_per(x: pl.Expr, n: pl.Expr):
+            return (x.dt.offset_by(pl.format('{}', n.cast(str) + interval)))
 
         if cal_expo:
             if expo_length != 'week':
@@ -296,27 +301,22 @@ class ExposedDF():
         if cal_expo:
             data = data.with_columns(
                 first_per=pl.col('time') == 1,
-                cal_e=(pl.col('cal_b').
-                       dt.offset_by(pl.format('{}', pl.col('time').cast(str) +
-                                              interval)).
+                cal_e=(add_per(pl.col('cal_b'), pl.col('time')).
                        dt.offset_by('-1d')),
-                cal_b=(pl.col('cal_b').
-                       dt.offset_by(pl.format('{}',
-                                              (pl.col('time') - 1).cast(str) +
-                                              interval)))
+                cal_b=add_per(pl.col('cal_b'), pl.col('time') - 1)
             ).with_columns(
                 cal_days=(pl.col('cal_e') - pl.col('cal_b')
                           ).dt.total_days() + 1
             )
 
-            def cal_frac(x):
+            def cal_frac(x: pl.Expr):
                 """
                 Faster function than per_frac for computing the distance
                 between two calendar dates. Only works for partial periods
                 less than 1 full period.
                 """
-                numer = (x - data['cal_b']).dt.total_days() + 1
-                return numer / data['cal_days']
+                numer = (x - pl.col('cal_b')).dt.total_days() + 1
+                return numer / pl.col('cal_days')
 
             data = data.with_columns(
                 exposure=(
@@ -327,16 +327,15 @@ class ExposedDF():
                     # partially expose all else
                     # first period and last period
                     when(pl.col('first_per') & pl.col('last_per')).
-                    then(pl.col('last_date').map_batches(cal_frac) -
-                         pl.col('first_date').dt.offset_by('-1d').
-                         map_batches(cal_frac)).
+                    then(cal_frac(pl.col('last_date')) -
+                         cal_frac(pl.col('first_date').dt.offset_by('-1d'))).
                     # first period
                     when(pl.col('first_per')).
-                    then(1 - pl.col('first_date').dt.offset_by('-1d').
-                         map_batches(cal_frac)).
+                    then(1 -
+                         cal_frac(pl.col('first_date').dt.offset_by('-1d'))).
                     # last period
                     when(pl.col('last_per')).
-                    then(pl.col('last_date').map_batches(cal_frac)).
+                    then(cal_frac(pl.col('last_date'))).
                     # default
                     otherwise(1))
             ).drop(
@@ -349,13 +348,8 @@ class ExposedDF():
         else:
 
             data = data.with_columns(
-                cal_b=(pl.col('issue_date').
-                       dt.offset_by(pl.format('{}',
-                                              (pl.col('time') - 1).cast(str) +
-                                              interval))),
-                cal_e=(pl.col('issue_date').
-                       dt.offset_by(pl.format('{}', pl.col('time').cast(str) +
-                                              interval)).
+                cal_b=add_per(pl.col('issue_date'), pl.col('time') - 1),
+                cal_e=(add_per(pl.col('issue_date'), pl.col('time')).
                        dt.offset_by('-1d')),
                 exposure=(pl.when(pl.col('last_per') & ~pl.col('status').
                                   is_in(pl.Series(target_status,
@@ -872,8 +866,8 @@ class ExposedDF():
         (xp.ExposedDF(xp.load_census_dat(),
                       "2019-12-31", 
                       target_status="Surrender").
-                   group_by('pol_yr', 'inc_guar').
-                   exp_stats(conf_int=True))
+            group_by('pol_yr', 'inc_guar').
+            exp_stats(conf_int=True))
         ```        
         """
         from actxps.exp_stats import ExpStats
@@ -929,12 +923,12 @@ class ExposedDF():
         ```
         """
 
-        assert isinstance(trx_data, pl.DataFrame | pd.DataFrame), \
-            "`data` must be a DataFrame"
+        # convert data to polars dataframe if necessary
+        trx_data = _check_convert_df(trx_data)
         date_cols = list(self.date_cols)
 
         # select a minimum subset of columns
-        date_lookup = self.data.copy()[['pol_num'] + date_cols]
+        date_lookup = self.data[['pol_num'] + date_cols]
 
         # column renames
         trx_data = trx_data.rename({

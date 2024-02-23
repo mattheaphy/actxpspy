@@ -967,6 +967,7 @@ class ExposedDF():
                           index=['pol_num', date_cols[0]],
                           columns='trx_type',
                           aggregate_function='sum').
+                    rename(lambda x: x.replace('trx_type_', '')).
                     lazy())
 
         # add new transaction types

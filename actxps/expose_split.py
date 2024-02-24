@@ -98,7 +98,7 @@ class SplitExposedDF(ExposedDF):
         # h = yearfrac from boy to anniv
         # v = yearfrac from boy to term
 
-        data = expo.data.clone().lazy()
+        data = expo.data.lazy()
         # temporary generic date column names
         data = (
             data.rename({date_cols[0]: 'cal_b',
@@ -116,7 +116,7 @@ class SplitExposedDF(ExposedDF):
             ).collect())
 
         pre_anniv = (
-            data.clone().lazy().
+            data.lazy().
             filter(pl.col('split')).
             with_columns(
                 piece=1,
@@ -133,7 +133,7 @@ class SplitExposedDF(ExposedDF):
         )
 
         post_anniv = (
-            data.clone().lazy().
+            data.lazy().
             with_columns(
                 piece=2,
                 cal_b=(pl.when(pl.col('split')).

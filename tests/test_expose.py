@@ -35,9 +35,9 @@ class TestPolExpo():
     def test_full_expo_targ(self):
         assert all(study_py.data.
                    filter(pl.col('status') == "Surrender")['exposure'] == 1)
-        
+
     def test_pandas(self):
-        assert isinstance(ExposedDF.expose_cy(census_dat.to_pandas(), 
+        assert isinstance(ExposedDF.expose_cy(census_dat.to_pandas(),
                                               "2019-12-31",
                                               target_status="Surrender"),
                           ExposedDF)
@@ -58,12 +58,12 @@ class TestCalExpo():
     def test_full_expo_targ(self):
         assert all(study_cy.data.
                    filter(pl.col('status') == "Surrender")["exposure"] == 1)
-        
+
     def test_pandas(self):
-        assert isinstance(ExposedDF.expose_py(census_dat.to_pandas(), 
+        assert isinstance(ExposedDF.expose_py(census_dat.to_pandas(),
                                               "2019-12-31",
                                               target_status="Surrender"),
-                          ExposedDF)        
+                          ExposedDF)
 
 
 check_period_end_pol = (
@@ -201,11 +201,12 @@ class TestRenames():
 
     def test_warn_conflict_cal_yr(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
-            ExposedDF.expose_cy(toy_census.with_columns(cal_yr=1), "2020-12-31")
+            ExposedDF.expose_cy(
+                toy_census.with_columns(cal_yr=1), "2020-12-31")
 
     def test_warn_conflict_cal_yr_end(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
-            ExposedDF.expose_cy(toy_census.with_columns(cal_yr_end=1), 
+            ExposedDF.expose_cy(toy_census.with_columns(cal_yr_end=1),
                                 "2020-12-31")
 
 
@@ -259,7 +260,7 @@ class TestFromDataFrame():
     def test_only_dataframe(self):
         with pytest.raises(AssertionError, match='must be a DataFrame'):
             ExposedDF.from_DataFrame(1, '2020-12-31')
-            
+
     def test_pandas_works(self):
         assert isinstance(
             ExposedDF.from_DataFrame(expo2.to_pandas(), '2019-12-31'),
@@ -268,10 +269,10 @@ class TestFromDataFrame():
 
 expo6 = expo2.clone()
 expo6 = expo6.with_columns(
-    trx_n_A = 1,
-    trx_amt_A = 2,
-    trx_n_B = 3,
-    trx_amt_B = 4)
+    trx_n_A=1,
+    trx_amt_A=2,
+    trx_n_B=3,
+    trx_amt_B=4)
 expo7 = expo6.clone().rename({
     'trx_n_A': 'n_A',
     'trx_n_B': 'n_B',
@@ -353,20 +354,20 @@ study_cy = study_cy.add_transactions(withdrawals)
 class TestSplitEquivalence():
 
     def test_expo(self):
-        assert abs(sum(study_cy.data.exposure) -
-                   sum(study_split.data.exposure_cal)) < 1E-8
+        assert abs(sum(study_cy.data['exposure']) -
+                   sum(study_split.data['exposure_cal'])) < 1E-8
 
     def test_term_count(self):
-        assert sum(study_cy.data.status != "Active") == \
-            sum(study_split.data.status != "Active")
+        assert sum(study_cy.data['status'] != "Active") == \
+            sum(study_split.data['status'] != "Active")
 
     def test_trx_amt_1(self):
-        assert sum(study_cy.data.trx_amt_Base) == \
-            sum(study_split.data.trx_amt_Base)
+        assert sum(study_cy.data['trx_amt_Base']) == \
+            sum(study_split.data['trx_amt_Base'])
 
     def test_trx_amt_2(self):
-        assert sum(study_cy.data.trx_amt_Rider) == \
-            sum(study_split.data.trx_amt_Rider)
+        assert sum(study_cy.data['trx_amt_Rider']) == \
+            sum(study_split.data['trx_amt_Rider'])
 
 
 # expose_split() warns about transactions attached too early
@@ -387,25 +388,23 @@ class TestSplitErrorsWarnings():
             study_split.trx_stats()
 
 
-split_dat = (
+check_period_end_split = (
     ExposedDF.expose_cy(
         toy_census, "2020-12-31", target_status="Surrender").
     expose_split().
-    data[["pol_num", "cal_yr", "cal_yr_end"]])
-split_dat['x'] = split_dat.groupby('pol_num')['cal_yr'].shift(-1)
-split_dat = split_dat.dropna()
-
-check_period_end_split = (split_dat[
-    split_dat.x != split_dat.cal_yr_end + Day(1)].
-    shape[0]
-)
+    data[["pol_num", "cal_yr", "cal_yr_end"]].
+    with_columns(
+        x=pl.col('cal_yr').shift(-1).over('pol_num')
+    ).drop_nulls().
+    filter(pl.col('x') != pl.col('cal_yr_end').dt.offset_by('1d')).
+    height)
 
 
 # Split period start and end dates roll"
 class TestSplitDateRoll():
 
     def test_study_split_roll_1(self):
-        assert all(study_split.data.cal_yr <= study_split.data.cal_yr_end)
+        assert all(study_split.data['cal_yr'] <= study_split.data['cal_yr_end'])
 
     def test_study_split_roll_2(self):
         assert check_period_end_split == 0

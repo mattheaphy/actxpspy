@@ -320,8 +320,8 @@ def _qnorm(p, mean = 0, sd = 1):
     return norm.ppf(p, mean, sd)
 
 
-def relocate(data: pd.DataFrame, 
-             x: str | list | np.ndarray, 
+def relocate(data: pl.DataFrame, 
+             x : str | list | np.ndarray,
              before: str=None, 
              after: str=None):
     """
@@ -333,7 +333,7 @@ def relocate(data: pd.DataFrame,
 
     Parameters
     ----------
-    data : pd.DataFrame
+    data : pl.DataFrame
         A data frame
     x : str | list | np.ndarray
         Column names to to move
@@ -344,21 +344,22 @@ def relocate(data: pd.DataFrame,
 
     Returns
     -------
-    pd.DataFrame
+    pl.DataFrame
         A data frame with reordered columns.
     """
     assert before is None or after is None, \
         'One of `before` and `after` must be specified, but not both.'
     x = np.atleast_1d(x)
     columns = data.columns
-    columns2 = columns[~columns.isin(x)]
+    columns2 =[col for col in columns if col not in x]
+    
     if before is None and after is None:
-        return data[list(x) + list(columns2)]
+        return data.select(list(x) + columns2)
     if before is None:
         pos = list(columns2).index(after) + 1
     else:
         pos = list(columns2).index(before)
-    return data[list(columns2[:pos]) + list(x) + list(columns2[pos:])]
+    return data.select(list(columns2[:pos]) + list(x) + list(columns2[pos:]))
 
 
 def _check_convert_df(data: pl.DataFrame | pd.DataFrame):

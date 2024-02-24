@@ -1,13 +1,10 @@
 from warnings import warn
 from actxps import ExposedDF
-from actxps.dates import add_yr
 from actxps.tools import (
     relocate,
     _verify_exposed_df
 )
-import pandas as pd
-from pandas.tseries.offsets import Day
-import numpy as np
+import polars as pl
 
 
 class SplitExposedDF(ExposedDF):
@@ -25,7 +22,7 @@ class SplitExposedDF(ExposedDF):
     Notes
     ----------
     The `ExposedDF` must have calendar year, quarter, month, or week exposure
-    records. Calendar year exposures are created by passing `cal_expo = True` to 
+    records. Calendar year exposures are created by passing `cal_expo=True` to 
     `ExposedDF` (or alternatively, with the class methods 
     `ExposedDF.expose_cy()`, `ExposedDF.expose_cq()`, `ExposedDF.expose_cm()`, 
     and `ExposedDF.expose_cw()`).
@@ -73,109 +70,169 @@ class SplitExposedDF(ExposedDF):
                  'operations is to call `add_transactions()` after ' +
                  '`SplitExposedDF()`.')
 
-        target_status = expo.target_status
+        target_status = pl.Series(expo.target_status, dtype=str)
         default_status = expo.default_status
         date_cols = expo.date_cols
         expo_length = expo.expo_length
 
-        def pol_frac(x, start, end, y=None):
+        def pol_frac(x: pl.Expr, start: str | pl.Expr,
+                     end: str | pl.Expr, y: pl.Expr = None):
 
+            if isinstance(start, str):
+                start = pl.col(start)
+            if isinstance(end, str):
+                end = pl.col(end)
             if y is None:
-                return (x - start + Day(1)) / (end - start + Day(1))
-            else:
-                return (x - y) / (end - start + Day(1))
+                y = start
 
-        def cal_frac(x):
-            return pol_frac(x, data.cal_b, data.cal_e)
+            return (((x - y).dt.total_days() + 1) /
+                    ((end - start).dt.total_days() + 1))
+
+        def cal_frac(x: pl.Expr):
+            return pol_frac(x, 'cal_b', 'cal_e')
+
+        def add_yr(x: pl.Expr, n: pl.Expr):
+            return (x.dt.offset_by(pl.format('{}y', n)))
 
         # time fractions
         # h = yearfrac from boy to anniv
         # v = yearfrac from boy to term
 
-        data = expo.data
+        data = expo.data.clone().lazy()
         # temporary generic date column names
-        data = data.rename(columns={date_cols[0]: 'cal_b',
-                                    date_cols[1]: 'cal_e'})
-        data['anniv'] = add_yr(data.issue_date,
-                               data.cal_b.dt.year - data.issue_date.dt.year)
-        data['split'] = data.anniv.between(data.cal_b, data.cal_e)
-        data['h'] = cal_frac(data.anniv - Day(1))
-        data['v'] = cal_frac(data.term_date)
+        data = (
+            data.rename({date_cols[0]: 'cal_b',
+                         date_cols[1]: 'cal_e'}).
+            with_columns(
+                anniv=add_yr(pl.col('issue_date'),
+                             pl.col('cal_b').dt.year() -
+                             pl.col('issue_date').dt.year())
+            ).
+            with_columns(
+                split=pl.col('anniv').is_between(pl.col('cal_b'),
+                                                 pl.col('cal_e')),
+                h=cal_frac(pl.col('anniv').dt.offset_by('-1d')),
+                v=cal_frac(pl.col('term_date'))
+            ).collect())
 
-        pre_anniv = data.copy()[data.split]
-        pre_anniv['piece'] = 1
-        pre_anniv['cal_b'] = np.maximum(pre_anniv.issue_date, pre_anniv.cal_b)
-        pre_anniv['cal_e'] = pre_anniv.anniv - Day(1)
-        pre_anniv['exposure'] = pre_anniv.h
-        pre_anniv['exposure_pol'] = 1 - pol_frac(pre_anniv.cal_b - Day(1),
-                                                 add_yr(pre_anniv.anniv, -1),
-                                                 pre_anniv.anniv - Day(1))
-
-        post_anniv = data.copy()
-        post_anniv['piece'] = 2
-        post_anniv['cal_b'] = np.where(post_anniv.split,
-                                       post_anniv.anniv, post_anniv.cal_b)
-        post_anniv['exposure'] = np.where(
-            post_anniv.split, 1 - post_anniv.h, 1)
-        post_anniv['anniv'] = np.where(post_anniv.anniv > post_anniv.cal_e,
-                                       add_yr(post_anniv.anniv, -1),
-                                       post_anniv.anniv)
-        post_anniv['exposure_pol'] = pol_frac(post_anniv.cal_e,
-                                              post_anniv.anniv,
-                                              add_yr(post_anniv.anniv, 1) -
-                                              np.timedelta64(1, 'D'),
-                                              post_anniv.cal_b - Day(1))
-
-        data = pd.concat((pre_anniv, post_anniv))
-        data = data[(data.cal_b <= data.cal_e) &
-                    (pd.isna(data.term_date) |
-                    (data.term_date >= data.cal_b))]
-        data['term_date'] = pd.to_datetime(
-            np.where(data.term_date.between(data.cal_b, data.cal_e),
-                     data.term_date, pd.NA))
-        data['pol_yr'] = data.anniv.dt.year - data.issue_date.dt.year + \
-            data.piece - 1
-        data['status'] = np.where(pd.isna(data.term_date),
-                                  pd.Categorical([default_status],
-                                                 data.status.cat.categories),
-                                  data.status)
-        data.status = data.status.astype('category')
-        data['claims'] = data.status.isin(target_status)
-        data['exposure_cal'] = np.select(
-            [data.claims, pd.isna(data.term_date), data.piece == 1],
-            [np.where((data.piece == 1) | (data.cal_b == data.issue_date),
-                      1, 1 - data.h),
-             data.exposure, data.v],
-            default=data.v - data.h
+        pre_anniv = (
+            data.clone().lazy().
+            filter(pl.col('split')).
+            with_columns(
+                piece=1,
+                cal_b=pl.max_horizontal(pl.col('issue_date'),
+                                        pl.col('cal_b')),
+                cal_e=pl.col('anniv').dt.offset_by('-1d'),
+                exposure=pl.col('h'),
+                exposure_pol=1 - pol_frac(
+                    pl.col('cal_b').dt.offset_by('-1d'),
+                    add_yr(pl.col('anniv'), pl.lit(-1)),
+                    pl.col('anniv').dt.offset_by('-1d')
+                )
+            )
         )
-        data['exposure_pol'] = np.select(
-            [data.claims, pd.isna(data.term_date), data.piece == 1],
-            [np.select([data.piece == 1, data.split],
-                       [data.exposure_pol, 1],
-                       default=1 - pol_frac(data.cal_b - Day(1),
-                                            data.anniv,
-                                            add_yr(data.anniv, 1) -
-                                            np.timedelta64(1, 'D'))),
-             data.exposure_pol,
-             pol_frac(data.term_date,
-                      add_yr(data.anniv, -1),
-                      data.anniv - Day(1)) - (1 - data.exposure_pol)],
-            default=pol_frac(data.term_date, data.anniv,
-                             add_yr(data.anniv, 1) - np.timedelta64(1, 'D')))
 
-        data.sort_values(['pol_num', 'cal_b', 'piece'], inplace=True)
-        data.drop(columns={'h', 'v', 'split', 'anniv', 'claims',
-                           'exposure', 'piece'}, inplace=True)
-        data = relocate(data, 'pol_yr', after='cal_e')
-        # # restore date column names
-        data.rename(columns={'cal_b': date_cols[0],
-                             'cal_e': date_cols[1]}, inplace=True)
+        post_anniv = (
+            data.clone().lazy().
+            with_columns(
+                piece=2,
+                cal_b=(pl.when(pl.col('split')).
+                       then(pl.col('anniv')).
+                       otherwise(pl.col('cal_b'))),
+                exposure=(pl.when(pl.col('split')).
+                          then(1 - pl.col('h')).
+                          otherwise(1)),
+                anniv=(pl.when(pl.col('anniv') > pl.col('cal_e')).
+                       then(add_yr(pl.col('anniv'), pl.lit(-1))).
+                       otherwise(pl.col('anniv')))).
+            with_columns(
+                exposure_pol=pol_frac(
+                    pl.col('cal_e'),
+                    'anniv',
+                    add_yr(pl.col('anniv'), pl.lit(1)).dt.offset_by('-1d'),
+                    pl.col('cal_b'))
+            )
+        )
 
-        self._finalize(data, expo.end_date, expo.start_date, 
+        data = (
+            pl.concat([pre_anniv, post_anniv], how='vertical').
+            filter((pl.col('cal_b') <= pl.col('cal_e')) &
+                   (pl.col('term_date').is_null() |
+                    (pl.col('term_date') >= pl.col('cal_b')))).
+            with_columns(
+                term_date=(pl.when(pl.col('term_date').
+                                   is_between(pl.col('cal_b'),
+                                              pl.col('cal_e'))).
+                           then(pl.col('term_date')).
+                           otherwise(None)),
+                pol_yr=(pl.col('anniv').dt.year() -
+                        pl.col('issue_date').dt.year() + pl.col('piece') - 1)).
+            with_columns(
+                status=(pl.when(pl.col('term_date').is_null()).
+                        then(pl.lit(default_status)).
+                        otherwise(pl.col('status')))).
+            with_columns(
+                claims=pl.col('status').is_in(target_status)
+            ).
+            with_columns(
+                exposure_cal=(pl.when(pl.col('claims')).
+                              then(
+                                  pl.when(
+                                      (pl.col('piece') == 1) |
+                                      (pl.col('cal_b') == pl.col('issue_date'))
+                                  ).
+                                  then(1).
+                                  otherwise(1 - pl.col('h'))).
+                              when(pl.col('term_date').is_null()).
+                              then(pl.col('exposure')).
+                              when(pl.col('piece') == 1).
+                              then(pl.col('v')).
+                              otherwise(pl.col('v') - pl.col('h'))),
+
+                exposure_pol=(pl.when(pl.col('claims')).
+                              then(
+                                  pl.when(pl.col('piece') == 1).
+                                  then(pl.col('exposure_pol')).
+                                  when(pl.col('split')).
+                                  then(1).
+                                  otherwise(1 - pol_frac(
+                                      pl.col('cal_b').dt.offset_by('-1d'),
+                                      'anniv',
+                                      (add_yr(pl.col('anniv'), pl.lit(1)).
+                                       dt.offset_by('-1d'))
+                                  ))).
+                              when(pl.col('term_date').is_null()).
+                              then(pl.col('exposure_pol')).
+                              when(pl.col('piece') == 1).
+                              then(pol_frac(
+                                  pl.col('term_date'),
+                                  add_yr(pl.col('anniv'), pl.lit(-1)),
+                                  pl.col('anniv').dt.offset_by('-1d')) -
+                    (1 - pl.col('exposure_pol'))).
+                    otherwise(pol_frac(
+                        pl.col('term_date'),
+                        'anniv',
+                        (add_yr(pl.col('anniv'), pl.lit(1)).
+                         dt.offset_by('-1d'))
+                    ))
+                )
+            ).
+            sort('pol_num', 'cal_b', 'piece').
+            drop(['h', 'v', 'split', 'anniv', 'claims', 'exposure', 'piece'])
+        )
+
+        data = (relocate(data, 'pol_yr', after='cal_e').
+                # restore date column names
+                rename({'cal_b': date_cols[0],
+                        'cal_e': date_cols[1]}).
+                collect())
+
+        self._finalize(data, expo.end_date, expo.start_date,
                        target_status, True, expo_length,
                        expo.trx_types, default_status, True)
 
         return None
+
 
 def _check_split_expose_basis(obj, col_exposure):
     """

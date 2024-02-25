@@ -1,20 +1,17 @@
-import pandas as pd
+import polars as pl
+import polars.selectors as cs
 
 
-def col_starts_with(data: pd.DataFrame,
-                    pat: str,
-                    **kwargs):
+def col_starts_with(data: pl.DataFrame, pat: str):
     """
     Return a list of column names that start with a given pattern.
 
     Parameters
     ----------
-    data : pd.DataFrame
+    data : pl.DataFrame
         A data frame
     pat : str
         A string pattern
-    kwargs
-        Additional arguments passed to pd.Series.str.contains
 
     Returns
     ----------
@@ -22,7 +19,7 @@ def col_starts_with(data: pd.DataFrame,
     
     See Also
     ----------
-    col_ends_with, col_contains
+    col_ends_with, col_matches
     
     Examples
     ----------
@@ -32,23 +29,19 @@ def col_starts_with(data: pd.DataFrame,
     xp.col_starts_with(dat, 'pol')
     ```
     """
-    return list(data.columns[data.columns.str.startswith(pat, **kwargs)])
+    return data.select(cs.starts_with(pat)).columns
 
 
-def col_ends_with(data: pd.DataFrame,
-                  pat: str,
-                  **kwargs):
+def col_ends_with(data: pl.DataFrame, pat: str):
     """
     Return a list of column names that end with a given pattern.
 
     Parameters
     ----------
-    data : pd.DataFrame
+    data : pl.DataFrame
         A data frame
     pat : str
         A string pattern
-    kwargs 
-        Additional arguments passed to pd.Series.str.contains
 
     Returns
     ----------
@@ -56,7 +49,7 @@ def col_ends_with(data: pd.DataFrame,
     
     See Also
     ----------
-    col_starts_with, col_contains
+    col_starts_with, col_matches
 
     
     Examples
@@ -68,23 +61,19 @@ def col_ends_with(data: pd.DataFrame,
     ```
 
     """
-    return list(data.columns[data.columns.str.endswith(pat, **kwargs)])
+    return data.select(cs.ends_with(pat)).columns
 
 
-def col_contains(data: pd.DataFrame,
-                 pat: str,
-                 **kwargs):
+def col_matches(data: pl.DataFrame, pat: str):
     """
     Return a list of column names that match a regular expression.
 
     Parameters
     ----------
-    data : pd.DataFrame
+    data : pl.DataFrame
         A data frame
     pat : str
         A string pattern
-    kwargs 
-        Additional arguments passed to pd.Series.str.contains
 
     Returns
     ----------
@@ -99,8 +88,8 @@ def col_contains(data: pd.DataFrame,
     ```{python}
     import actxps as xp
     dat = xp.load_toy_census()
-    xp.col_contains(dat, 'at')
+    xp.col_matches(dat, 'at')
     ```
 
     """
-    return list(data.columns[data.columns.str.contains(pat, **kwargs)])
+    return data.select(cs.matches(pat)).columns

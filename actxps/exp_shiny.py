@@ -9,7 +9,7 @@ from plotnine import (aes,
                       theme,
                       element_text,
                       element_rect)
-from actxps.col_select import col_contains
+from actxps.col_select import col_matches
 import matplotlib.pyplot as plt
 import io
 import great_tables.shiny as gts
@@ -226,13 +226,13 @@ def exp_shiny(self,
         predictors = pd.Index(np.atleast_1d(predictors))
 
     if expected is None:
-        expected = pd.Index(col_contains(dat, 'expected'))
+        expected = pd.Index(col_matches(dat, 'expected'))
     else:
         expected = pd.Index(np.atleast_1d(expected))
 
     # check for presence of transactions
     has_trx = len(expo.trx_types) > 0
-    trx_cols = col_contains(dat, "^trx_(?:n|amt)_")
+    trx_cols = col_matches(dat, "^trx_(?:n|amt)_")
 
     if any(~(predictors.append(expected)).isin(cols)):
         warn("All predictors and expected values must be columns in `dat`. " +

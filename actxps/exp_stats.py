@@ -18,7 +18,7 @@ from actxps.tools import (
     _check_convert_df
 )
 from actxps.col_select import (
-    col_contains,
+    col_matches,
     col_starts_with,
     col_ends_with
 )
@@ -951,7 +951,7 @@ class ExpStats():
         """
 
         # set up properties
-        data = self.data.copy()
+        data = self.data.clone()
         expected = self.expected
         if expected is None:
             has_expected = False
@@ -966,17 +966,17 @@ class ExpStats():
         end_date = self.end_date
         conf_int = self.xp_params['conf_int']
 
-        ci_cols = col_contains(data, '_(?:upp|low)er$')
+        ci_cols = col_matches(data, '_(?:upp|low)er$')
         if show_conf_int and not conf_int:
             _conf_int_warning()
         elif conf_int and not show_conf_int:
-            data.drop(columns=ci_cols, inplace=True)
+            data = data.drop(ci_cols)
             ci_cols = []
 
         conf_int = show_conf_int and conf_int
 
         if has_expected:
-            adj_cols = col_contains(
+            adj_cols = col_matches(
                 data,
                 f'adj_(?:{"|".join([str(x) for x in expected])})')
         else:
@@ -985,14 +985,14 @@ class ExpStats():
         if show_cred_adj and (not cred or not has_expected):
             self._cred_adj_warning()
         elif cred and not show_cred_adj and has_expected:
-            data.drop(columns=adj_cols, inplace=True)
+            data = data.drop(adj_cols)
             adj_cols = []
 
         show_cred_adj = show_cred_adj and cred
 
         wgt_cols = col_starts_with(data, 'weight')
 
-        tab = (GT(data.drop(columns=wgt_cols)).
+        tab = (GT(data.drop(wgt_cols)).
                fmt_number(['n_claims', 'claims', 'exposure'],
                           decimals=decimals_amt, compact=suffix_amt).
                fmt_percent(['q_obs'] +
@@ -1000,7 +1000,7 @@ class ExpStats():
                            col_ends_with(data, '_upper') +
                            col_starts_with(data, 'ae_') +
                            adj_cols +
-                           col_contains(data, '^credibility$') +
+                           col_matches(data, '^credibility$') +
                            ex_cols,
                            decimals=decimals).
                tab_options(table_font_size=pct(fontsize),
@@ -1048,12 +1048,12 @@ class ExpStats():
             tab = tab.cols_label(credibility=md("*Z<sup>cred</sup>*"))
 
         if colorful:
-            if data['q_obs'].nunique() > 1:
+            if data['q_obs'].n_unique() > 1:
                 tab = tab.data_color(['q_obs'], palette=color_q_obs)
 
             if has_expected:
                 ae_cols = ["ae_" + x for x in expected]
-                ae_vals = data[ae_cols].values
+                ae_vals = data[ae_cols].to_numpy()
                 ae_vals = ae_vals[~np.isnan(ae_vals)]
                 domain_ae = ae_vals.min(), ae_vals.max()
                 if domain_ae[0] != domain_ae[1]:

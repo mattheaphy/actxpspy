@@ -14,7 +14,7 @@ from actxps.tools import (
     _qnorm
 )
 from actxps.col_select import (
-    col_contains,
+    col_matches,
     col_starts_with
 )
 from actxps.expose_split import _check_split_expose_basis
@@ -876,7 +876,7 @@ class TrxStats():
             if conf_int:
                 data.drop(columns=['trx_amt_sq'], inplace=True)
 
-        ci_cols = col_contains(data, '_(?:upp|low)er$')
+        ci_cols = col_matches(data, '_(?:upp|low)er$')
         if show_conf_int and not conf_int:
             _conf_int_warning()
         elif conf_int and not show_conf_int:

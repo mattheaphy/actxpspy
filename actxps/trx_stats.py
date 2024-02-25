@@ -757,8 +757,8 @@ class TrxStats():
         expo = xp.ExposedDF.expose_py(census, "2019-12-31",
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
-        expo.data = expo.data.merge(account_vals, how='left',
-                                    on=["pol_num", "pol_date_yr"])        
+        expo.data = expo.data.join(account_vals, how='left',
+                                   on=["pol_num", "pol_date_yr"])        
 
         trx_res = (expo.group_by('pol_yr').
                    trx_stats(percent_of='av_anniv', combine_trx=True))
@@ -870,7 +870,7 @@ class TrxStats():
         """
 
         # set up properties
-        data = self.data.copy()
+        data = self.data.clone()
         percent_of = self.percent_of
         trx_types = self.trx_types
         start_date = self.start_date
@@ -887,24 +887,25 @@ class TrxStats():
         if show_conf_int and not conf_int:
             _conf_int_warning()
         elif conf_int and not show_conf_int:
-            data.drop(columns=ci_cols, inplace=True)
+            data = data.drop(ci_cols)
             ci_cols = []
         conf_int = show_conf_int and conf_int
 
         # set up index and groups
         data = (data.
-                drop(columns=['exposure']).
-                sort_values(['trx_type'] + self.groups).
-                reset_index())
+                drop('exposure').
+                sort(['trx_type'] + self.groups))
         if len(self.groups) > 0:
+            groupname_col = 'trx_type'
             rowname_col = self.groups[0]
-            data = data.drop(columns='index')
+            data = data.drop('index')
         else:
-            rowname_col = 'index'
+            groupname_col = None
+            rowname_col = None
 
         # TODO - once implemented, add `sub_missing()`
         tab = (GT(data,
-                  groupname_col='trx_type',
+                  groupname_col=groupname_col,
                   rowname_col=rowname_col).
                fmt_number(['trx_n', 'trx_amt', 'trx_flag',
                            'avg_trx', 'avg_all'],
@@ -950,13 +951,13 @@ class TrxStats():
             tab = _span_percent_of(tab, i, conf_int)
 
         if colorful:
-            if data['trx_util'].nunique() > 1:
+            if data['trx_util'].n_unique() > 1:
                 tab = tab.data_color(['trx_util'], palette=color_util)
 
             if len(percent_of) > 0:
                 pct_of_cols = [f"pct_of_{x}_w_trx" for x in percent_of] + \
                     [f"pct_of_{x}_all" for x in percent_of]
-                pct_of_vals = data[pct_of_cols].values
+                pct_of_vals = data[pct_of_cols].to_numpy()
                 pct_of_vals = pct_of_vals[~np.isnan(pct_of_vals)]
                 domain_pct = pct_of_vals.min(), pct_of_vals.max()
                 if domain_pct[0] != domain_pct[1]:

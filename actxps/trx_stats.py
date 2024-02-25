@@ -12,6 +12,7 @@ from actxps.tools import (
     _conf_int_warning,
     _verify_col_names,
     _date_str,
+    _qbinom,
     _qnorm,
     _check_convert_df
 )
@@ -193,28 +194,25 @@ class TrxStats():
 
         start_date = expo.start_date
         end_date = expo.end_date
-        data = expo.data.copy()
+        data = expo.data.lazy().rename({col_exposure: 'exposure'})
         groups = expo.groups
         if groups is None:
             groups = []
 
-        data = data.rename(columns={col_exposure: 'exposure'})
-
         # remove partial exposures
         if full_exposures_only:
-            data = data.loc[np.isclose(data.exposure, 1)]
+            data = data.filter((pl.col('exposure') - 1).abs() <=
+                               np.finfo(float).eps ** 0.5)
 
-        trx_cols = data.columns[data.columns.str.match('trx_(n|amt)_')]
-        trx_cols = trx_cols[trx_cols.str.contains('|'.join(trx_types))]
+        trx_cols = col_matches(data, f'trx_(n|amt)_({"|".join(trx_types)})')
 
         if combine_trx:
-            trx_n_cols = trx_cols[trx_cols.str.contains("_n_")]
-            trx_amt_cols = trx_cols[trx_cols.str.contains("_amt_")]
-            data['trx_n_All'] = 0
-            data['trx_amt_All'] = 0
-            for n, amt in zip(trx_n_cols, trx_amt_cols):
-                data['trx_n_All'] += data[n]
-                data['trx_amt_All'] += data[amt]
+            trx_n_cols = [x for x in trx_cols if "_n_" in x]
+            trx_amt_cols = [x for x in trx_cols if "_amt_" in x]
+            data = data.with_columns(
+                trx_n_All=pl.sum_horizontal(trx_n_cols),
+                trx_amt_All=pl.sum_horizontal(trx_amt_cols),
+            )
             trx_cols = ["trx_n_All", "trx_amt_All"]
 
         if percent_of is None:
@@ -225,31 +223,37 @@ class TrxStats():
 
         # subset columns
         id_vars = ['pol_num', 'exposure'] + groups + percent_of
-        data = data[id_vars + list(trx_cols)]
-        # pivot longer
-        data = data.reset_index().melt(id_vars=id_vars + ['index'])
-        # split transaction types from kinds
-        data.variable = data.variable.str.replace('^trx_', '', regex=True)
-        data[['kind', 'trx_type']] = \
-            data.variable.str.split('_', expand=True, n=1)
-        # pivot wider
-        data = (data.
-                pivot(index=['index'] + id_vars + ['trx_type'],
-                      values='value', columns='kind').
-                reset_index().
-                drop(columns='index').
-                rename(columns={'n': 'trx_n',
-                                'amt': 'trx_amt'}))
-        data.columns.name = None
-        # fill in missing values
-        data.trx_n = data.trx_n.fillna(0)
-        data.trx_amt = data.trx_amt.fillna(0)
-        data['trx_flag'] = data.trx_n.abs() > 0
+        data = (
+            data.select(id_vars + trx_cols).
+            # pivot longer
+            melt(id_vars=id_vars).
+            with_columns(
+                pl.col('variable').str.replace('^trx_', '')).
+            # split transaction types from kinds
+            with_columns(
+                pl.col('variable').str.split_exact('_', 1).
+                struct.rename_fields(['kind', 'trx_type'])
+            ).unnest('variable').
+            collect().
+            # pivot wider
+            pivot(index=id_vars + ['trx_type'],
+                  values='value', columns='kind',
+                  aggregate_function='sum').
+            lazy().
+            rename({'n': 'trx_n', 'amt': 'trx_amt'}).
+            # fill in missing values
+            with_columns(pl.col('trx_n', 'trx_amt').fill_null(0)).
+            with_columns(trx_flag=pl.col('trx_n').abs() > 0)
+        )
+
         if conf_int:
-            data['trx_amt_sq'] = data.trx_amt ** 2
+            data = data.with_columns(trx_amt_sq=pl.col('trx_amt') ** 2)
 
         for x in percent_of:
-            data[x + '_w_trx'] = data[x] * data.trx_flag
+            data = data.with_columns(
+                (pl.col(percent_of) * pl.col('trx_flag')).map_alias(
+                    lambda x: x + '_w_trx')
+            )
 
         xp_params = {'conf_level': conf_level,
                      'conf_int': conf_int}
@@ -280,11 +284,7 @@ class TrxStats():
 
         # finish trx stats
         if agg:
-            res = (data.groupby(groups + ['trx_type'], observed=True).
-                   apply(self._calc, include_groups=False).
-                   reset_index().
-                   drop(columns=[f'level_{len(groups) + 1}']))
-            self.data = res
+            self.data = self._calc(data)
         else:
             self.data = data
 
@@ -294,84 +294,92 @@ class TrxStats():
         """
         Support function for summarizing data for one group
         """
-        # safe divide by zero that returns infinite without warning
-        def div(x, y):
-            if y == 0:
-                if x > 0:
-                    return np.Inf
-                elif x == 0:
-                    return np.nan
-                else:
-                    return -np.Inf
-            else:
-                return x / y
-
-        # dictionary of summarized values
-        fields = {'trx_n': sum(data.trx_n),
-                  'trx_flag': sum(data.trx_flag),
-                  'trx_amt': sum(data.trx_amt),
-                  'exposure': sum(data.exposure)}
 
         conf_level = self.xp_params['conf_level']
         conf_int = self.xp_params['conf_int']
 
-        fields['avg_trx'] = div(fields['trx_amt'], fields['trx_flag'])
-        fields['avg_all'] = div(fields['trx_amt'], fields['exposure'])
-        fields['trx_freq'] = div(fields['trx_n'], fields['trx_flag'])
-        fields['trx_util'] = div(fields['trx_flag'], fields['exposure'])
+        if self.groups is None:
+            groups = ['trx_type']
+        else:
+            groups = self.groups + ['trx_type']
 
-        for x in self.percent_of:
-            xw = x + "_w_trx"
-            fields[x] = sum(data[x])
-            fields[xw] = sum(data[xw])
-            fields[f"pct_of_{x}_all"] = div(fields['trx_amt'], fields[x])
-            fields[f"pct_of_{xw}"] = div(fields['trx_amt'], fields[xw])
+        # dictionary of summarized values
+        fields = {'trx_n': pl.col('trx_n').sum(),
+                  'trx_flag': pl.col('trx_flag').sum(),
+                  'trx_amt': pl.col('trx_amt').sum(),
+                  'exposure': pl.col('exposure').sum()}
+
+        if len(self.percent_of) > 0:
+            for x in self.percent_of:
+                xw = x + "_w_trx"
+                fields[x] = pl.col(x).sum()
+                fields[xw] = pl.col(xw).sum()
+            if conf_int:
+                fields['trx_amt_sq'] = pl.col('trx_amt_sq').sum()
+
+        # apply summary fields
+        data = (data.group_by(groups).agg(**fields).sort(groups).
+                with_columns(
+                    avg_trx=pl.col('trx_amt') / pl.col('trx_flag'),
+                    avg_all=pl.col('trx_amt') / pl.col('exposure'),
+                    trx_freq=pl.col('trx_n') / pl.col('trx_flag'),
+                    trx_util=pl.col('trx_flag') / pl.col('exposure'))
+                )
+
+        if len(self.percent_of) > 0:
+            pct_cols = {}
+            for x in self.percent_of:
+                xw = x + "_w_trx"
+                pct_cols[f"pct_of_{x}_all"] = pl.col('trx_amt') / pl.col(x)
+                pct_cols[f"pct_of_{xw}"] = pl.col('trx_amt') / pl.col(xw)
+
+            data = data.with_columns(**pct_cols)
 
         # confidence interval formulas
         if conf_int:
 
             p = [(1 - conf_level) / 2, 1 - (1 - conf_level) / 2]
 
-            fields['trx_util_lower'] = div(
-                binom.ppf(p[0], np.round(fields['exposure']),
-                          fields['trx_util']), fields['exposure'])
-            fields['trx_util_upper'] = div(
-                binom.ppf(p[1], np.round(fields['exposure']),
-                          fields['trx_util']), fields['exposure'])
+            data = data.with_columns(
+                trx_util_lower=_qbinom(p[0], prob='trx_util'),
+                trx_util_upper=_qbinom(p[1], prob='trx_util'),
+            )
 
             if len(self.percent_of) > 0:
                 # standard deviations
-
-                fields['trx_amt_sq'] = sum(data['trx_amt_sq'])
-                sd_trx = (div(fields['trx_amt_sq'], fields['trx_flag']) -
-                          fields['avg_trx'] ** 2) ** 0.5
                 # For binomial N
                 # Var(S) = n * p * (Var(X) + E(X)**2 * (1 - p))
-                sd_all = (fields['trx_flag'] *
-                          (sd_trx ** 2 + fields['avg_trx'] ** 2 *
-                           (1 - fields['trx_util']))) ** 0.5
+                data = (data.with_columns(
+                    sd_trx=((pl.col('trx_amt_sq') / pl.col('trx_flag')) -
+                            pl.col('avg_trx') ** 2) ** 0.5
+                ).with_columns(
+                    sd_all=(pl.col('trx_flag') *
+                              (pl.col('sd_trx') ** 2 + pl.col('avg_trx') ** 2 *
+                               (1 - pl.col('trx_util')))) ** 0.5
+                ))
+
+            ci_cols = {}
 
             for x in self.percent_of:
 
                 xw = x + "_w_trx"
 
                 # confidence intervals with transactions
-                fields[f'pct_of_{xw}_lower'] = div(
-                    _qnorm(p[0], fields['trx_amt'], sd_trx *
-                           fields['trx_flag'] ** 0.5), fields[xw])
-                fields[f'pct_of_{xw}_upper'] = div(
-                    _qnorm(p[1], fields['trx_amt'], sd_trx *
-                           fields['trx_flag'] ** 0.5), fields[xw])
+                ci_cols[f'pct_of_{xw}_lower'] = \
+                    _qnorm(p[0], 'trx_amt', pl.col('sd_trx') *
+                           pl.col('trx_flag') ** 0.5) / pl.col(xw)
+                ci_cols[f'pct_of_{xw}_upper'] = \
+                    _qnorm(p[1], 'trx_amt', pl.col('sd_trx') *
+                           pl.col('trx_flag') ** 0.5) / pl.col(xw)
                 # confidence intervals across all records
-                fields[f'pct_of_{x}_all_lower'] = div(
-                    _qnorm(p[0], fields['trx_amt'], sd_all), fields[x])
-                fields[f'pct_of_{x}_all_upper'] = div(
-                    _qnorm(p[1], fields['trx_amt'], sd_all), fields[x])
+                ci_cols[f'pct_of_{x}_all_lower'] = \
+                    _qnorm(p[0], 'trx_amt', 'sd_all') / pl.col(x)
+                ci_cols[f'pct_of_{x}_all_upper'] = \
+                    _qnorm(p[1], 'trx_amt', 'sd_all') / pl.col(x)
 
-        # convert data to a data frame
-        data = pd.DataFrame(fields, index=range(1))
+            data = data.with_columns(**ci_cols)
 
-        return data
+        return data.collect()
 
     @classmethod
     def from_DataFrame(cls,
@@ -531,8 +539,8 @@ class TrxStats():
             rename_dict.update(
                 {col_percent_of_w_trx: col_percent_of + "_w_trx"})
 
-        data = data.rename(columns=rename_dict)
-        data['trx_type'] = col_trx_amt
+        data = (data.rename(rename_dict).
+                with_columns(trx_type=pl.lit(col_trx_amt)))
 
         # check required columns
         _verify_col_names(data.columns, req_names)
@@ -611,7 +619,8 @@ class TrxStats():
                 "All grouping variables passed to `*by` must be in the " + \
                 "`.data` property."
 
-        self._finalize(old_self.data, old_self.trx_types, old_self.percent_of,
+        self._finalize(old_self.data.lazy(),
+                       old_self.trx_types, old_self.percent_of,
                        by, old_self.start_date, old_self.end_date,
                        old_self.xp_params)
 
@@ -872,10 +881,9 @@ class TrxStats():
 
         # remove unnecessary columns
         if len(percent_of) > 0:
-            data.drop(columns=percent_of + [x + "_w_trx" for x in percent_of],
-                      inplace=True)
+            data = data.drop(percent_of + [x + "_w_trx" for x in percent_of])
             if conf_int:
-                data.drop(columns=['trx_amt_sq'], inplace=True)
+                data = data.drop('trx_amt_sq')
 
         ci_cols = col_matches(data, '_(?:upp|low)er$')
         if show_conf_int and not conf_int:

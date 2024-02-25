@@ -15,7 +15,7 @@ from plotnine import (
     scale_color_manual,
     scale_fill_manual)
 from warnings import warn
-from scipy.stats import norm
+from scipy.stats import binom, norm
 _use_default_colors = False
 
 
@@ -296,37 +296,57 @@ def _date_str(x) -> str:
         return x
 
 
-# safe version of normal ppf when standard deviation is zero
-def _qnorm(p, mean = 0, sd = 1):
+def _qbinom(q: float, obs: str = "exposure", prob: str = "q_obs") -> pl.Expr:
+    """
+    Internal function for the binomial distribution expressed as probabilities
+
+    Parameters
+    ----------
+    q : float
+        Percentile
+    obs : str, default="exposure"
+        A column name containing exposures or the number of observations
+    prob : str, default="q_obs"
+        A column name containing the probability of an event
+
+    Returns
+    -------
+    pl.Expr
+    """
+    return (pl.struct(pl.col(obs).round(), pl.col(prob)).
+            map_batches(lambda x: binom.ppf(q, x.struct[0], x.struct[1])) /
+            pl.col(obs))
+
+
+def _qnorm(q: float, mean: str, sd: str) -> pl.Expr:
     """
     Internal function for the inverse cumulative normal distribution
     that returns the mean when the standard deviation is zero.
 
     Parameters
     ----------
-    p : np.ndarray
-        A vector of probabilities
-    mean : np.ndarray
-        A vector of means
-    sd : np.ndarray
-        A vector of standard deviations
+    q : float
+        Percentile
+    mean : str
+        A column name containing means
+    sd : str
+        A column name containing standard deviations
 
     Returns
     -------
-    np.ndarray
-        A vector of quantiles
+    pl.Expr
     """
-    sd = np.maximum(sd, 1E-16)
-    return norm.ppf(p, mean, sd)
+    return (pl.struct(pl.col(mean), pl.max_horizontal(pl.col(sd), 1E-16)).
+            map_batches(lambda x: norm.ppf(q, x.struct[0], x.struct[1])))
 
 
-def relocate(data: pl.DataFrame, 
-             x : str | list | np.ndarray,
-             before: str=None, 
-             after: str=None):
+def relocate(data: pl.DataFrame,
+             x: str | list | np.ndarray,
+             before: str = None,
+             after: str = None):
     """
     Reorder columns in a data frame
-    
+
     Move the columns in `x` before or after a given column. If neither `before`
     or `after` are specified, `x` will be moved to the left. If both `before`
     and `after` are specified, an error is returned.
@@ -351,8 +371,8 @@ def relocate(data: pl.DataFrame,
         'One of `before` and `after` must be specified, but not both.'
     x = np.atleast_1d(x)
     columns = data.columns
-    columns2 =[col for col in columns if col not in x]
-    
+    columns2 = [col for col in columns if col not in x]
+
     if before is None and after is None:
         return data.select(list(x) + columns2)
     if before is None:
@@ -380,8 +400,8 @@ def _check_convert_df(data: pl.DataFrame | pd.DataFrame):
         data = pl.from_pandas(data).with_columns(
             cs.datetime().cast(pl.Date)
         )
-    
+
     assert isinstance(data, pl.DataFrame), \
         '`data` must be a DataFrame'
-        
+
     return data

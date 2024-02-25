@@ -615,7 +615,7 @@ class TrxStats():
         by = list(by)
 
         if len(by) > 0:
-            assert all(pd.Series(by).isin(old_self.data.columns)), \
+            assert all(pl.Series(by).is_in(old_self.data.columns)), \
                 "All grouping variables passed to `*by` must be in the " + \
                 "`.data` property."
 

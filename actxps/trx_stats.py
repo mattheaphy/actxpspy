@@ -225,7 +225,7 @@ class TrxStats():
         id_vars = ['index', 'pol_num', 'exposure'] + groups + percent_of
         data = (
             data.
-            with_row_count('index').
+            with_row_index('index').
             select(id_vars + trx_cols).
             # pivot longer
             melt(id_vars=id_vars).

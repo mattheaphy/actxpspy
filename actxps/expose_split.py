@@ -228,7 +228,7 @@ class SplitExposedDF(ExposedDF):
                 collect())
 
         self._finalize(data, expo.end_date, expo.start_date,
-                       target_status, True, expo_length,
+                       target_status.to_numpy(), True, expo_length,
                        expo.trx_types, default_status, True)
 
         return None

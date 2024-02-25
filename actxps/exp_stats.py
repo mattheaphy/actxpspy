@@ -174,7 +174,7 @@ class ExpStats():
                  "was assumed.")
         else:
             target_status = pl.Series(
-                target_status, dtype=expo.data['status'].dtype)
+                values=target_status, dtype=expo.data['status'].dtype)
 
         _check_split_expose_basis(expo, col_exposure)
         data = expo.data.lazy().with_columns(

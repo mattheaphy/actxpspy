@@ -161,8 +161,8 @@ class ExposedDF():
     @singledispatchmethod
     def __init__(self,
                  data: pl.DataFrame | pd.DataFrame,
-                 end_date: date,
-                 start_date: date = date(1900, 1, 1),
+                 end_date: date | str,
+                 start_date: date | str = date(1900, 1, 1),
                  target_status: str | list | np.ndarray = None,
                  cal_expo: bool = False,
                  expo_length: str = 'year',
@@ -477,8 +477,8 @@ class ExposedDF():
     @classmethod
     def from_DataFrame(cls,
                        data: pl.DataFrame | pd.DataFrame,
-                       end_date: date,
-                       start_date: date = date(1900, 1, 1),
+                       end_date: date | str,
+                       start_date: date | str = date(1900, 1, 1),
                        target_status: str = None,
                        cal_expo: bool = False,
                        expo_length: str = 'year',
@@ -505,9 +505,9 @@ class ExposedDF():
         ----------
         data : pl.DataFrame | pd.DataFrame
             A data frame with exposure-level records
-        end_date : date
+        end_date : date | str
             Experience study end date
-        start_date : date, default='1900-01-01'
+        start_date : date | str, default=date(1900, 1, 1)
             Experience study start date
         target_status : str | list | np.ndarray, default=`None`
             Target status values
@@ -627,8 +627,8 @@ class ExposedDF():
     def _special_init(self,
                       style,
                       data: pl.DataFrame,
-                      end_date: date,
-                      start_date: date = date(1900, 1, 1),
+                      end_date: date | str,
+                      start_date: date | str = date(1900, 1, 1),
                       target_status: str = None,
                       cal_expo: bool = False,
                       expo_length: str = 'year',

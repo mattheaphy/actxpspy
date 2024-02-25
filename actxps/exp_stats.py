@@ -2,7 +2,7 @@ import polars as pl
 import pandas as pd
 import numpy as np
 from scipy.stats import norm
-from datetime import datetime
+from datetime import date
 from warnings import warn
 from functools import singledispatchmethod
 from actxps.expose import ExposedDF
@@ -407,8 +407,8 @@ class ExpStats():
                        col_n_claims: str = 'n_claims',
                        col_weight_sq: str = 'weight_sq',
                        col_weight_n: str = 'weight_n',
-                       start_date: datetime | int | str = datetime(1900, 1, 1),
-                       end_date: datetime | int | str = None):
+                       start_date: date | str = date(1900, 1, 1),
+                       end_date: date | str = None):
         """
         Convert a data frame containing aggregate termination experience study
         results to the `ExpStats` class.
@@ -459,9 +459,9 @@ class ExpStats():
         col_weight_n : str, default='weight_n'
             Only used used when `wt` is passed. Name of the column in `data` 
             containing exposure record counts.
-        start_date : datetime | int | str, default='1900-01-01'
+        start_date : date | str, default=date(1900, 1, 1)
             Experience study start date
-        end_date : datetime | int | str: default=None
+        end_date : date | str: default=None
             Experience study end date
 
         Returns

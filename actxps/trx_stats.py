@@ -1,7 +1,7 @@
 import polars as pl
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import date
 from functools import singledispatchmethod
 from itertools import product
 from actxps.expose import ExposedDF
@@ -393,8 +393,8 @@ class TrxStats():
                        col_percent_of: str = None,
                        col_percent_of_w_trx: str = None,
                        col_trx_amt_sq: str = "trx_amt_sq",
-                       start_date: datetime | int | str = datetime(1900, 1, 1),
-                       end_date: datetime | int | str = None):
+                       start_date: date | str = date(1900, 1, 1),
+                       end_date: date | str = None):
         """
         Convert a data frame containing aggregate transaction experience study
         results to the `TrxStats` class.
@@ -437,9 +437,9 @@ class TrxStats():
             Only required when `col_percent_of` is passed and `conf_int` is 
             `True`. Name of the column in `data` containing squared transaction 
             amounts.
-        start_date : datetime | int | str, optional
+        start_date : date | str, default=date(1900, 1, 1)
             Transaction study start date
-        end_date : datetime | int | str, optional
+        end_date : date | str, optional
             Transaction study end date
 
         Returns

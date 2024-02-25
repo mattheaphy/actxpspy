@@ -566,7 +566,7 @@ class ExpStats():
         _verify_col_names(data.columns, req_names)
 
         if wt is None:
-            data = data.with_columns(n_claims = pl.col('claims'))
+            data = data.with_columns(n_claims=pl.col('claims'))
 
         return ExpStats(data, groups=None,
                         target_status=target_status,
@@ -636,11 +636,11 @@ class ExpStats():
         if len(by) == 0:
             by = None
         else:
-            assert all(pd.Series(by).isin(old_self.data.columns)), \
+            assert all(pl.Series(by).is_in(old_self.data.columns)), \
                 "All grouping variables passed to `*by` must be in the " + \
                 "`data` property."
 
-        self._finalize(old_self.data, by,
+        self._finalize(old_self.data.lazy(), by,
                        old_self.target_status, old_self.end_date,
                        old_self.start_date, old_self.expected,
                        old_self.wt, old_self.xp_params)

@@ -1,3 +1,4 @@
+import polars as pl
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -11,7 +12,8 @@ from actxps.tools import (
     _conf_int_warning,
     _verify_col_names,
     _date_str,
-    _qnorm
+    _qnorm,
+    _check_convert_df
 )
 from actxps.col_select import (
     col_matches,
@@ -25,7 +27,6 @@ from great_tables import (
     pct,
     md
 )
-from matplotlib.colors import Colormap
 from scipy.stats import binom
 
 
@@ -71,7 +72,7 @@ class TrxStats():
     Attributes
     ----------
 
-    data : pd.DataFrame
+    data : pl.DataFrame
         A data framethat includes columns for any grouping variables and
         transaction types, plus the following: `trx_n` (the number of unique 
         transactions), `trx_amt` (total transaction amount), `trx_flag` (the 
@@ -257,7 +258,7 @@ class TrxStats():
                        groups, start_date, end_date, xp_params)
 
     def _finalize(self,
-                  data: pd.DataFrame,
+                  data: pl.LazyFrame | pl.DataFrame,
                   trx_types,
                   percent_of,
                   groups,
@@ -289,7 +290,7 @@ class TrxStats():
 
         return None
 
-    def _calc(self, data: pd.DataFrame):
+    def _calc(self, data:  pl.LazyFrame):
         """
         Support function for summarizing data for one group
         """
@@ -374,7 +375,7 @@ class TrxStats():
 
     @classmethod
     def from_DataFrame(cls,
-                       data: pd.DataFrame,
+                       data: pl.DataFrame | pd.DataFrame,
                        conf_int: bool = False,
                        conf_level: float = 0.95,
                        col_trx_amt: str = 'trx_amt',
@@ -399,7 +400,7 @@ class TrxStats():
 
         Parameters
         ----------
-        data : pd.DataFrame
+        data : pl.DataFrame | pd.DataFrame
             A DataFrame containing aggregate transaction study results. See the 
             Notes section for required columns that must be present.
         conf_int : bool, default=False
@@ -505,8 +506,8 @@ class TrxStats():
         typically created from individual exposure records.
         """
 
-        assert isinstance(data, pd.DataFrame), \
-            '`data` must be a Pandas DataFrame'
+        # convert data to polars dataframe if necessary
+        data = _check_convert_df(data)
 
         # column name alignment
         rename_dict = {col_trx_amt: 'trx_amt',
@@ -551,8 +552,8 @@ class TrxStats():
                                    'conf_level': conf_level},
                         agg=False)
 
-    @ __init__.register(pd.DataFrame)
-    def _special_init(self, data: pd.DataFrame, **kwargs):
+    @ __init__.register(pl.DataFrame)
+    def _special_init(self, data: pl.DataFrame, **kwargs):
         """
         Special constructor for the TrxStats class. This constructor is used
         by the `from_DataFrame()` class method to create new TrxStats objects 

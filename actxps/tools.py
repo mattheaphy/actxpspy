@@ -318,7 +318,7 @@ def _qbinom(q: float, obs: str = "exposure", prob: str = "q_obs") -> pl.Expr:
             pl.col(obs))
 
 
-def _qnorm(q: float, mean: str, sd: str) -> pl.Expr:
+def _qnorm(q: float, mean: str, sd: str | pl.Expr) -> pl.Expr:
     """
     Internal function for the inverse cumulative normal distribution
     that returns the mean when the standard deviation is zero.
@@ -329,14 +329,17 @@ def _qnorm(q: float, mean: str, sd: str) -> pl.Expr:
         Percentile
     mean : str
         A column name containing means
-    sd : str
+    sd : str | pl.Expr
         A column name containing standard deviations
 
     Returns
     -------
     pl.Expr
     """
-    return (pl.struct(pl.col(mean), pl.max_horizontal(pl.col(sd), 1E-16)).
+    if isinstance(sd, str):
+        sd = pl.col(sd)
+    
+    return (pl.struct(pl.col(mean), pl.max_horizontal(sd, 1E-16)).
             map_batches(lambda x: norm.ppf(q, x.struct[0], x.struct[1])))
 
 

@@ -222,9 +222,11 @@ class TrxStats():
             percent_of = np.atleast_1d(percent_of).tolist()
 
         # subset columns
-        id_vars = ['pol_num', 'exposure'] + groups + percent_of
+        id_vars = ['index', 'pol_num', 'exposure'] + groups + percent_of
         data = (
-            data.select(id_vars + trx_cols).
+            data.
+            with_row_count('index').
+            select(id_vars + trx_cols).
             # pivot longer
             melt(id_vars=id_vars).
             with_columns(
@@ -237,13 +239,13 @@ class TrxStats():
             collect().
             # pivot wider
             pivot(index=id_vars + ['trx_type'],
-                  values='value', columns='kind',
-                  aggregate_function='sum').
+                  values='value', columns='kind').
             lazy().
             rename({'n': 'trx_n', 'amt': 'trx_amt'}).
             # fill in missing values
             with_columns(pl.col('trx_n', 'trx_amt').fill_null(0)).
-            with_columns(trx_flag=pl.col('trx_n').abs() > 0)
+            with_columns(trx_flag=pl.col('trx_n').abs() > 0).
+            drop('index')
         )
 
         if conf_int:

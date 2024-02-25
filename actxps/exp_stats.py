@@ -14,7 +14,8 @@ from actxps.tools import (
     _verify_col_names,
     _date_str,
     _qbinom,
-    _qnorm
+    _qnorm,
+    _check_convert_df
 )
 from actxps.col_select import (
     col_contains,
@@ -422,7 +423,7 @@ class ExpStats():
         Parameters
         ----------
 
-        data : pd.DataFrame
+        data : pl.DataFrame | pd.DataFrame,
             A DataFrame containing aggregate experience study results. See the 
             Notes section for required columns that must be present.
         target_status : str | list | np.ndarray, default=None
@@ -544,8 +545,8 @@ class ExpStats():
 
         target_status = np.atleast_1d(target_status)
 
-        assert isinstance(data, pd.DataFrame), \
-            '`data` must be a Pandas DataFrame'
+        # convert data to polars dataframe if necessary
+        data = _check_convert_df(data)
 
         # column name alignment
         rename_dict = {col_claims: 'claims',
@@ -559,13 +560,13 @@ class ExpStats():
                                 col_weight_sq: 'weight_sq',
                                 col_weight_n: 'weight_n'})
 
-        data = data.rename(columns=rename_dict)
+        data = data.rename(rename_dict)
 
         # # check required columns
         _verify_col_names(data.columns, req_names)
 
         if wt is None:
-            data['n_claims'] = data['claims']
+            data = data.with_columns(n_claims = pl.col('claims'))
 
         return ExpStats(data, groups=None,
                         target_status=target_status,
@@ -577,7 +578,7 @@ class ExpStats():
                                    'cred_r': cred_r},
                         agg=False)
 
-    @ __init__.register(pd.DataFrame)
+    @ __init__.register(pl.DataFrame)
     def _special_init(self, data: pd.DataFrame, **kwargs):
         """
         Special constructor for the ExpStats class. This constructor is used

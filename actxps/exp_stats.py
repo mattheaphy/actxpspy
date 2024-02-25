@@ -1,7 +1,8 @@
+import polars as pl
 import pandas as pd
 import numpy as np
+from scipy.stats import norm
 from datetime import datetime
-from scipy.stats import norm, binom
 from warnings import warn
 from functools import singledispatchmethod
 from actxps.expose import ExposedDF
@@ -12,6 +13,7 @@ from actxps.tools import (
     _conf_int_warning,
     _verify_col_names,
     _date_str,
+    _qbinom,
     _qnorm
 )
 from actxps.col_select import (
@@ -20,7 +22,6 @@ from actxps.col_select import (
     col_ends_with
 )
 from actxps.expose_split import _check_split_expose_basis
-from matplotlib.colors import Colormap
 from plotnine import (
     aes,
     geom_hline
@@ -73,7 +74,7 @@ class ExpStats():
 
     Attributes
     ----------
-    data : pd.DataFrame
+    data : pl.DataFrame
         A data frame containing experience study summary results that includes
         columns for any grouping variables, claims, exposures, and observed
         decrement rates (`q_obs`). If any values are passed to `expected`,
@@ -164,29 +165,37 @@ class ExpStats():
         if target_status is None:
             target_status = expo.target_status
         if target_status == [None]:
-            target_status = list(expo.data.status.cat.categories[1:])
+            target_status = expo.data['status'].cat.get_categories()
+            target_status = (target_status.
+                             filter(target_status != expo.default_status).
+                             cast(expo.data['status'].dtype))
             warn(f"No target status was provided. {', '.join(target_status)} "
                  "was assumed.")
+        else:
+            target_status = pl.Series(
+                target_status, dtype=expo.data['status'].dtype)
 
-        data = expo.data.assign(
-            n_claims=expo.data.status.isin(target_status)
-        )
+        _check_split_expose_basis(expo, col_exposure)
+        data = expo.data.lazy().with_columns(
+            n_claims=pl.col('status').is_in(target_status)
+        ).rename({col_exposure: 'exposure'})
 
         # set up weights
         if wt is not None:
 
             assert isinstance(wt, str), "`wt` must have type `str`"
-            data = data.rename(columns={wt: 'weight'})
-            data['claims'] = data.n_claims * data.weight
-            data['exposure'] = data.exposure * data.weight
-            data['weight_sq'] = data.weight ** 2
-            data['weight_n'] = 1
+            data = (
+                data.
+                rename({wt: 'weight'}).
+                with_columns(
+                    claims=pl.col('n_claims') * pl.col('weight'),
+                    exposure=pl.col('exposure') * pl.col('weight'),
+                    weight_sq=pl.col('weight') ** 2,
+                    weight_n=1)
+            )
 
         else:
-            data['claims'] = data.n_claims
-
-        _check_split_expose_basis(expo, col_exposure)
-        data = data.rename(columns={col_exposure: 'exposure'})
+            data = data.with_columns(claims=pl.col('n_claims'))
 
         xp_params = {'credibility': credibility,
                      'conf_level': conf_level,
@@ -201,7 +210,7 @@ class ExpStats():
         return None
 
     def _finalize(self,
-                  data: pd.DataFrame,
+                  data: pl.LazyFrame | pl.DataFrame,
                   groups,
                   target_status,
                   end_date,
@@ -227,28 +236,20 @@ class ExpStats():
 
         # finish exp stats
         if agg:
-            if groups is not None:
-                res = (data.groupby(groups, observed=True).
-                       apply(self._calc, include_groups=False).
-                       reset_index().
-                       drop(columns=[f'level_{len(groups)}']))
-            else:
-                res = self._calc(data)
-
-            self.data = res
+            self.data = self._calc(data)
         else:
             self.data = data
 
         return None
 
-    def _calc(self, data: pd.DataFrame):
+    def _calc(self, data: pl.LazyFrame):
         """
-        Support function for summarizing data for one group
+        Support function for summarizing data
         """
         # dictionary of summarized values
-        fields = {'n_claims': sum(data.n_claims),
-                  'claims': sum(data.claims),
-                  'exposure': sum(data.exposure)}
+        fields = {'n_claims': pl.col('n_claims').sum(),
+                  'claims': pl.col('claims').sum(),
+                  'exposure': pl.col('exposure').sum()}
 
         expected = self.expected
         wt = self.wt
@@ -258,48 +259,54 @@ class ExpStats():
         conf_int = self.xp_params['conf_int']
 
         if expected is not None:
-            ex_mean = {k: np.average(data[k], weights=data.exposure)
-                       for k in expected}
+            ex_mean = {k: (pl.col(k) * pl.col('exposure')).sum() /
+                       pl.col('exposure').sum() for k in expected}
             fields.update(ex_mean)
 
         # additional columns for weighted studies
         if wt is not None:
             wt_forms = {
-                'weight': sum(data.weight),
-                'weight_sq': sum(data.weight_sq),
-                'weight_n': sum(data.weight_n)}
+                'weight': pl.col('weight').sum(),
+                'weight_sq': pl.col('weight_sq').sum(),
+                'weight_n': pl.col('weight_n').sum()}
             fields.update(wt_forms)
 
-            wt_forms2 = {
-                'ex_wt': lambda x: x.weight / x.weight_n,
-                'ex2_wt': lambda x: x.weight_sq / x.weight_n}
+        # summary fields
+        if self.groups is None:
+            data = data.select(**fields)
+            cols = []
         else:
-            wt_forms2 = {}
+            data = (data.
+                    group_by(self.groups).
+                    agg(**fields).
+                    sort(self.groups))
+            cols = self.groups
+
+        data = data.with_columns(q_obs=pl.col('claims') / pl.col('exposure'))
+        if wt is not None:
+            data = data.with_columns(
+                ex_wt=pl.col('weight') / pl.col('weight_n'),
+                ex2_wt=pl.col('weight_sq') / pl.col('weight_n'))
 
         # credibility formulas - varying by weights
         if credibility:
-            y = (_qnorm((1 + conf_level) / 2) / cred_r) ** 2
+            y = (norm.ppf((1 + conf_level) / 2) / cred_r) ** 2
 
             if wt is None:
-                cred = {
-                    'credibility': lambda x:
-                        np.minimum(1,
-                                   (x.n_claims / (y * (1 - x.q_obs)))
-                                   ** 0.5)
-                }
+                data = data.with_columns(
+                    credibility=pl.min_horizontal(
+                        1,
+                        (pl.col('n_claims') /
+                         (y * (1 - pl.col('q_obs')))) ** 0.5))
             else:
-                cred = {
-                    'credibility': lambda x:
-                        np.minimum(1,
-                                   (x.n_claims / (
-                                       y * ((x.ex2_wt - x.ex_wt ** 2) *
-                                            x.weight_n / (x.weight_n - 1) /
-                                            x.ex_wt ** 2 + 1 - x.q_obs)))
-                                   ** 0.5)
-                }
-
-        else:
-            cred = {}
+                data = data.with_columns(
+                    credibility=pl.min_horizontal(
+                        1,
+                        (pl.col('n_claims') / (
+                            y * ((pl.col('ex2_wt') - pl.col('ex_wt') ** 2) *
+                                 pl.col('weight_n') / (pl.col('weight_n') - 1) /
+                                 pl.col('ex_wt') ** 2 + 1 - pl.col('q_obs'))))
+                        ** 0.5))
 
         # confidence interval formulas
         if conf_int:
@@ -307,69 +314,60 @@ class ExpStats():
             p = [(1 - conf_level) / 2, 1 - (1 - conf_level) / 2]
 
             if wt is None:
-                ci = {
-                    'q_obs_lower': lambda x:
-                        binom.ppf(p[0], np.round(x.exposure),
-                                  x.q_obs) / x.exposure,
-                    'q_obs_upper': lambda x:
-                        binom.ppf(p[1], np.round(x.exposure),
-                                  x.q_obs) / x.exposure
-                }
+                data = data.with_columns(
+                    q_obs_lower=_qbinom(p[0]),
+                    q_obs_upper=_qbinom(p[1])
+                )
             else:
-                ci = {
+                data = (data.with_columns(
                     # For binomial N
                     # Var(S) = n * p * (Var(X) + E(X)**2 * (1 - p))
-                    'sd_agg': lambda x:
-                        (x.n_claims * ((x.ex2_wt - x.ex_wt ** 2) +
-                                       x.ex_wt ** 2 * (1 - x.q_obs))) ** 0.5,
-                    'q_obs_lower': lambda x:
-                        _qnorm(p[0], x.claims, x.sd_agg) / x.exposure,
-                    'q_obs_upper': lambda x:
-                        _qnorm(p[1], x.claims, x.sd_agg) / x.exposure
-                }
-
-        else:
-            ci = {}
-
-        # dictionary of columns that depend on summarized values
-        fields2 = {
-            'q_obs': lambda x: x.claims / x.exposure
-        }
-        fields2.update(wt_forms2)
-        fields2.update(cred)
-        fields2.update(ci)
-
-        # convert dataults to a data frame
-        data = pd.DataFrame(fields, index=range(1)).assign(**fields2)
+                    sd_agg=(pl.col('n_claims') *
+                            ((pl.col('ex2_wt') - pl.col('ex_wt') ** 2) +
+                             pl.col('ex_wt') ** 2 * (1 - pl.col('q_obs'))))
+                    ** 0.5
+                ).with_columns(
+                    q_obs_lower=_qnorm(p[0], 'claims', 'sd_agg') /
+                    pl.col('exposure'),
+                    q_obs_upper=_qnorm(p[1], 'claims', 'sd_agg') /
+                    pl.col('exposure')
+                ))
 
         # add A/E's and adjusted q's
         if expected is not None:
-            for k in expected:
-                data['ae_' + k] = data.q_obs / data[k]
+            ex_cols = {'ae_' + k: (pl.col('q_obs') / pl.col(k)) for
+                       k in expected}
+            if credibility:
+                ex_cols.update({
+                    'adj_' + k: (pl.col('credibility') * pl.col('q_obs') +
+                                 (1 - pl.col('credibility')) * pl.col(k)) for
+                    k in expected})
 
-        if credibility and (expected is not None):
-            for k in expected:
-                data['adj_' + k] = (data.credibility * data.q_obs +
-                                    (1 - data.credibility) * data[k])
-
-        if conf_int and (expected is not None):
-            for k in expected:
-                data[f'ae_{k}_lower'] = data.q_obs_lower / data[k]
-                data[f'ae_{k}_upper'] = data.q_obs_upper / data[k]
+            if conf_int:
+                for k in expected:
+                    ex_cols.update({
+                        f'ae_{k}_lower': pl.col('q_obs_lower') / pl.col(k),
+                        f'ae_{k}_upper': pl.col('q_obs_upper') / pl.col(k)
+                    })
 
                 if credibility:
-                    data[f'adj_{k}_lower'] = \
-                        (data.credibility * data.q_obs_lower +
-                         (1 - data.credibility) * data[k])
-                    data[f'adj_{k}_upper'] = \
-                        (data.credibility * data.q_obs_upper +
-                         (1 - data.credibility) * data[k])
+                    for k in expected:
+                        ex_cols.update({
+                            f'adj_{k}_lower':
+                            (pl.col('credibility') * pl.col('q_obs_lower') +
+                             (1 - pl.col('credibility')) * pl.col(k)),
+                            f'adj_{k}_upper':
+                            (pl.col('credibility') * pl.col('q_obs_upper') +
+                             (1 - pl.col('credibility')) * pl.col(k))
+                        })
+
+            data = data.with_columns(**ex_cols)
 
         # rearrange and drop columns
         if wt is not None:
-            data = data.drop(columns=['ex_wt', 'ex2_wt'])
+            data = data.drop(['ex_wt', 'ex2_wt'])
 
-        cols = ['n_claims', 'claims', 'exposure', 'q_obs']
+        cols = cols + ['n_claims', 'claims', 'exposure', 'q_obs']
         if conf_int:
             cols.extend(['q_obs_lower', 'q_obs_upper'])
 
@@ -391,13 +389,11 @@ class ExpStats():
         if wt is not None:
             cols.extend(['weight', 'weight_sq', 'weight_n'])
 
-        data = data[cols]
-
-        return data
+        return data.select(cols).collect()
 
     @classmethod
     def from_DataFrame(cls,
-                       data: pd.DataFrame,
+                       data: pl.DataFrame | pd.DataFrame,
                        target_status: str | list | np.ndarray = None,
                        expected: str | list | np.ndarray = None,
                        wt: str = None,
@@ -1056,7 +1052,7 @@ class ExpStats():
                 ae_vals = ae_vals[~np.isnan(ae_vals)]
                 domain_ae = ae_vals.min(), ae_vals.max()
                 if domain_ae[0] != domain_ae[1]:
-                    tab = tab.data_color(ae_cols, palette=color_ae_, 
+                    tab = tab.data_color(ae_cols, palette=color_ae_,
                                          reverse=True, domain=domain_ae)
 
         return tab

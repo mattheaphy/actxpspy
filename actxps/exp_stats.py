@@ -578,7 +578,7 @@ class ExpStats():
                         agg=False)
 
     @ __init__.register(pl.DataFrame)
-    def _special_init(self, data: pd.DataFrame, **kwargs):
+    def _special_init(self, data: pl.DataFrame, **kwargs):
         """
         Special constructor for the ExpStats class. This constructor is used
         by the `from_DataFrame()` class method to create new ExpStats objects 

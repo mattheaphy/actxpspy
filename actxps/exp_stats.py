@@ -661,9 +661,7 @@ class ExpStats():
             repr += f"Weighted by: {self.wt}\n"
 
         if self.data is not None:
-            repr = (repr +
-                    f"\n\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}" +
-                    f'\n{self.data.head(10)}')
+            repr = repr + f'\n{self.data}'
 
         return repr
 

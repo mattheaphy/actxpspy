@@ -253,9 +253,8 @@ class TrxStats():
 
         for x in percent_of:
             data = data.with_columns(
-                (pl.col(percent_of) * pl.col('trx_flag')).map_alias(
-                    lambda x: x + '_w_trx')
-            )
+                (pl.col(percent_of) * pl.col('trx_flag')).name.map(
+                    lambda x: x + '_w_trx'))
 
         xp_params = {'conf_level': conf_level,
                      'conf_int': conf_int}

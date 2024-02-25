@@ -107,7 +107,7 @@ def _plot_experience(xp_obj,
 
     if groups == []:
         groups = ["All"]
-        data["All"] = ""
+        data = data.with_columns(All=pl.lit(""))
 
     def auto_aes(var, default, if_none):
         if var is None:
@@ -338,7 +338,7 @@ def _qnorm(q: float, mean: str, sd: str | pl.Expr) -> pl.Expr:
     """
     if isinstance(sd, str):
         sd = pl.col(sd)
-    
+
     return (pl.struct(pl.col(mean), pl.max_horizontal(sd, 1E-16)).
             map_batches(lambda x: norm.ppf(q, x.struct[0], x.struct[1])))
 

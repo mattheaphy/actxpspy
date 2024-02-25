@@ -100,7 +100,7 @@ def _plot_experience(xp_obj,
 
     # handling for special plotting functions
     if alt_data is None:
-        data = xp_obj.data.copy()
+        data = xp_obj.data.clone()
     else:
         data = alt_data
         groups.insert(group_insert, 'Series')
@@ -169,7 +169,7 @@ def _plot_experience(xp_obj,
 
             y_chr = p.mapping['y']
             y_min_max = [y_chr + "_lower", y_chr + "_upper"]
-            if all(np.isin(y_min_max, data.columns)):
+            if all([_ in data.columns for _ in y_min_max]):
                 p = p + geom_errorbar(aes(ymin=y_min_max[0],
                                           ymax=y_min_max[1]))
             else:

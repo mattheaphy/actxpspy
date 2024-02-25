@@ -3,6 +3,7 @@ import numpy as np
 import polars as pl
 import polars.selectors as cs
 import pandas as pd
+from itertools import product
 from plotnine import (
     ggplot,
     geom_point,
@@ -181,7 +182,7 @@ def _plot_experience(xp_obj,
         return p + facet_wrap(facets, scales=scales)
 
 
-def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
+def _pivot_plot_special(xp_obj, piv_cols: set, values_to="Rate"):
     """
     This internal function is used to pivot `ExpStats` or `TrxStats` data frames
     before they're passed to special plotting functions.
@@ -190,46 +191,45 @@ def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
     ----------
     xp_obj : ExpStats | TrxStats
         An experience summary xp_obj
-    piv_cols : list
+    piv_cols : list | set
         A primary set of columns to pivot longer
     values_to : str, default="Rate"
         Name of the values column in the pivoted xp_obj.
 
     Returns
     -------
-    pd.DataFrame
+    pl.DataFrame
         A pivoted dataframe
     """
 
-    data = xp_obj.data.copy()
-    piv_cols = np.intersect1d(piv_cols, data.columns)
-    id_cols = np.setdiff1d(data.columns, piv_cols)
+    data = xp_obj.data
+    piv_cols = set(piv_cols).intersection(data.columns)
+    id_cols = set(data.columns).difference(piv_cols)
 
     if not xp_obj.xp_params['conf_int']:
         data = data.melt(id_vars=id_cols, value_vars=piv_cols,
-                         var_name='Series', value_name=values_to)
+                         variable_name='Series', value_name=values_to)
     else:
-        extra_piv_cols = np.concatenate((piv_cols + "_upper",
-                                         piv_cols + "_lower"))
-        extra_piv_cols = np.intersect1d(extra_piv_cols, data.columns)
-        id_cols = np.setdiff1d(id_cols, extra_piv_cols)
-        piv_cols_rename = {x: f'{x}_{values_to}' for
-                           x in data.columns if
-                           x in piv_cols}
+        extra_piv_cols = [x + y for x, y in
+                          product(piv_cols, ["_upper", "_lower"])]
+        extra_piv_cols = set(extra_piv_cols).intersection(data.columns)
+        id_cols = id_cols.difference(extra_piv_cols)
 
-        data = (data.rename(columns=piv_cols_rename).
-                melt(id_vars=id_cols,
-                     value_vars=list(piv_cols_rename.values()
-                                     ) + list(extra_piv_cols),
-                     var_name='Series', value_name=values_to))
-        data[['Series', 'val_type']] = \
-            data.Series.str.rsplit("_", expand=True, n=1)
-        data = (data.pivot(index=list(id_cols) + ['Series'],
-                           columns='val_type',
-                           values=values_to).
-                reset_index().
-                rename(columns={'lower': values_to + '_lower',
-                                'upper': values_to + '_upper'}))
+        data = (
+            data.
+            melt(id_vars=id_cols,
+                 value_vars=list(piv_cols) + list(extra_piv_cols),
+                 variable_name='Series', value_name=values_to).
+            with_columns(
+                val_type=(pl.col('Series').str.
+                          extract('_(upper|lower)$').
+                          fill_null(values_to)),
+                Series=pl.col('Series').str.replace('_(upper|lower)$', '')).
+            pivot(index=list(id_cols) + ['Series'],
+                  columns='val_type', values=values_to).
+            rename({'lower': values_to + '_lower',
+                    'upper': values_to + '_upper'})
+        )
 
     return data
 

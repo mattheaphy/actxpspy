@@ -842,8 +842,8 @@ class ExpStats():
             "available. Hint: to add expected values, use the " + \
             "`expected` argument in `exp_stats()`"
 
-        piv_cols = np.intersect1d([f"ae_{x}" for x in self.expected],
-                                  self.data.columns)
+        piv_cols = {f"ae_{x}" for x in self.expected}
+        piv_cols = piv_cols.intersection(self.data.columns)
 
         piv_data = _pivot_plot_special(self, piv_cols, values_to="A/E ratio")
 

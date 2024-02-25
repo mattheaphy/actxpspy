@@ -531,7 +531,6 @@ class ExpStats():
             target_status="Surrender",
             start_date=2005, end_date=2019,
             conf_int=True)
-        dat_wt
 
         # summary by policy year
         dat_wt.summary('pol_yr')
@@ -764,6 +763,7 @@ class ExpStats():
         ```{python}
         import actxps as xp
         import numpy as np
+        import polars as pl
 
         expo = xp.ExposedDF(xp.load_census_dat(),
                             "2019-12-31", 
@@ -772,9 +772,11 @@ class ExpStats():
         expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
                                          np.array([0.2, 0.15]), 
                                          np.repeat(0.05, 3)))
-        expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]
-        expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
-
+        expo.data = expo.data.with_columns(
+            expected_1=expected_table[expo.data['pol_yr'] - 1],
+            expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+        )
+        
         exp_res = (expo.
                    group_by('pol_yr').
                    exp_stats(expected=['expected_1', 'expected_2']))
@@ -814,6 +816,7 @@ class ExpStats():
         ```{python}
         import actxps as xp
         import numpy as np
+        import polars as pl        
 
         expo = xp.ExposedDF(xp.load_census_dat(),
                             "2019-12-31", 
@@ -822,9 +825,11 @@ class ExpStats():
         expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
                                          np.array([0.2, 0.15]), 
                                          np.repeat(0.05, 3)))
-        expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]
-        expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
-
+        expo.data = expo.data.with_columns(
+            expected_1=expected_table[expo.data['pol_yr'] - 1],
+            expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+        )
+        
         exp_res = (expo.
                    group_by('pol_yr').
                    exp_stats(expected=['expected_1', 'expected_2']))
@@ -922,6 +927,7 @@ class ExpStats():
         ```{python}
         import actxps as xp
         import numpy as np
+        import polars as pl
 
         expo = xp.ExposedDF(xp.load_census_dat(),
                             "2019-12-31", 
@@ -930,10 +936,10 @@ class ExpStats():
         expected_table = np.concatenate((np.linspace(0.005, 0.03, 10), 
                                          np.array([0.2, 0.15]), 
                                          np.repeat(0.05, 3)))
-        expo.data['expected_1'] = \
-            expected_table[expo.data.pol_yr - 1]
-        expo.data['expected_2'] = \
-            np.where(expo.data.inc_guar, 0.015, 0.03)
+        expo.data = expo.data.with_columns(
+            expected_1=expected_table[expo.data['pol_yr'] - 1],
+            expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+        )
 
         exp_res = (expo.
                    group_by('pol_yr').

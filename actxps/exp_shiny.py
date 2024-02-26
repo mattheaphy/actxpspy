@@ -1,4 +1,5 @@
-import pandas as pd
+import polars as pl
+import polars.selectors as cs
 import numpy as np
 from warnings import warn
 from datetime import datetime
@@ -10,6 +11,7 @@ from plotnine import (aes,
                       element_text,
                       element_rect)
 from actxps.col_select import col_matches
+from actxps.tools import _date_str
 import matplotlib.pyplot as plt
 import io
 import great_tables.shiny as gts
@@ -179,11 +181,13 @@ def exp_shiny(self,
                         target_status="Surrender")
     expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
                                     [.2, .15], np.repeat(0.05, 3)))
-    expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]
-    expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
+    expo.data = expo.data.with_columns(
+        expected_1=expected_table[expo.data['pol_yr'] - 1],
+        expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+    )                                
     expo.add_transactions(withdrawals)
-    expo.data = expo.data.merge(account_vals, how='left',
-                                on=["pol_num", "pol_date_yr"])
+    expo.data = expo.data.join(account_vals, how='left',
+                               on=["pol_num", "pol_date_yr"])
 
     app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
     ```
@@ -201,89 +205,104 @@ def exp_shiny(self,
     from actxps import SplitExposedDF
     from actxps.expose_split import _check_split_expose_basis
 
-    # special logic required for split exposed data frames
-    if isinstance(self, SplitExposedDF):
-        _check_split_expose_basis(self, col_exposure)
-        dat = dat.rename(columns={col_exposure: 'exposure'})
-
-        if col_exposure == "exposure_cal":
-            dat.drop(columns=['exposure_pol'], inplace=True)
-        else:
-            dat.drop(columns=['exposure_cal'], inplace=True)
-
     # make a copy of the ExposedDF to avoid unexpected changes
     expo = deepcopy(self)
     dat = expo.data
     cols = dat.columns
 
+    # special logic required for split exposed data frames
+    if isinstance(self, SplitExposedDF):
+        _check_split_expose_basis(self, col_exposure)
+        dat = dat.rename({col_exposure: 'exposure'})
+
+        if col_exposure == "exposure_cal":
+            dat = dat.drop('exposure_pol')
+        else:
+            dat = dat.drop('exposure_cal')
+
     # convert boolean columns to strings
-    dat[dat.select_dtypes(bool).columns] = \
-        dat.select_dtypes(bool).apply(lambda x: x.astype(str))
+    dat = dat.with_columns(cs.boolean().cast(str))
 
     if predictors is None:
         predictors = cols
     else:
-        predictors = pd.Index(np.atleast_1d(predictors))
+        predictors = np.atleast_1d(predictors).tolist()
 
     if expected is None:
-        expected = pd.Index(col_matches(dat, 'expected'))
+        expected = col_matches(dat, 'expected')
     else:
-        expected = pd.Index(np.atleast_1d(expected))
+        expected = np.atleast_1d(expected).tolist()
 
     # check for presence of transactions
     has_trx = len(expo.trx_types) > 0
     trx_cols = col_matches(dat, "^trx_(?:n|amt)_")
 
-    if any(~(predictors.append(expected)).isin(cols)):
+    if len(set(predictors + expected).difference(cols)) > 0:
         warn("All predictors and expected values must be columns in `dat`. " +
              "Unexpected values will be removed.")
-        predictors = predictors[predictors.isin(cols)]
-        expected = expected[expected.isin(cols)]
-
-    predictors = predictors.tolist()
-    expected = expected.tolist()
+        predictors = list(set(predictors).intersection(cols))
+        expected = list(set(expected).intersection(cols))
 
     total_rows = len(dat)
 
     # organize predictors
-    preds = pd.DataFrame({'predictors': predictors})
     # drop non-predictors (if any)
     non_preds = ["pol_num", "status", "term_date", "exposure"]
     if has_trx:
         non_preds.extend(trx_cols)
-    preds = preds.loc[~preds.predictors.isin(non_preds)]
+    predictors = [x for x in predictors if x not in non_preds]
 
-    preds['dtype'] = dat[preds.predictors].dtypes.to_numpy()
-    preds['dtype'] = preds['dtype'].apply(str)
-    preds['is_number'] = preds['dtype'].str.contains('(?:int|float)')
-    preds['is_integer'] = preds['dtype'].str.contains('(?:int)')
+    # small data frame used for determining data types
+    mini_dat = dat.head().select(predictors)
 
-    dtype_cond = [
-        preds['dtype'].str.contains('date'),
-        (preds['dtype'] == 'category') | (preds['dtype'] == 'object'),
-        preds.is_number,
-        np.repeat(True, len(preds))
-    ]
-    dtype_labels = ['Dates', 'Categorical', 'Numeric', 'other']
-    preds['order'] = np.select(dtype_cond, range(len(dtype_cond)))
-    preds['dtype'] = np.select(dtype_cond, dtype_labels)
-    preds['n_unique'] = preds.predictors.apply(
-        lambda x: len(dat[x].unique())
+    def is_type(*sel):
+        check = mini_dat.select(*sel).columns
+        return pl.col('predictors').is_in(check)
+
+    order = {
+        'Dates': 0,
+        'Categorical': 1,
+        'Numeric': 2,
+        'other': 3
+    }
+
+    def calc_scope(x):
+        p, c = x['predictors'], x['dtype']
+        if (c in ['Dates', 'Numeric']):
+            scope = dat[p].min(), dat[p].max()
+        else:
+            scope = dat[p].unique()
+        return [str(s) for s in scope]
+
+    preds = (
+        pl.DataFrame({
+            'predictors': predictors,
+        }).
+        with_columns(
+            is_number=is_type(cs.numeric()),
+            is_integer=is_type(cs.integer())).
+        with_columns(
+            dtype=(pl.when(is_type(cs.date(), cs.datetime())).
+                   then(pl.lit('Dates')).
+                   when(is_type(cs.string(), cs.categorical())).
+                   then(pl.lit('Categorical')).
+                   when(pl.col('is_number')).
+                   then(pl.lit('Numeric')).
+                   otherwise(pl.lit('other')))
+        ).
+        with_columns(
+            order=pl.col('dtype').replace(order, default=None),
+            n_unique=pl.col('predictors').map_elements(
+                lambda x: len(dat[x].unique())),
+            scope=(pl.struct(pl.col('predictors'), pl.col('dtype')).
+                   map_elements(calc_scope))
+        ).
+        sort('order').drop('order')
     )
 
-    def calc_scope(p, c):
-        if (c in ['Dates', 'Numeric']):
-            return min(dat[p]), max(dat[p])
-        else:
-            return dat[p].unique()
-    preds['scope'] = preds[['predictors', 'dtype']].\
-        apply(lambda x: calc_scope(x['predictors'], x['dtype']), axis=1)
-
-    preds = (preds.
-             sort_values('order').
-             drop(columns='order').
-             set_index('predictors'))
-    preds_small = preds.copy()[preds.n_unique <= distinct_max].index.to_list()
+    preds_small = (preds.
+                   filter(pl.col('n_unique') <= distinct_max)['predictors'].
+                   to_list())
 
     yVar_exp = ["q_obs", "n_claims", "claims", "exposure"]
     if credibility:
@@ -304,40 +323,41 @@ def exp_shiny(self,
             f"Error creating an input widget for {x}. " + \
             f"{x} does not exist in the input data."
 
-        info = preds.loc[x]
-        choices = info['scope']
+        info = preds.filter(pl.col('predictors') == x)
+        choices = info['scope'][0]
 
-        if info['dtype'] == "Numeric":
+        if info['dtype'][0] == "Numeric":
+
+            if info['is_integer'][0]:
+                choices = choices.cast(int)
+            else:
+                choices = choices.cast(float)
 
             inp = ui.input_slider(
                 inputId, ui.strong(x),
                 min=choices[0],
                 max=choices[1],
                 value=choices,
-                step=1 if info['is_integer'] and info['n_unique'] < 100
+                step=1 if info['is_integer'][0] and info['n_unique'][0] < 100
                 else None
             )
 
-        elif info['dtype'] == "Dates":
+        elif info['dtype'][0] == "Dates":
 
-            def fmt_date(x):
-                return datetime.strftime(x, "%Y-%m-%d")
-
-            min_val = fmt_date(choices[0])
-            max_val = fmt_date(choices[1])
+            choices = choices.str.to_date()
 
             inp = ui.input_date_range(
                 inputId, ui.strong(x),
-                start=min_val,
-                end=max_val,
-                min=min_val,
-                max=max_val,
+                start=choices[0],
+                end=choices[1],
+                min=choices[0],
+                max=choices[1],
                 startview="year"
             )
 
-        elif info['dtype'] == 'Categorical':
+        elif info['dtype'][0] == 'Categorical':
 
-            choices = choices.tolist()
+            choices = choices.to_list()
 
             if len(choices) > checkbox_limit:
                 inp = ui.input_selectize(
@@ -362,7 +382,7 @@ def exp_shiny(self,
         def new_fun(inputId, label, width, choices=None, **kwargs):
 
             if choices is None:
-                choices = ["None"] + preds.index.to_list()
+                choices = ["None"] + preds['predictors'].to_list()
 
             return ui.column(
                 width,
@@ -405,8 +425,8 @@ def exp_shiny(self,
                 selectPred("weightVar",
                            "Weight by:", 4,
                            choices=["None"] +
-                           preds.loc[preds.is_number].index.to_list(
-                           ))
+                           (preds.filter(pl.col('is_number'))['predictors'].
+                            to_list()))
             ),
 
             value="exp")
@@ -415,7 +435,8 @@ def exp_shiny(self,
     # transactions set up
     if has_trx:
 
-        percent_of_choices = preds.loc[preds.is_number].index.to_list()
+        percent_of_choices = (preds.filter(pl.col('is_number'))['predictors'].
+                              to_list())
 
         trx_tab = ui.nav_panel(
             ["Transaction study ",
@@ -480,7 +501,7 @@ def exp_shiny(self,
                 *map(lambda x: ui.accordion_panel(
                     x[0],
                     [widget(y) for y in x[1].index]),
-                    preds.groupby('dtype', observed=True, sort=False)),
+                    preds.group_by('dtype', maintain_order=True)),
                 open=True
             ),
 
@@ -788,13 +809,20 @@ def exp_shiny(self,
                 return None
 
             def is_active(x):
-                info = preds.loc[x]
-                scope = info['scope']
+                info = preds.filter(pl.col('predictors') == x)
+                scope = info['scope'][0]
                 selected = input["i_" + x]()
-                if info['dtype'] == "Dates":
-                    res = (scope[0] != pd.to_datetime(selected[0]) or
-                           scope[1] != pd.to_datetime(selected[1]))
-                elif info['is_number']:
+                if info['dtype'][0] == "Dates":
+                    scope = scope.str.to_date()
+                    res = (scope[0] != _date_str(selected[0]) or
+                           scope[1] != _date_str(selected[1]))
+                elif info['is_number'][0]:
+                    
+                    if info['is_integer'][0]:
+                        scope = scope.cast(int)
+                    else:
+                        scope = scope.cast(float)
+                    
                     res = (not np.isclose(scope[0], selected[0]) or
                            not np.isclose(scope[1], selected[1]))
                 else:
@@ -1063,7 +1091,7 @@ def exp_shiny(self,
             if (info['dtype'] == "Numeric") | (info['dtype'] == "Dates"):
 
                 if (info['dtype'] == 'Dates'):
-                    selected = pd.to_datetime(selected)
+                    selected = _date_str(selected)
 
                 if selected[0] == selected[1]:
                     # exactly equal

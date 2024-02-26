@@ -1,6 +1,6 @@
 from actxps.expose import ExposedDF
 import actxps as xp
-import numpy as np
+import polars as pl
 from plotnine.ggplot import ggplot, aes
 import pytest
 
@@ -10,7 +10,9 @@ withdrawals = xp.load_withdrawals()
 expo = ExposedDF.expose_py(census_dat, "2019-12-31",
                            target_status="Surrender")
 expo.add_transactions(withdrawals)
-expo.data["q_exp"] = np.where(expo.data.inc_guar, 0.015, 0.03)
+expo.data = expo.data.with_columns(
+    q_exp=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+)
 
 
 def exp_stats2(obj):

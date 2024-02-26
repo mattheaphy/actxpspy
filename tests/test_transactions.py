@@ -1,6 +1,5 @@
 import actxps as xp
 import polars as pl
-import numpy as np
 import pytest
 
 census_dat = xp.load_census_dat()
@@ -50,7 +49,7 @@ class TestAddTrx():
 class TestTrxName():
 
     def test_name_error(self):
-        with pytest.raises(AttributeError):
+        with pytest.raises(pl.ColumnNotFoundError):
             expo.add_transactions(withdrawals4)
 
     def test_rename_works(self):

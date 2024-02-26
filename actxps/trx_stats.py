@@ -379,6 +379,8 @@ class TrxStats():
                     _qnorm(p[1], 'trx_amt', 'sd_all') / pl.col(x)
 
             data = data.with_columns(**ci_cols)
+            if conf_int and (len(self.percent_of) > 0):
+                data = data.drop('sd_all', 'sd_trx')
 
         return data.collect()
 

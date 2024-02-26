@@ -1,7 +1,6 @@
 from actxps.expose import ExposedDF
 import actxps as xp
 import polars as pl
-import pandas as pd
 import pytest
 from copy import deepcopy
 
@@ -169,7 +168,7 @@ class TestFromDataFrame():
     def test_missing_column_error(self):
         with pytest.raises(AssertionError,
                            match='The following columns are missing'):
-            xp.TrxStats.from_DataFrame(pd.DataFrame({'a': range(3)}))
+            xp.TrxStats.from_DataFrame(pl.DataFrame({'a': range(3)}))
 
     def test_class(self):
         assert isinstance(trx_res3, xp.TrxStats)

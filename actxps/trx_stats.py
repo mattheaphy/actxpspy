@@ -495,7 +495,7 @@ class TrxStats():
 
         agg_sim_dat = xp.load_agg_sim_dat()
         dat = xp.TrxStats.from_DataFrame(
-            agg_sim_dat,
+            agg_sim_dat.with_columns(pl.col('n').cast(float)),
             col_exposure="n",
             col_trx_amt="wd",
             col_trx_n="wd_n",

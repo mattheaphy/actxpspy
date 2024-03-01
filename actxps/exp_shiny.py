@@ -15,6 +15,7 @@ from actxps.tools import _date_str
 import matplotlib.pyplot as plt
 import io
 import great_tables.shiny as gts
+from functools import reduce
 
 
 def exp_shiny(self,
@@ -325,13 +326,14 @@ def exp_shiny(self,
 
         info = preds.filter(pl.col('predictors') == x)
         choices = info['scope'][0]
+        dtype = info['dtype'][0]
 
-        if info['dtype'][0] == "Numeric":
+        if dtype == "Numeric":
 
             if info['is_integer'][0]:
-                choices = choices.cast(int)
+                choices = choices.cast(int).to_list()
             else:
-                choices = choices.cast(float)
+                choices = choices.cast(float).to_list()
 
             inp = ui.input_slider(
                 inputId, ui.strong(x),
@@ -342,7 +344,7 @@ def exp_shiny(self,
                 else None
             )
 
-        elif info['dtype'][0] == "Dates":
+        elif dtype == "Dates":
 
             choices = choices.str.to_date()
 
@@ -355,7 +357,7 @@ def exp_shiny(self,
                 startview="year"
             )
 
-        elif info['dtype'][0] == 'Categorical':
+        elif dtype == 'Categorical':
 
             choices = choices.to_list()
 
@@ -500,7 +502,7 @@ def exp_shiny(self,
             ui.accordion(
                 *map(lambda x: ui.accordion_panel(
                     x[0],
-                    [widget(y) for y in x[1].index]),
+                    [widget(y) for y in x[1]['predictors']]),
                     preds.group_by('dtype', maintain_order=True)),
                 open=True
             ),
@@ -812,17 +814,20 @@ def exp_shiny(self,
                 info = preds.filter(pl.col('predictors') == x)
                 scope = info['scope'][0]
                 selected = input["i_" + x]()
+
                 if info['dtype'][0] == "Dates":
+
                     scope = scope.str.to_date()
-                    res = (scope[0] != _date_str(selected[0]) or
-                           scope[1] != _date_str(selected[1]))
+                    res = (scope[0] != selected[0] or
+                           scope[1] != selected[1])
+
                 elif info['is_number'][0]:
-                    
+
                     if info['is_integer'][0]:
                         scope = scope.cast(int)
                     else:
                         scope = scope.cast(float)
-                    
+
                     res = (not np.isclose(scope[0], selected[0]) or
                            not np.isclose(scope[1], selected[1]))
                 else:
@@ -830,7 +835,7 @@ def exp_shiny(self,
                 if res:
                     return x
 
-            keep = [is_active(x) for x in preds.index]
+            keep = [is_active(x) for x in preds['predictors']]
 
             return [x for x in keep if x is not None]
 
@@ -840,36 +845,30 @@ def exp_shiny(self,
 
             if not input.play():
                 return None
-
+            
+            # if no active filters, return the current data
+            if len(active_filters()) == 0:
+                return expo
+            
             # function to build filter expressions
-            def expr_filter(x):
+            def expr_filter(lazy: pl.LazyFrame, x):
 
                 inp_val = input["i_" + x]()
-
-                # ensure that dates are quoted
-                if preds.loc[x]['dtype'] == 'Dates':
-                    inp_val = [f"'{a}'" for a in inp_val]
+                dtype = preds.filter(pl.col('predictors') == x)['dtype'][0]
 
                 # create filter expressions
-                if preds.loc[x]['dtype'] in ['Dates', 'Numeric']:
-                    res = f"({x} >= {inp_val[0]}) & ({x} <= {inp_val[1]})"
+                if dtype in ['Dates', 'Numeric']:
+                    return lazy.filter(
+                        pl.col(x).is_between(inp_val[0], inp_val[1]))
+
                 else:
                     # categorical
-                    res = f"({x}.isin({inp_val}))"
-
-                return res
-
-            # determine which filters are active
-            filters = [expr_filter(x) for x in active_filters()]
-
-            # if no active filters, return the current data
-            if len(filters) == 0:
-                return expo
+                    return lazy.filter(pl.col(x).is_in(inp_val))
 
             # apply filters
-            filters = ' & '.join(filters)
             new_expo = deepcopy(expo)
-            new_expo.data = new_expo.data.query(filters)
+            new_expo.data = reduce(expr_filter, active_filters(),
+                                   dat.lazy()).collect()
 
             return new_expo
 
@@ -1086,11 +1085,12 @@ def exp_shiny(self,
             selected = input["i_" + x]()
             info = preds.loc[x]
             choices = info['scope']
+            dtype = info['dtype'][0]
 
             # numeric or date
-            if (info['dtype'] == "Numeric") | (info['dtype'] == "Dates"):
+            if (dtype == "Numeric") | (dtype == "Dates"):
 
-                if (info['dtype'] == 'Dates'):
+                if (dtype == 'Dates'):
                     selected = _date_str(selected)
 
                 if selected[0] == selected[1]:

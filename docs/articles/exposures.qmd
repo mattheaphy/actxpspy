@@ -132,7 +132,7 @@ Now let's verify that the exposure on the surrendered policy increased to 100% i
 
 ```{python}
 #| label: expose-targ-check
-exposed_data2.data.groupby('pol_num').tail(1)
+exposed_data2.data.group_by('pol_num').tail(1)
 ```
 
 

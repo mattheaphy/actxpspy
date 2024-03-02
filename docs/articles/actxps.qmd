@@ -17,13 +17,14 @@ comes with the actxps package. For information on transaction studies, see
 
 ## Simulated data set
 
-The actxps package includes a data frame containing simulated census data for a theoretical deferred annuity product with an optional guaranteed income rider. The grain of this data is one row per policy.
+The actxps package includes a Polars data frame containing simulated census data for a theoretical deferred annuity product with an optional guaranteed income rider. The grain of this data is one row per policy.
 
 ```{python}
 #| label: packages
 #| message: false
 import actxps as xp
 import numpy as np
+import polars as pl
 
 census_dat = xp.load_census_dat()
 census_dat
@@ -33,7 +34,7 @@ The data includes 3 policy statuses: Active, Death, and Surrender.
 
 ```{python status-count}
 #| label: status-count
-status_counts = census_dat.value_counts('status')
+status_counts = census_dat['status'].value_counts()
 status_counts
 ```
 
@@ -42,7 +43,7 @@ Let's assume we're interested in calculating the probability of surrender over o
 ```{python}
 #| label: naive
 # incorrect
-status_counts / sum(status_counts)
+status_counts.with_columns(pl.col('count') / pl.col('count').sum())
 ```
 
 ## Creating exposed data
@@ -66,8 +67,10 @@ Now that the data has been "exposed" by policy year, the observed annual surrend
 
 ```{python}
 #| label: term-rate
-(sum(exposed_data.data.status == "Surrender") /
-    sum(exposed_data.data.exposure))
+exposed_data.data.select(
+    surrender_rate = (pl.col('status') == "Surrender").sum() / 
+    pl.col('exposure').sum()
+)
 ```
 
 As a default, `ExposedDF()` calculates exposures by policy year. This can also be accomplished with the class method `ExposedDF.expose_py()`. Other implementations of `ExposedDF()` include:
@@ -116,10 +119,10 @@ expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
                                  [.2, .15], np.repeat(0.05, 3)))
 
 # using 2 different expected termination rates
-exposed_data.data['expected_1'] = \
-    expected_table[exposed_data.data.pol_yr - 1]
-exposed_data.data['expected_2'] = \
-    np.where(exposed_data.data.inc_guar, 0.015, 0.03)
+exposed_data.data = exposed_data.data.with_columns(
+    expected_1=expected_table[exposed_data.data['pol_yr'] - 1],
+    expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+)
 
 exp_res = (exposed_data.
            group_by("pol_yr", "inc_guar").

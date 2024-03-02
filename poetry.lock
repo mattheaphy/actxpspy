@@ -3071,4 +3071,4 @@ shiny = ["faicons", "scikit-misc", "selenium", "shiny", "shinyswatch"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "e166c9c6ee0a47d0b4560063a65b606b7859dd2a37e212fea87d04e5acef737c"
+content-hash = "da9f4b8522d2546a16a6ba9bff599e5c26022da9ef83e9249cb354101ae88839"

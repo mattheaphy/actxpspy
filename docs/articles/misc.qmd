@@ -15,8 +15,8 @@ _set_actxps_plot_theme()
 ```{python}
 #| label: packages
 import actxps as xp
-import pandas as pd
-import numpy as np
+import polars as pl
+from datetime import date
 ```
 
 ## Working with aggregate experience data
@@ -65,17 +65,18 @@ agg_sim_ExpStats.summary('inc_guar', 'product')
 
 ## Policy duration functions
 
-The `pol_()` family of functions calculates policy years, months, quarters, weeks, or any other arbitrary duration. Each function accepts a vector of dates and a vector of issue dates.
+The `pol_()` family of functions calculates policy years, months, quarters, weeks, or any other arbitrary duration. Each function accepts strings, single dates, or Polars series of dates and issue dates.
 
 **Example**: assume a policy was issued on 2022-05-10 and we are interested in calculating various policy duration values at the end of calendar years 2022-2032.
 
 ```{python}
 #| label: pol-dur1
-dates = pd.to_datetime({
-    'year': 2022 + np.arange(11),
-    'month': 12,
-    'day': 31
-})
+
+dates = pl.date_range(
+    date(2022, 12, 31),
+    date(2033, 12, 31),
+    interval = '1y', 
+    eager=True)
 
 # policy years
 xp.pol_yr(dates, "2022-05-10")

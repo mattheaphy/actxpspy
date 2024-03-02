@@ -1169,7 +1169,7 @@ def exp_shiny(self,
             if rdat().data.shape[0] == 0:
                 return None
             with io.BytesIO() as buf:
-                rxp().data.to_csv(buf)
+                rxp().data.write_csv(buf)
                 yield buf.getvalue()
 
         @render.download(

@@ -808,7 +808,7 @@ def exp_shiny(self,
             # instances of `if not input.play()` can be removed.
             # ui.validate(ui.need(input.play(), "Paused"))
             if not input.play():
-                return None
+                return []
 
             def is_active(x):
                 info = preds.filter(pl.col('predictors') == x)
@@ -1064,16 +1064,22 @@ def exp_shiny(self,
         @output
         @render.text()
         def rem_pct():
+            if not input.play():
+                return None
             return f"{(rdat().data.shape[0] / total_rows) * 100:.0f}%"
 
         @output
         @render.text()
         def rem_rows():
+            if not input.play():
+                return None
             return f"Remaining rows: {rdat().data.shape[0]:,d}"
 
         @output
         @render.plot(pad_inches=0)
         def filter_pie():
+            if not input.play():
+                return None
             return plt.pie([rdat().data.shape[0],
                             total_rows - rdat().data.shape[0]],
                            wedgeprops=dict(width=0.5), startangle=90,
@@ -1083,21 +1089,25 @@ def exp_shiny(self,
         def describe_filter(x):
 
             selected = input["i_" + x]()
-            info = preds.loc[x]
-            choices = info['scope']
+            info = preds.filter(pl.col('predictors') == x)
+            scope = info['scope'][0]
             dtype = info['dtype'][0]
 
             # numeric or date
-            if (dtype == "Numeric") | (dtype == "Dates"):
+            if dtype in ["Numeric", "Dates"]:
 
-                if (dtype == 'Dates'):
-                    selected = _date_str(selected)
-
+                if dtype == "Dates":
+                    scope = scope.str.to_date()
+                elif info['is_integer'][0]:
+                    scope = scope.cast(int)
+                else:
+                    scope = scope.cast(float)                    
+                    
                 if selected[0] == selected[1]:
                     # exactly equal
                     return f"{x} == {selected[0]}"
-                elif selected[0] > choices[0]:
-                    if selected[1] < choices[1]:
+                elif selected[0] > scope[0]:
+                    if selected[1] < scope[1]:
                         # between
                         return f"{selected[0]} <= {x} <= {selected[1]}"
                     else:
@@ -1122,12 +1132,12 @@ def exp_shiny(self,
                     else:
                         return f"{y[0]} or {y[1]}"
 
-                if len(selected) < 0.5 * info.n_unique:
+                if len(selected) < 0.5 * info['n_unique'][0]:
                     # minority selected - list all selections
                     return f"{x} is {or_list(selected)}"
                 else:
                     # majority selected - list all NOT selected
-                    y = set(choices).difference(selected)
+                    y = set(scope).difference(selected)
                     return f"{x} is NOT {or_list(y)}"
 
         # filter description output

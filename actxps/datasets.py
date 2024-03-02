@@ -13,10 +13,10 @@ def load_toy_census() -> pl.DataFrame:
 
     A data frame with 3 rows and 4 columns:
 
-        - `pol_num` = policy number
-        - `status` = policy status
-        - `issue_date` = issue date
-        - `term_date` = termination date
+    - `pol_num` = policy number
+    - `status` = policy status
+    - `issue_date` = issue date
+    - `term_date` = termination date
 
     Returns
     ----------

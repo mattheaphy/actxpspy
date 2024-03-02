@@ -45,6 +45,7 @@ _set_actxps_plot_theme()
 #| label: packages
 import actxps as xp
 import numpy as np
+import polars as pl
 
 census_dat = xp.load_census_dat()
 print(census_dat)
@@ -90,10 +91,10 @@ expected_table = np.concatenate((
     ))
 
 # using 2 different expected termination rates
-exposed_data.data['expected_1'] = \
-    expected_table[exposed_data.data.pol_yr - 1]
-exposed_data.data['expected_2'] = \
-    np.where(exposed_data.data.inc_guar, 0.015, 0.03)
+exposed_data.data = exposed_data.data.with_columns(
+    expected_1=expected_table[exposed_data.data['pol_yr'] - 1],
+    expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+)
 
 exp_res = (exposed_data.
            group_by('pol_yr', 'inc_guar').
@@ -108,7 +109,7 @@ Create visualizations using the `plot()` and `table()` methods.
 #| label: plots
 #| message: false
 #| dpi: 300
-print(exp_res.plot())
+exp_res.plot()
 ```
 
 ```{python}

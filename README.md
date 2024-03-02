@@ -38,38 +38,30 @@ grain of this data is one row *per policy*.
 ``` python
 import actxps as xp
 import numpy as np
+import polars as pl
 
 census_dat = xp.load_census_dat()
 print(census_dat)
 ```
 
-           pol_num     status issue_date  inc_guar   qual  age product gender  \
-    0            1     Active 2014-12-17      True  False   56       b      F   
-    1            2  Surrender 2007-09-24     False  False   71       a      F   
-    2            3     Active 2012-10-06     False   True   62       b      F   
-    3            4  Surrender 2005-06-27      True   True   62       c      M   
-    4            5     Active 2019-11-22     False  False   62       c      F   
-    ...        ...        ...        ...       ...    ...  ...     ...    ...   
-    19995    19996     Active 2014-08-11      True   True   55       b      F   
-    19996    19997  Surrender 2006-11-20     False  False   68       c      F   
-    19997    19998  Surrender 2017-02-20      True  False   68       c      F   
-    19998    19999     Active 2015-04-11     False   True   67       a      M   
-    19999    20000     Active 2009-04-29      True   True   72       c      M   
-
-           wd_age  premium  term_date  
-    0          77    370.0        NaT  
-    1          71    708.0 2019-03-08  
-    2          63    466.0        NaT  
-    3          62    485.0 2018-11-29  
-    4          67    978.0        NaT  
-    ...       ...      ...        ...  
-    19995      75   3551.0        NaT  
-    19996      77    336.0 2017-07-09  
-    19997      68   1222.0 2018-08-03  
-    19998      78   2138.0        NaT  
-    19999      72   5751.0        NaT  
-
-    [20000 rows x 11 columns]
+    shape: (20_000, 11)
+    ┌─────────┬───────────┬────────────┬──────────┬───┬────────┬────────┬─────────┬────────────┐
+    │ pol_num ┆ status    ┆ issue_date ┆ inc_guar ┆ … ┆ gender ┆ wd_age ┆ premium ┆ term_date  │
+    │ ---     ┆ ---       ┆ ---        ┆ ---      ┆   ┆ ---    ┆ ---    ┆ ---     ┆ ---        │
+    │ i64     ┆ cat       ┆ date       ┆ bool     ┆   ┆ cat    ┆ i64    ┆ f64     ┆ date       │
+    ╞═════════╪═══════════╪════════════╪══════════╪═══╪════════╪════════╪═════════╪════════════╡
+    │ 1       ┆ Active    ┆ 2014-12-17 ┆ true     ┆ … ┆ F      ┆ 77     ┆ 370.0   ┆ null       │
+    │ 2       ┆ Surrender ┆ 2007-09-24 ┆ false    ┆ … ┆ F      ┆ 71     ┆ 708.0   ┆ 2019-03-08 │
+    │ 3       ┆ Active    ┆ 2012-10-06 ┆ false    ┆ … ┆ F      ┆ 63     ┆ 466.0   ┆ null       │
+    │ 4       ┆ Surrender ┆ 2005-06-27 ┆ true     ┆ … ┆ M      ┆ 62     ┆ 485.0   ┆ 2018-11-29 │
+    │ 5       ┆ Active    ┆ 2019-11-22 ┆ false    ┆ … ┆ F      ┆ 67     ┆ 978.0   ┆ null       │
+    │ …       ┆ …         ┆ …          ┆ …        ┆ … ┆ …      ┆ …      ┆ …       ┆ …          │
+    │ 19996   ┆ Active    ┆ 2014-08-11 ┆ true     ┆ … ┆ F      ┆ 75     ┆ 3551.0  ┆ null       │
+    │ 19997   ┆ Surrender ┆ 2006-11-20 ┆ false    ┆ … ┆ F      ┆ 77     ┆ 336.0   ┆ 2017-07-09 │
+    │ 19998   ┆ Surrender ┆ 2017-02-20 ┆ true     ┆ … ┆ F      ┆ 68     ┆ 1222.0  ┆ 2018-08-03 │
+    │ 19999   ┆ Active    ┆ 2015-04-11 ┆ false    ┆ … ┆ M      ┆ 78     ┆ 2138.0  ┆ null       │
+    │ 20000   ┆ Active    ┆ 2009-04-29 ┆ true     ┆ … ┆ M      ┆ 72     ┆ 5751.0  ┆ null       │
+    └─────────┴───────────┴────────────┴──────────┴───┴────────┴────────┴─────────┴────────────┘
 
 Convert census records to exposure records with one row *per policy per
 year*.
@@ -88,30 +80,24 @@ exposed_data
     Target status: Surrender
     Study range: 1900-01-01 to 2019-12-31
 
-    A DataFrame: 141,252 x 15
-       pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
-    0        1  Active 2014-12-17      True  False   56       b      F      77   
-    1        1  Active 2014-12-17      True  False   56       b      F      77   
-    2        1  Active 2014-12-17      True  False   56       b      F      77   
-    3        1  Active 2014-12-17      True  False   56       b      F      77   
-    4        1  Active 2014-12-17      True  False   56       b      F      77   
-    5        1  Active 2014-12-17      True  False   56       b      F      77   
-    6        2  Active 2007-09-24     False  False   71       a      F      71   
-    7        2  Active 2007-09-24     False  False   71       a      F      71   
-    8        2  Active 2007-09-24     False  False   71       a      F      71   
-    9        2  Active 2007-09-24     False  False   71       a      F      71   
-
-       premium term_date  pol_yr pol_date_yr pol_date_yr_end  exposure  
-    0    370.0       NaT       1  2014-12-17      2015-12-16  1.000000  
-    1    370.0       NaT       2  2015-12-17      2016-12-16  1.000000  
-    2    370.0       NaT       3  2016-12-17      2017-12-16  1.000000  
-    3    370.0       NaT       4  2017-12-17      2018-12-16  1.000000  
-    4    370.0       NaT       5  2018-12-17      2019-12-16  1.000000  
-    5    370.0       NaT       6  2019-12-17      2020-12-16  0.040984  
-    6    708.0       NaT       1  2007-09-24      2008-09-23  1.000000  
-    7    708.0       NaT       2  2008-09-24      2009-09-23  1.000000  
-    8    708.0       NaT       3  2009-09-24      2010-09-23  1.000000  
-    9    708.0       NaT       4  2010-09-24      2011-09-23  1.000000  
+    shape: (141_252, 15)
+    ┌─────────┬────────┬────────────┬──────────┬───┬────────┬─────────────┬─────────────────┬──────────┐
+    │ pol_num ┆ status ┆ issue_date ┆ inc_guar ┆ … ┆ pol_yr ┆ pol_date_yr ┆ pol_date_yr_end ┆ exposure │
+    │ ---     ┆ ---    ┆ ---        ┆ ---      ┆   ┆ ---    ┆ ---         ┆ ---             ┆ ---      │
+    │ i64     ┆ enum   ┆ date       ┆ bool     ┆   ┆ u32    ┆ date        ┆ date            ┆ f64      │
+    ╞═════════╪════════╪════════════╪══════════╪═══╪════════╪═════════════╪═════════════════╪══════════╡
+    │ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 1      ┆ 2014-12-17  ┆ 2015-12-16      ┆ 1.0      │
+    │ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 2      ┆ 2015-12-17  ┆ 2016-12-16      ┆ 1.0      │
+    │ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 3      ┆ 2016-12-17  ┆ 2017-12-16      ┆ 1.0      │
+    │ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 4      ┆ 2017-12-17  ┆ 2018-12-16      ┆ 1.0      │
+    │ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 5      ┆ 2018-12-17  ┆ 2019-12-16      ┆ 1.0      │
+    │ …       ┆ …      ┆ …          ┆ …        ┆ … ┆ …      ┆ …           ┆ …               ┆ …        │
+    │ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 7      ┆ 2015-04-29  ┆ 2016-04-28      ┆ 1.0      │
+    │ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 8      ┆ 2016-04-29  ┆ 2017-04-28      ┆ 1.0      │
+    │ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 9      ┆ 2017-04-29  ┆ 2018-04-28      ┆ 1.0      │
+    │ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 10     ┆ 2018-04-29  ┆ 2019-04-28      ┆ 1.0      │
+    │ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 11     ┆ 2019-04-29  ┆ 2020-04-28      ┆ 0.674863 │
+    └─────────┴────────┴────────────┴──────────┴───┴────────┴─────────────┴─────────────────┴──────────┘
 
 Create a summary grouped by policy year and the presence of a guaranteed
 income rider.
@@ -130,19 +116,24 @@ exp_res
     Target status: Surrender
     Study range: 1900-01-01 to 2019-12-31
 
-
-    A DataFrame: 30 x 6
-       pol_yr  inc_guar  n_claims  claims      exposure     q_obs
-    0       1     False        56      56   7719.807740  0.007254
-    1       1      True        46      46  11532.404626  0.003989
-    2       2     False        92      92   7102.813160  0.012953
-    3       2      True        68      68  10611.967258  0.006408
-    4       3     False        67      67   6446.916146  0.010393
-    5       3      True        57      57   9650.221229  0.005907
-    6       4     False       123     123   5798.909986  0.021211
-    7       4      True        45      45   8736.954420  0.005151
-    8       5     False        97      97   5105.875799  0.018998
-    9       5      True        67      67   7809.650445  0.008579
+    shape: (30, 6)
+    ┌────────┬──────────┬──────────┬────────┬──────────────┬──────────┐
+    │ pol_yr ┆ inc_guar ┆ n_claims ┆ claims ┆ exposure     ┆ q_obs    │
+    │ ---    ┆ ---      ┆ ---      ┆ ---    ┆ ---          ┆ ---      │
+    │ u32    ┆ bool     ┆ u32      ┆ u32    ┆ f64          ┆ f64      │
+    ╞════════╪══════════╪══════════╪════════╪══════════════╪══════════╡
+    │ 1      ┆ false    ┆ 56       ┆ 56     ┆ 7719.80774   ┆ 0.007254 │
+    │ 1      ┆ true     ┆ 46       ┆ 46     ┆ 11532.404626 ┆ 0.003989 │
+    │ 2      ┆ false    ┆ 92       ┆ 92     ┆ 7102.81316   ┆ 0.012953 │
+    │ 2      ┆ true     ┆ 68       ┆ 68     ┆ 10611.967258 ┆ 0.006408 │
+    │ 3      ┆ false    ┆ 67       ┆ 67     ┆ 6446.916146  ┆ 0.010393 │
+    │ …      ┆ …        ┆ …        ┆ …      ┆ …            ┆ …        │
+    │ 13     ┆ true     ┆ 49       ┆ 49     ┆ 1117.137361  ┆ 0.043862 │
+    │ 14     ┆ false    ┆ 33       ┆ 33     ┆ 262.622262   ┆ 0.125656 │
+    │ 14     ┆ true     ┆ 29       ┆ 29     ┆ 609.216476   ┆ 0.047602 │
+    │ 15     ┆ false    ┆ 8        ┆ 8      ┆ 74.050109    ┆ 0.108035 │
+    │ 15     ┆ true     ┆ 9        ┆ 9      ┆ 194.128602   ┆ 0.046361 │
+    └────────┴──────────┴──────────┴────────┴──────────────┴──────────┘
 
 Calculate actual-to-expected ratios.
 
@@ -158,10 +149,10 @@ expected_table = np.concatenate((
     ))
 
 # using 2 different expected termination rates
-exposed_data.data['expected_1'] = \
-    expected_table[exposed_data.data.pol_yr - 1]
-exposed_data.data['expected_2'] = \
-    np.where(exposed_data.data.inc_guar, 0.015, 0.03)
+exposed_data.data = exposed_data.data.with_columns(
+    expected_1=expected_table[exposed_data.data['pol_yr'] - 1],
+    expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+)
 
 exp_res = (exposed_data.
            group_by('pol_yr', 'inc_guar').
@@ -177,40 +168,36 @@ exp_res
     Study range: 1900-01-01 to 2019-12-31
     Expected values: expected_1, expected_2
 
-
-    A DataFrame: 30 x 10
-       pol_yr  inc_guar  n_claims  claims      exposure     q_obs  expected_1  \
-    0       1     False        56      56   7719.807740  0.007254    0.005000   
-    1       1      True        46      46  11532.404626  0.003989    0.005000   
-    2       2     False        92      92   7102.813160  0.012953    0.007778   
-    3       2      True        68      68  10611.967258  0.006408    0.007778   
-    4       3     False        67      67   6446.916146  0.010393    0.010556   
-    5       3      True        57      57   9650.221229  0.005907    0.010556   
-    6       4     False       123     123   5798.909986  0.021211    0.013333   
-    7       4      True        45      45   8736.954420  0.005151    0.013333   
-    8       5     False        97      97   5105.875799  0.018998    0.016111   
-    9       5      True        67      67   7809.650445  0.008579    0.016111   
-
-       expected_2  ae_expected_1  ae_expected_2  
-    0       0.030       1.450813       0.241802  
-    1       0.015       0.797752       0.265917  
-    2       0.030       1.665336       0.431754  
-    3       0.015       0.823868       0.427191  
-    4       0.030       0.984559       0.346419  
-    5       0.015       0.559573       0.393773  
-    6       0.030       1.590816       0.707029  
-    7       0.015       0.386290       0.343369  
-    8       0.030       1.179169       0.633257  
-    9       0.015       0.532498       0.571942  
+    shape: (30, 10)
+    ┌────────┬──────────┬──────────┬────────┬───┬────────────┬────────────┬──────────────┬─────────────┐
+    │ pol_yr ┆ inc_guar ┆ n_claims ┆ claims ┆ … ┆ expected_1 ┆ expected_2 ┆ ae_expected_ ┆ ae_expected │
+    │ ---    ┆ ---      ┆ ---      ┆ ---    ┆   ┆ ---        ┆ ---        ┆ 1            ┆ _2          │
+    │ u32    ┆ bool     ┆ u32      ┆ u32    ┆   ┆ f64        ┆ f64        ┆ ---          ┆ ---         │
+    │        ┆          ┆          ┆        ┆   ┆            ┆            ┆ f64          ┆ f64         │
+    ╞════════╪══════════╪══════════╪════════╪═══╪════════════╪════════════╪══════════════╪═════════════╡
+    │ 1      ┆ false    ┆ 56       ┆ 56     ┆ … ┆ 0.005      ┆ 0.03       ┆ 1.450813     ┆ 0.241802    │
+    │ 1      ┆ true     ┆ 46       ┆ 46     ┆ … ┆ 0.005      ┆ 0.015      ┆ 0.797752     ┆ 0.265917    │
+    │ 2      ┆ false    ┆ 92       ┆ 92     ┆ … ┆ 0.007778   ┆ 0.03       ┆ 1.665336     ┆ 0.431754    │
+    │ 2      ┆ true     ┆ 68       ┆ 68     ┆ … ┆ 0.007778   ┆ 0.015      ┆ 0.823868     ┆ 0.427191    │
+    │ 3      ┆ false    ┆ 67       ┆ 67     ┆ … ┆ 0.010556   ┆ 0.03       ┆ 0.984559     ┆ 0.346419    │
+    │ …      ┆ …        ┆ …        ┆ …      ┆ … ┆ …          ┆ …          ┆ …            ┆ …           │
+    │ 13     ┆ true     ┆ 49       ┆ 49     ┆ … ┆ 0.05       ┆ 0.015      ┆ 0.877242     ┆ 2.924141    │
+    │ 14     ┆ false    ┆ 33       ┆ 33     ┆ … ┆ 0.05       ┆ 0.03       ┆ 2.513115     ┆ 4.188525    │
+    │ 14     ┆ true     ┆ 29       ┆ 29     ┆ … ┆ 0.05       ┆ 0.015      ┆ 0.952043     ┆ 3.173475    │
+    │ 15     ┆ false    ┆ 8        ┆ 8      ┆ … ┆ 0.05       ┆ 0.03       ┆ 2.160699     ┆ 3.601165    │
+    │ 15     ┆ true     ┆ 9        ┆ 9      ┆ … ┆ 0.05       ┆ 0.015      ┆ 0.92722      ┆ 3.090735    │
+    └────────┴──────────┴──────────┴────────┴───┴────────────┴────────────┴──────────────┴─────────────┘
 
 Create visualizations using the `plot()` and `table()` methods.
 
 ``` python
-print(exp_res.plot())
+exp_res.plot()
 ```
 
 <img src="README_files/figure-commonmark/plots-output-1.png"
-id="plots" />
+id="plots-1" />
+
+    <Figure Size: (640 x 480)>
 
 ``` python
 # first 10 rows showed for brevity

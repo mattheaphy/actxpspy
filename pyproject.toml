@@ -26,6 +26,9 @@ scikit-misc = {version = ">=0.3.1", optional = true}
 polars = ">=0.20.9"
 selenium = {version = "^4.18.1", optional = true}
 
+[tool.poetry.extras]
+shiny = ["shiny", "shinyswatch", "faicons", "scikit-misc", "selenium"]
+
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]

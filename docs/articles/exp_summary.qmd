@@ -5,8 +5,6 @@ title: "Experience summaries"
 ```{python}
 #| label: setup
 #| include: false
-import pandas as pd
-pd.options.display.max_rows = 10
 from actxps.tools import _set_actxps_plot_theme
 _set_actxps_plot_theme()
 ```
@@ -32,6 +30,7 @@ To demonstrate this function, we're going to use a data frame containing simulat
 ```{python}
 #| label: packages
 import actxps as xp
+import polars as pl
 import numpy as np
 
 census_dat = xp.load_census_dat()
@@ -55,7 +54,7 @@ The number of claims (`n_claims`) is equal to the number of "Surrender" statuses
 
 ```{python}
 #| label: claim-check
-amount = sum(exposed_data.data.status == "Surrender")
+amount = sum(exposed_data.data["status"] == "Surrender")
 amount
 ```
 
@@ -63,7 +62,7 @@ The total exposure (`exposure`) is equal to the sum of the exposures in `exposed
 
 ```{python}
 #| label: expo-check
-sum_expo = sum(exposed_data.data.exposure)
+sum_expo = sum(exposed_data.data['exposure'])
 sum_expo
 ```
 
@@ -119,14 +118,15 @@ Even if the target status exists, it can be overridden. However care should be t
 Using the example data, a total termination rate can be estimated by including both death and surrender statuses in `target_status`. To ensure exposures are accurate, an adjustment is made to fully expose deaths prior to calling `exp_stats()`^[This adjustment is not necessary on surrenders because the `expose()` function previously did this for us.].
 
 ```{python}
-# | label: targ-status
+#| label: targ-status
 
 from copy import deepcopy
 
 exposed_data2 = deepcopy(exposed_data)
-exposed_data2.data['exposure'] = np.where(
-    exposed_data2.data.status == "Death", 1,
-    exposed_data2.data.exposure)
+exposed_data2.data = exposed_data2.data.with_columns(
+    exposure=pl.when(pl.col('status') == "Death").
+             then(1).
+             otherwise('exposure'))
 
 (exposed_data2.group_by('pol_yr').
     exp_stats(target_status=["Surrender", "Death"]))
@@ -169,17 +169,16 @@ expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
                                  [.2, .15], np.repeat(0.05, 3)))
 
 # using 2 different expected termination rates
-exposed_data.data['expected_1'] = \
-    expected_table[exposed_data.data.pol_yr - 1]
-exposed_data.data['expected_2'] = \
-    np.where(exposed_data.data.inc_guar, 0.015, 0.03)
+exposed_data.data = exposed_data.data.with_columns(
+    expected_1=expected_table[exposed_data.data['pol_yr'] - 1],
+    expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+)
 
 exp_res = (exposed_data.
            group_by("pol_yr", "inc_guar").
            exp_stats(expected=["expected_1", "expected_2"]))
 
-exp_res.data[['pol_yr', 'inc_guar', 'q_obs', 'expected_1', 'expected_2',
-              'ae_expected_1', 'ae_expected_2']]
+exp_res.data.select('pol_yr', 'inc_guar', 'q_obs', pl.col('^.*expected.*$'))
 ```
 
 As noted above, if weights are passed to `exp_stats()` then A/E ratios will also be weighted.
@@ -191,8 +190,7 @@ exp_res_wt = (exposed_data.
               exp_stats(expected=["expected_1", "expected_2"],
                         wt="premium"))
 
-exp_res_wt.data[['pol_yr', 'inc_guar', 'q_obs', 'expected_1', 'expected_2',
-                 'ae_expected_1', 'ae_expected_2']]
+exp_res_wt.data.select('pol_yr', 'inc_guar', 'q_obs', pl.col('^.*expected.*$'))
 ```
 
 ## Credibility
@@ -204,7 +202,7 @@ If the `credibility` argument is set to `True`, `exp_stats()` will produce an es
 (exposed_data.
     group_by('pol_yr', 'inc_guar').
     exp_stats(credibility=True).
-    data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility']])
+    data.select('pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility'))
 ```
 
 Under the default arguments, credibility calculations assume a 95% confidence of being within 5% of the true value. These parameters can be overridden using the `conf_level` and `cred_r` arguments, respectively.
@@ -214,7 +212,7 @@ Under the default arguments, credibility calculations assume a 95% confidence of
 (exposed_data.
     group_by('pol_yr', 'inc_guar').
     exp_stats(credibility=True, conf_level=0.98, cred_r=0.03).
-    data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility']])
+    data.select('pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility'))
 ```
 
 If expected values are passed to `exp_stats()` and `credibility` is set to `True`, then the output will also contain credibility-weighted expected values:
@@ -235,8 +233,8 @@ where,
 (exposed_data.
     group_by('pol_yr', 'inc_guar').
     exp_stats(credibility=True, expected='expected_1').
-    data[['pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility',
-       'adj_expected_1', 'expected_1', 'ae_expected_1']])
+    data.select('pol_yr', 'inc_guar', 'claims', 'q_obs', 'credibility',
+                pl.col('^.*expected.*$')))
 ```
 
 
@@ -249,7 +247,7 @@ If `conf_int` is set to `True`, `exp_stats()` will produce lower and upper confi
 (exposed_data.
     group_by('pol_yr', 'inc_guar').
     exp_stats(conf_int=True).
-    data[['pol_yr', 'inc_guar', 'q_obs', 'q_obs_lower', 'q_obs_upper']])
+    data.select('pol_yr', 'inc_guar', pl.col('^q_obs.*$')))
 ```
 
 If no weighting variable is passed to `wt`, confidence intervals will be constructed assuming a binomial distribution of claims. However, if a weighting variable is supplied, a normal distribution for aggregate claims will be assumed with a mean equal to observed claims and a variance equal to:
@@ -267,7 +265,7 @@ The default confidence level is 95%. This can be changed using the `conf_level` 
 (exposed_data.
     group_by('pol_yr', 'inc_guar').
     exp_stats(conf_int = True, conf_level = 0.9).
-    data[['pol_yr', 'inc_guar', 'q_obs', 'q_obs_lower', 'q_obs_upper']])
+    data.select('pol_yr', 'inc_guar', pl.col('^q_obs.*$')))
 ```
 
 If expected values are passed to `expected`, the output will also contain confidence intervals around any actual-to-expected ratios. 
@@ -277,8 +275,7 @@ If expected values are passed to `expected`, the output will also contain confid
 (exposed_data.
     group_by('pol_yr', 'inc_guar').
     exp_stats(conf_int = True, expected='expected_1').
-    data[['pol_yr', 'inc_guar', 'ae_expected_1', 
-          'ae_expected_1_lower', 'ae_expected_1_lower']])
+    data.select('pol_yr', 'inc_guar', pl.col('^ae.*$')))
 ```
 
 Lastly, if `credibility` is `True` *and* expected values are passed to `expected`, confidence intervals will also be calculated for any credibility-weighted termination rates.

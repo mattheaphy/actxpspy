@@ -172,6 +172,7 @@ def exp_shiny(self,
     ----------
     ```{python}
     import actxps as xp
+    import polars as pl
     import numpy as np
 
     census_dat = xp.load_census_dat()

@@ -105,7 +105,7 @@ def load_account_vals() -> pl.DataFrame:
     return load(stream)
 
 
-def load_qx_iamb():
+def load_qx_iamb() -> pl.DataFrame:
     """
     2012 Individual Annuity Mortality Table
 
@@ -134,7 +134,7 @@ def load_qx_iamb():
                                'gender': str})
 
 
-def load_scale_g2():
+def load_scale_g2() -> pl.DataFrame:
     """
     Projection Scale G2
 

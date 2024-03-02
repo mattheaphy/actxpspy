@@ -422,7 +422,7 @@ def frac_wk(start: str | date | list | pl.Series,
     return frac_interval(start, end, 'week')
 
 
-def _convert_date(x):
+def _convert_date(x) -> pl.Series:
     """
     Helper function to convert inputs to dates. 
     This function should not be called directly.

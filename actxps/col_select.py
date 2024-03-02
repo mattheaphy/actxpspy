@@ -2,7 +2,7 @@ import polars as pl
 import polars.selectors as cs
 
 
-def col_starts_with(data: pl.DataFrame, pat: str):
+def col_starts_with(data: pl.DataFrame, pat: str) -> list:
     """
     Return a list of column names that start with a given pattern.
 
@@ -15,7 +15,7 @@ def col_starts_with(data: pl.DataFrame, pat: str):
 
     Returns
     ----------
-    List
+    list
     
     See Also
     ----------
@@ -32,7 +32,7 @@ def col_starts_with(data: pl.DataFrame, pat: str):
     return data.select(cs.starts_with(pat)).columns
 
 
-def col_ends_with(data: pl.DataFrame, pat: str):
+def col_ends_with(data: pl.DataFrame, pat: str) -> list:
     """
     Return a list of column names that end with a given pattern.
 
@@ -45,7 +45,7 @@ def col_ends_with(data: pl.DataFrame, pat: str):
 
     Returns
     ----------
-    List
+    list
     
     See Also
     ----------
@@ -64,7 +64,7 @@ def col_ends_with(data: pl.DataFrame, pat: str):
     return data.select(cs.ends_with(pat)).columns
 
 
-def col_matches(data: pl.DataFrame, pat: str):
+def col_matches(data: pl.DataFrame, pat: str) -> list:
     """
     Return a list of column names that match a regular expression.
 
@@ -77,7 +77,7 @@ def col_matches(data: pl.DataFrame, pat: str):
 
     Returns
     ----------
-    List
+    list
     
     See Also
     ----------

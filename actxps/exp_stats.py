@@ -243,7 +243,7 @@ class ExpStats():
 
         return None
 
-    def _calc(self, data: pl.LazyFrame):
+    def _calc(self, data: pl.LazyFrame) -> pl.DataFrame:
         """
         Support function for summarizing data
         """

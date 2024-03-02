@@ -182,7 +182,7 @@ def _plot_experience(xp_obj,
         return p + facet_wrap(facets, scales=scales)
 
 
-def _pivot_plot_special(xp_obj, piv_cols: set, values_to="Rate"):
+def _pivot_plot_special(xp_obj, piv_cols: set, values_to="Rate") -> pl.DataFrame:
     """
     This internal function is used to pivot `ExpStats` or `TrxStats` data frames
     before they're passed to special plotting functions.
@@ -346,7 +346,7 @@ def _qnorm(q: float, mean: str, sd: str | pl.Expr) -> pl.Expr:
 def relocate(data: pl.DataFrame,
              x: str | list | np.ndarray,
              before: str = None,
-             after: str = None):
+             after: str = None) -> pl.DataFrame:
     """
     Reorder columns in a data frame
 
@@ -385,7 +385,7 @@ def relocate(data: pl.DataFrame,
     return data.select(list(columns2[:pos]) + list(x) + list(columns2[pos:]))
 
 
-def _check_convert_df(data: pl.DataFrame | pd.DataFrame):
+def _check_convert_df(data: pl.DataFrame | pd.DataFrame) -> pl.DataFrame:
     """
     Internal function to check if `data` is a pandas or polars data frame. If a 
     pandas data frame is passed, it will be converted to a polars data frame and 

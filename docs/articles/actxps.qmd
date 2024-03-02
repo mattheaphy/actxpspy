@@ -71,10 +71,10 @@ Now that the data has been "exposed" by policy year, the observed annual surrend
 
 ```{python}
 #| label: term-rate
-exposed_data.data.select(
-    surrender_rate=(pl.col('status') == "Surrender").sum() / 
-    pl.col('exposure').sum()
-)
+
+(sum(exposed_data.data['status'] == "Surrender") /
+ sum(exposed_data.data['exposure']))
+
 ```
 
 As a default, `ExposedDF()` calculates exposures by policy year. This can also be accomplished with the class method `ExposedDF.expose_py()`. Other implementations of `ExposedDF()` include:

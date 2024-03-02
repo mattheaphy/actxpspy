@@ -7,6 +7,10 @@ title: "Transaction studies"
 #| include: false
 from actxps.tools import _set_actxps_plot_theme
 _set_actxps_plot_theme()
+
+from polars import Config
+cfg = Config()
+cfg.set_tbl_rows(10)
 ```
 
 This article walks through an example of creating a **transaction study** using the actxps package. Unlike a termination study, transaction studies track events that can occur multiple times over the life of a policy. Often, transactions are expected to reoccur; for example, the utilization of a guaranteed income stream.

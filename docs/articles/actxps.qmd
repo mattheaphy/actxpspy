@@ -9,6 +9,9 @@ title: "Getting started with actxps"
 from actxps.tools import _set_actxps_plot_theme
 _set_actxps_plot_theme()
 
+from polars import Config
+cfg = Config()
+cfg.set_tbl_rows(10)
 ```
 
 This article is based on creating a termination study using sample data that 

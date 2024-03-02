@@ -7,6 +7,10 @@ title: "Experience summaries"
 #| include: false
 from actxps.tools import _set_actxps_plot_theme
 _set_actxps_plot_theme()
+
+from polars import Config
+cfg = Config()
+cfg.set_tbl_rows(10)
 ```
 
 After experience data has been prepared for analysis, the next step is to summarize results. The actxps package's workhorse function for summarizing termination experience is the `exp_stats()` method of the `ExposedDF` class. This function returns an `ExpStats` object, which is a type of data frame containing additional attributes about the experience study.

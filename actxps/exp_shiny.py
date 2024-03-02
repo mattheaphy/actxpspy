@@ -223,6 +223,7 @@ def exp_shiny(self,
 
     # convert boolean columns to strings
     dat = dat.with_columns(cs.boolean().cast(str))
+    expo.data = dat
 
     if predictors is None:
         predictors = cols
@@ -239,8 +240,8 @@ def exp_shiny(self,
     trx_cols = col_matches(dat, "^trx_(?:n|amt)_")
 
     if len(set(predictors + expected).difference(cols)) > 0:
-        warn("All predictors and expected values must be columns in `dat`. " +
-             "Unexpected values will be removed.")
+        warn("All predictors and expected values must be columns in " +
+             "the `data` attribute. Unexpected values will be removed.")
         predictors = list(set(predictors).intersection(cols))
         expected = list(set(expected).intersection(cols))
 
@@ -945,7 +946,7 @@ def exp_shiny(self,
             if input.xVar() != "None":
                 x = input.xVar()
             else:
-                new_rxp.data["All"] = ""
+                new_rxp.data = new_rxp.data.with_columns(All = pl.lit(""))
                 x = "All"
 
             if input.colorVar() != "None":

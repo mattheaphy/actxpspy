@@ -492,6 +492,7 @@ class TrxStats():
         ```{python}
         # convert pre-aggregated experience into a TrxStats object
         import actxps as xp
+        import polars as pl
 
         agg_sim_dat = xp.load_agg_sim_dat()
         dat = xp.TrxStats.from_DataFrame(

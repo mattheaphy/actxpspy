@@ -5,8 +5,6 @@ title: "Exposure calculations"
 ```{python}
 #| label: setup
 #| include: false
-import pandas as pd
-pd.options.display.max_rows = 10
 from actxps.tools import _set_actxps_plot_theme
 _set_actxps_plot_theme()
 ```
@@ -38,11 +36,15 @@ To get started, we're going to use a toy census data frame from the actxps packa
 ```{python}
 #| label: packages
 import actxps as xp
+import polars as pl
 
 toy_census = xp.load_toy_census()
 toy_census
 ```
 
+::: {.callout-note}
+`toy_census` is a Polars data frame. Actxps functions accept both Polars and Pandas data frames. For speed and efficiency reasons, Polars is used internally for all data wrangling, so if a Pandas data frame is passed to an actxps function it will be converted to Polars. To convert a Polars data frame to Pandas the method `DataFrame.to_pandas()` is available.
+:::
 
 ## Policy year exposures
 
@@ -71,14 +73,14 @@ When the data is printed, additional attributes from the `ExposedDF` class are d
 
 ```{python}
 #| label: expose-pol-1
-exposed_data.data.query('pol_num == 1')
+exposed_data.data.filter(pl.col('pol_num') == 1)
 ```
 
 **Policy 2**: There are 10 rows for this policy. The first 9 periods show the policy in an active `status` and the termination date (`term_date`) is set to `NA`. The last period includes the final status of "Death" and the actual termination date. The last exposure is less than one because roughly a third of a year elapsed between the last anniversary date on 2020-05-27 and the termination date on 2020-09-14.
 
 ```{python}
 #| label: expose-pol-2
-exposed_data.data.query('pol_num == 2')
+exposed_data.data.filter(pl.col('pol_num') == 2)
 ```
 
 
@@ -86,7 +88,7 @@ exposed_data.data.query('pol_num == 2')
 
 ```{python}
 #| label: expose-pol-3
-exposed_data.data.query('pol_num == 3')
+exposed_data.data.filter(pl.col('pol_num') == 3)
 ```
 
 ### Study start date
@@ -151,7 +153,7 @@ Looking at the second policy, we can see that the first year is left-censored be
 exposed_cal = xp.ExposedDF(toy_census, end_date="2022-12-31",
                            cal_expo=True, target_status="Surrender")
 
-exposed_cal.data.query('pol_num == 2')
+exposed_cal.data.filter(pl.col('pol_num') == 2)
 ```
 
 
@@ -164,7 +166,7 @@ The length of the exposure period can be decreased by passing `"quarter"`, `"mon
 #| label: expo-mth
 (xp.ExposedDF(toy_census, end_date="2022-12-31", cal_expo=True,
               expo_length="quarter", target_status="Surrender").
-              data.query('pol_num == 2'))
+              data.filter(pl.col('pol_num') == 2))
 ```
 
 ### Convenience functions
@@ -191,8 +193,9 @@ Let's continue examining the second policy. `exposed_cal`, which contains calend
 #| label: expo-split
 split = exposed_cal.expose_split()
 
-split.data.query('pol_num == 2')[
-    ['cal_yr', 'cal_yr_end', 'pol_yr', 'exposure_pol', 'exposure_cal']]
+(split.data.
+ filter(pl.col('pol_num') == 2).
+ select('cal_yr', 'cal_yr_end', 'pol_yr', 'exposure_pol', 'exposure_cal'))
 ```
 
 The output of `expose_split()` contains two exposure columns.
@@ -233,12 +236,12 @@ split.exp_stats(col_exposure="exposure_pol")
 `expose_split()` doesn't just work with calendar year exposures. Calendar quarters, months, or weeks can also be split. For periods shorter than a year, a record is only split into pre- and post-anniversary segments if a policy anniversary appears in the middle of the period.
 
 ```{python}
-# | label: split-qtr
+#| label: split-qtr
 (xp.ExposedDF.expose_cq(toy_census, "2022-12-31",
                         target_status="Surrender").
     expose_split().
-    data.query('pol_num == 2')[
-    ['cal_qtr', 'cal_qtr_end', 'pol_yr', 'exposure_pol', 'exposure_cal']])
+    data.filter(pl.col('pol_num') == 2).
+    select('cal_qtr', 'cal_qtr_end', 'pol_yr', 'exposure_pol', 'exposure_cal'))
 ```
 
 Note, however, that calendar period exposures will always be expressed in the original units and policy exposures will always be expressed in years. Above, calendar exposures are quarters whereas policy exposures are years.
@@ -274,11 +277,14 @@ If the census-level data contains other policy attributes like plan type or poli
 
 ```{python}
 #| label: broadcast
-toy_census2 = toy_census.copy()
-toy_census2['plan_type'] = ["X", "Y", "Z"]
-toy_census2['policy_value'] = [100, 125, 90]
+toy_census2 = toy_census.clone().with_columns(
+    plan_type=pl.Series(["X", "Y", "Z"]),
+    policy_value=pl.Series([100, 125, 90])
+)
 
-xp.ExposedDF(toy_census2, end_date="2022-12-31", target_status="Surrender")
+(xp.ExposedDF(toy_census2, end_date="2022-12-31", target_status="Surrender").
+     data.select('pol_num', 'status', 'pol_yr', 'exposure',
+                 'plan_type', 'policy_value'))
 ```
 
 
@@ -289,7 +295,7 @@ If your experience study requires a numeric feature that varies over time (ex: p
 #| eval: False
 # Illustrative example - assume `values` is a data frame containing the columns pol_num and pol_yr.
 
-exposed_data.data.merge(values, on=['pol_num', 'pol_yr'], how='left')
+exposed_data.data.join(values, on=['pol_num', 'pol_yr'], how='left')
 ```
 
 

@@ -284,12 +284,14 @@ def _delta_frac(start: pl.Series, end: pl.Series, dur_length: str) -> pl.Series:
 
     # create ranges of dates from start to <end
     ranges = pl.date_ranges(start, end, interval, eager=True)
-    # left bounding date
-    l = ranges.list.last()
-    # right bounding date
-    r = l.dt.offset_by(interval)
     # number of complete periods
     n = ranges.list.len() - 1
+    # left bounding date
+    l = ranges.list.last()
+    # right bounding date. Note that we're not simply adding a year to l because
+    #   doing so would create a difference of 1 day when `l` 2/28 and the 
+    #   following year is a leap year and `start` is a leap day.
+    r = ranges.list.first().dt.offset_by((n + 1).cast(str) + interval[1:])
     # complete periods + fractional period
     res = (n + (end - l).dt.total_days() / (r - l).dt.total_days())
 

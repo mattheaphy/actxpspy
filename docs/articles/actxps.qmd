@@ -30,6 +30,10 @@ census_dat = xp.load_census_dat()
 census_dat
 ```
 
+::: {.callout-note}
+`census_dat` is a Polars data frame. Actxps functions accept both Polars and Pandas data frames. For speed and efficiency reasons, Polars is used internally for all data wrangling, so if a Pandas data frame is passed to an actxps function it will be converted to Polars. To convert a Polars data frame to Pandas the method `DataFrame.to_pandas()` is available.
+:::
+
 The data includes 3 policy statuses: Active, Death, and Surrender.
 
 ```{python status-count}
@@ -68,7 +72,7 @@ Now that the data has been "exposed" by policy year, the observed annual surrend
 ```{python}
 #| label: term-rate
 exposed_data.data.select(
-    surrender_rate = (pl.col('status') == "Surrender").sum() / 
+    surrender_rate=(pl.col('status') == "Surrender").sum() / 
     pl.col('exposure').sum()
 )
 ```

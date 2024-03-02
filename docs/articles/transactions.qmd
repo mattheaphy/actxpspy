@@ -5,8 +5,6 @@ title: "Transaction studies"
 ```{python}
 #| label: setup
 #| include: false
-import pandas as pd
-pd.options.display.max_rows = 10
 from actxps.tools import _set_actxps_plot_theme
 _set_actxps_plot_theme()
 ```
@@ -38,6 +36,7 @@ The `add_transactions()` method attaches transactions to an `ExposedDF` object, 
 ```{python}
 #| label: packages
 import actxps as xp
+import polars as pl
 
 census_dat = xp.load_census_dat()
 exposed_data = xp.ExposedDF(census_dat, "2019-12-31",
@@ -72,7 +71,7 @@ Using our example, we pass both the exposure and withdrawals data to `add_transa
 ```{python}
 #| label: add-trx
 exposed_data.add_transactions(withdrawals)
-exposed_data.data.info()
+exposed_data.data.glimpse()
 ```
 
 If we print `exposed_data`, we can see that it has an additional attribute for transaction types that have been attached.
@@ -155,15 +154,15 @@ For our example, let's assume we're interested in examining withdrawal transacti
 # attach account values data
 account_vals = xp.load_account_vals()
 exposed_data.data = \
-    exposed_data.data.merge(account_vals,
-                            on=['pol_num', 'pol_date_yr'],
-                            how='left')
+    exposed_data.data.join(account_vals,
+                           on=['pol_num', 'pol_date_yr'],
+                           how='left')
 
 trx_res = (exposed_data.
            group_by('pol_yr', 'inc_guar').
            trx_stats(percent_of="av_anniv"))
 
-trx_res.data.info()
+trx_res.data.glimpse()
 ```
 
 ## Confidence intervals
@@ -175,7 +174,7 @@ If `conf_int` is set to `True`, `trx_stats()` will produce lower and upper confi
 (exposed_data.
     group_by('pol_yr').
     trx_stats(conf_int=True).
-    data[['pol_yr', 'trx_util', 'trx_util_lower', 'trx_util_upper']])
+    data.select('pol_yr', pl.col('^trx_util.*$')))
 ```
 
 The default confidence level is 95%. This can be changed using the `conf_level` argument. Below, tighter confidence intervals are constructed by decreasing the confidence level to 90%.
@@ -185,7 +184,7 @@ The default confidence level is 95%. This can be changed using the `conf_level` 
 (exposed_data.
     group_by('pol_yr').
     trx_stats(conf_int=True, conf_level=0.9).
-    data[['pol_yr', 'trx_util', 'trx_util_lower', 'trx_util_upper']])
+    data.select('pol_yr', pl.col('^trx_util.*$')))
 ```
 
 If any column names are passed to `percent_of`, `trx_stats()` will produce additional confidence intervals:
@@ -203,10 +202,8 @@ Where `S` is the aggregate transactions random variable, `X` is an individual tr
 (exposed_data.
     group_by('pol_yr').
     trx_stats(conf_int=True, percent_of="av_anniv").
-    data[['pol_yr', 'pct_of_av_anniv_all', 'pct_of_av_anniv_w_trx',
-          'pct_of_av_anniv_w_trx_lower', 'pct_of_av_anniv_w_trx_upper',
-          'pct_of_av_anniv_all_lower', 'pct_of_av_anniv_all_upper']].
-    info())
+    data.select('pol_yr', pl.col('^pct_of.*$')).
+    glimpse())
 ```
 
 ## `plot()` and `table()`

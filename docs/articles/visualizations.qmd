@@ -320,4 +320,4 @@ The export pop-up menu contains options for saving summarized experience data or
 - `title`: an optional title for the app
 - `credibility`, `conf_level`, `cred_r`: credibility options for termination studies. See `exp_stats()` for more information. Limited fluctuation credibility estimates at a 95% confidence within 5% of the theoretical mean assuming a binomial distribution are used as a default.
 - The `conf_level` argument is also used for confidence intervals for both termination and transaction studies.
-- `bootswatch_theme`: replace the default theme of the app by passing hte name of a preset theme bootswatch theme.
+- `bootswatch_theme`: replace the default theme of the app by passing the name of a preset bootswatch theme.

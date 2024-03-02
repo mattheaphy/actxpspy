@@ -1,3 +1,11 @@
+## v1.0.0
+
+- To improve speed and efficiency, the data frame backend was changed from Pandas to Polars. 
+  - The `data` property of `ExposedDF`, `ExpStats`, and `TrxStats` is now a Polars data frame.
+  - `ExposedDF`, `ExpStats.from_DataFrame`, and `TrxStats.from_DataFrame` will accept both Polars and Pandas data frames. However, Pandas data frames are immediately converted to Polars.
+- Removed all add_* date functions which are no longer needed under Polars
+- `ExposedDF`'s `groupby` method was renamed to `group_by`.
+
 ## v0.0.1 (2024-02-18)
 
 - Several updates to align with the R version of actxps

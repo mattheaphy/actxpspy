@@ -65,7 +65,7 @@ agg_sim_ExpStats.summary('inc_guar', 'product')
 
 ## Policy duration functions
 
-The `pol_()` family of functions calculates policy years, months, quarters, weeks, or any other arbitrary duration. Each function accepts strings, single dates, or Polars series of dates and issue dates.
+The `pol_*()` family of functions calculates policy years, months, quarters, or weeks. Each function accepts strings, single dates, or Polars series of dates and issue dates.
 
 **Example**: assume a policy was issued on 2022-05-10 and we are interested in calculating various policy duration values at the end of calendar years 2022-2032.
 
@@ -98,4 +98,30 @@ xp.pol_mth(dates, "2022-05-10")
 #| label: pol-dur4
 # policy weeks
 xp.pol_wk(dates, "2022-05-10")
+```
+
+## Fractional period functions
+
+The `frac_*()` family of functions calculates the fractional number of years, months, quarters, or weeks between two sets of dates. Similar to the `pol_*()` functions, strings, single dates, or Polars series are accepted.
+
+**Example**: Continuing from the previous example, fractional durations from an issue date of 2022-05-10 can be calculated as follows:
+
+```{python}
+#| label: frac-dur1
+xp.frac_yr("2022-05-10", dates)
+```
+
+```{python}
+#| label: frac-dur2
+xp.frac_qtr("2022-05-10", dates)
+```
+
+```{python}
+#| label: frac-dur3
+xp.frac_mth("2022-05-10", dates)
+```
+
+```{python}
+#| label: frac-dur4
+xp.frac_wk("2022-05-10", dates)
 ```

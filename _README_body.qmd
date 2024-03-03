@@ -25,6 +25,13 @@ create plots and tables for reporting.
 - The `exp_shiny()` method of `ExposedDF` launches a Shiny app that allows for 
 interactive exploration of experience drivers.
 
+## Installation
+
+The actxps package can be installed from PyPI with:
+
+```
+$ pip install actxps
+```
 
 ## Basic usage
 

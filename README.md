@@ -26,6 +26,12 @@ to inform assumption setting for projection models.
 - The `exp_shiny()` method of `ExposedDF` launches a Shiny app that
   allows for interactive exploration of experience drivers.
 
+## Installation
+
+The actxps package can be installed from PyPI with:
+
+    $ pip install actxps
+
 ## Basic usage
 
 An expanded version of this demo is available at [Getting started with

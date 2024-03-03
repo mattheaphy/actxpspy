@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "actxps"
-version = "1.0.0"
+version = "1.0.1"
 description = "Create Actuarial Experience Studies: Prepare Data, Summarize Results, and Create Reports"
 authors = [
   "Matt Heaphy <mattrmattrs@gmail.com>"
@@ -18,17 +18,14 @@ plotnine = ">=0.12.4"
 joblib = ">=1.3.2"
 scipy = ">=1.11.4"
 matplotlib = ">=3.8.2"
-shiny = {version = ">=0.7.0", optional = true}
-great-tables = "^0.3.1"
-shinyswatch = {version = ">=0.4.2", optional = true}
-faicons = {version = ">=0.2.2", optional = true}
-scikit-misc = {version = ">=0.3.1", optional = true}
+shiny = ">=0.7.0"
+great-tables = ">=0.3.1"
+shinyswatch = ">=0.4.2"
+faicons = ">=0.2.2"
+scikit-misc = ">=0.3.1"
 polars = ">=0.20.9"
-selenium = {version = "^4.18.1", optional = true}
+selenium = "^4.18.1"
 pyarrow = ">=15.0.0"
-
-[tool.poetry.extras]
-shiny = ["shiny", "shinyswatch", "faicons", "scikit-misc", "selenium"]
 
 [tool.poetry.dev-dependencies]
 

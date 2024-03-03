@@ -40,6 +40,8 @@ format:
   html:
     theme: zephyr
     toc: true
+    fig.height: 3.5
+    fig.width: 6
 
 # tell quarto to read the generated sidebar
 metadata-files:
@@ -143,16 +145,3 @@ quartodoc:
             - frac_qtr
             - frac_mth
             - frac_wk
-
-    - subtitle: "Add durations to a vector of dates"
-      package: actxps.dates
-      contents:
-        - kind: page
-          flatten: true
-          path: add_durations
-          contents: 
-            - add_interval
-            - add_yr
-            - add_qtr
-            - add_mth
-            - add_wk

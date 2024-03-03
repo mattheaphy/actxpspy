@@ -1,6 +1,6 @@
 from actxps.expose import ExposedDF
 import actxps as xp
-import numpy as np
+import polars as pl
 from plotnine.ggplot import ggplot, aes
 import pytest
 
@@ -10,7 +10,9 @@ withdrawals = xp.load_withdrawals()
 expo = ExposedDF.expose_py(census_dat, "2019-12-31",
                            target_status="Surrender")
 expo.add_transactions(withdrawals)
-expo.data["q_exp"] = np.where(expo.data.inc_guar, 0.015, 0.03)
+expo.data = expo.data.with_columns(
+    q_exp=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+)
 
 
 def exp_stats2(obj):
@@ -27,17 +29,17 @@ exp_res = exp_stats2(expo)
 trx_res = trx_stats2(expo)
 
 # 1 grouping variable
-expo.groupby('pol_yr')
+expo.group_by('pol_yr')
 exp_res2 = exp_stats2(expo)
 trx_res2 = trx_stats2(expo)
 
 # 2 grouping variables
-expo.groupby('pol_yr', 'inc_guar')
+expo.group_by('pol_yr', 'inc_guar')
 exp_res3 = exp_stats2(expo)
 trx_res3 = trx_stats2(expo)
 
 # 3 grouping variables
-expo.groupby('pol_yr', 'inc_guar', 'product')
+expo.group_by('pol_yr', 'inc_guar', 'product')
 exp_res4 = exp_stats2(expo)
 trx_res4 = trx_stats2(expo)
 
@@ -176,10 +178,10 @@ class TestLogYScale():
 
 
 no_ci = (expo.
-         groupby('pol_yr', 'inc_guar', 'product').
+         group_by('pol_yr', 'inc_guar', 'product').
          exp_stats(expected="q_exp"))
 no_ci_trx = (expo.
-             groupby('pol_yr', 'inc_guar', 'product').
+             group_by('pol_yr', 'inc_guar', 'product').
              trx_stats(percent_of="premium"))
 
 
@@ -225,7 +227,7 @@ class TestPlotCIWarningTrx():
             trx_res4.plot(conf_int_bars=True, y='exposure')
 
 
-no_expected = expo.groupby('pol_yr').exp_stats(credibility=True)
+no_expected = expo.group_by('pol_yr').exp_stats(credibility=True)
 
 
 # .plot_termination_rates() credibility-adjusted message works

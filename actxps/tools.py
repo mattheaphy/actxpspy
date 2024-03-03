@@ -1,6 +1,9 @@
 # This module contains helper functions used by other modules
 import numpy as np
+import polars as pl
+import polars.selectors as cs
 import pandas as pd
+from itertools import product
 from plotnine import (
     ggplot,
     geom_point,
@@ -12,11 +15,8 @@ from plotnine import (
     scale_y_continuous,
     scale_color_manual,
     scale_fill_manual)
-from matplotlib import colormaps
-from matplotlib.colors import rgb2hex
-from great_tables import style, loc, from_column, GT
 from warnings import warn
-from scipy.stats import norm
+from scipy.stats import binom, norm
 _use_default_colors = False
 
 
@@ -100,14 +100,14 @@ def _plot_experience(xp_obj,
 
     # handling for special plotting functions
     if alt_data is None:
-        data = xp_obj.data.copy()
+        data = xp_obj.data.clone()
     else:
         data = alt_data
         groups.insert(group_insert, 'Series')
 
     if groups == []:
         groups = ["All"]
-        data["All"] = ""
+        data = data.with_columns(All=pl.lit(""))
 
     def auto_aes(var, default, if_none):
         if var is None:
@@ -169,7 +169,7 @@ def _plot_experience(xp_obj,
 
             y_chr = p.mapping['y']
             y_min_max = [y_chr + "_lower", y_chr + "_upper"]
-            if all(np.isin(y_min_max, data.columns)):
+            if all([_ in data.columns for _ in y_min_max]):
                 p = p + geom_errorbar(aes(ymin=y_min_max[0],
                                           ymax=y_min_max[1]))
             else:
@@ -182,7 +182,7 @@ def _plot_experience(xp_obj,
         return p + facet_wrap(facets, scales=scales)
 
 
-def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
+def _pivot_plot_special(xp_obj, piv_cols: set, values_to="Rate") -> pl.DataFrame:
     """
     This internal function is used to pivot `ExpStats` or `TrxStats` data frames
     before they're passed to special plotting functions.
@@ -191,46 +191,45 @@ def _pivot_plot_special(xp_obj, piv_cols, values_to="Rate"):
     ----------
     xp_obj : ExpStats | TrxStats
         An experience summary xp_obj
-    piv_cols : list
+    piv_cols : list | set
         A primary set of columns to pivot longer
     values_to : str, default="Rate"
         Name of the values column in the pivoted xp_obj.
 
     Returns
     -------
-    pd.DataFrame
+    pl.DataFrame
         A pivoted dataframe
     """
 
-    data = xp_obj.data.copy()
-    piv_cols = np.intersect1d(piv_cols, data.columns)
-    id_cols = np.setdiff1d(data.columns, piv_cols)
+    data = xp_obj.data
+    piv_cols = set(piv_cols).intersection(data.columns)
+    id_cols = set(data.columns).difference(piv_cols)
 
     if not xp_obj.xp_params['conf_int']:
         data = data.melt(id_vars=id_cols, value_vars=piv_cols,
-                         var_name='Series', value_name=values_to)
+                         variable_name='Series', value_name=values_to)
     else:
-        extra_piv_cols = np.concatenate((piv_cols + "_upper",
-                                         piv_cols + "_lower"))
-        extra_piv_cols = np.intersect1d(extra_piv_cols, data.columns)
-        id_cols = np.setdiff1d(id_cols, extra_piv_cols)
-        piv_cols_rename = {x: f'{x}_{values_to}' for
-                           x in data.columns if
-                           x in piv_cols}
+        extra_piv_cols = [x + y for x, y in
+                          product(piv_cols, ["_upper", "_lower"])]
+        extra_piv_cols = set(extra_piv_cols).intersection(data.columns)
+        id_cols = id_cols.difference(extra_piv_cols)
 
-        data = (data.rename(columns=piv_cols_rename).
-                melt(id_vars=id_cols,
-                     value_vars=list(piv_cols_rename.values()
-                                     ) + list(extra_piv_cols),
-                     var_name='Series', value_name=values_to))
-        data[['Series', 'val_type']] = \
-            data.Series.str.rsplit("_", expand=True, n=1)
-        data = (data.pivot(index=list(id_cols) + ['Series'],
-                           columns='val_type',
-                           values=values_to).
-                reset_index().
-                rename(columns={'lower': values_to + '_lower',
-                                'upper': values_to + '_upper'}))
+        data = (
+            data.
+            melt(id_vars=id_cols,
+                 value_vars=list(piv_cols) + list(extra_piv_cols),
+                 variable_name='Series', value_name=values_to).
+            with_columns(
+                val_type=(pl.col('Series').str.
+                          extract('_(upper|lower)$').
+                          fill_null(values_to)),
+                Series=pl.col('Series').str.replace('_(upper|lower)$', '')).
+            pivot(index=list(id_cols) + ['Series'],
+                  columns='val_type', values=values_to).
+            rename({'lower': values_to + '_lower',
+                    'upper': values_to + '_upper'})
+        )
 
     return data
 
@@ -297,44 +296,67 @@ def _date_str(x) -> str:
         return x
 
 
-# safe version of normal ppf when standard deviation is zero
-def _qnorm(p, mean = 0, sd = 1):
+def _qbinom(q: float, obs: str = "exposure", prob: str = "q_obs") -> pl.Expr:
+    """
+    Internal function for the binomial distribution expressed as probabilities
+
+    Parameters
+    ----------
+    q : float
+        Percentile
+    obs : str, default="exposure"
+        A column name containing exposures or the number of observations
+    prob : str, default="q_obs"
+        A column name containing the probability of an event
+
+    Returns
+    -------
+    pl.Expr
+    """
+    return (pl.struct(pl.col(obs).round(), pl.col(prob)).
+            map_batches(lambda x: binom.ppf(q, x.struct[0], x.struct[1])) /
+            pl.col(obs))
+
+
+def _qnorm(q: float, mean: str, sd: str | pl.Expr) -> pl.Expr:
     """
     Internal function for the inverse cumulative normal distribution
     that returns the mean when the standard deviation is zero.
 
     Parameters
     ----------
-    p : np.ndarray
-        A vector of probabilities
-    mean : np.ndarray
-        A vector of means
-    sd : np.ndarray
-        A vector of standard deviations
+    q : float
+        Percentile
+    mean : str
+        A column name containing means
+    sd : str | pl.Expr
+        A column name containing standard deviations
 
     Returns
     -------
-    np.ndarray
-        A vector of quantiles
+    pl.Expr
     """
-    sd = np.maximum(sd, 1E-16)
-    return norm.ppf(p, mean, sd)
+    if isinstance(sd, str):
+        sd = pl.col(sd)
+
+    return (pl.struct(pl.col(mean), pl.max_horizontal(sd, 1E-16)).
+            map_batches(lambda x: norm.ppf(q, x.struct[0], x.struct[1])))
 
 
-def relocate(data: pd.DataFrame, 
-             x: str | list | np.ndarray, 
-             before: str=None, 
-             after: str=None):
+def relocate(data: pl.DataFrame,
+             x: str | list | np.ndarray,
+             before: str = None,
+             after: str = None) -> pl.DataFrame:
     """
     Reorder columns in a data frame
-    
+
     Move the columns in `x` before or after a given column. If neither `before`
     or `after` are specified, `x` will be moved to the left. If both `before`
     and `after` are specified, an error is returned.
 
     Parameters
     ----------
-    data : pd.DataFrame
+    data : pl.DataFrame
         A data frame
     x : str | list | np.ndarray
         Column names to to move
@@ -345,18 +367,44 @@ def relocate(data: pd.DataFrame,
 
     Returns
     -------
-    pd.DataFrame
+    pl.DataFrame
         A data frame with reordered columns.
     """
     assert before is None or after is None, \
         'One of `before` and `after` must be specified, but not both.'
     x = np.atleast_1d(x)
     columns = data.columns
-    columns2 = columns[~columns.isin(x)]
+    columns2 = [col for col in columns if col not in x]
+
     if before is None and after is None:
-        return data[list(x) + list(columns2)]
+        return data.select(list(x) + columns2)
     if before is None:
         pos = list(columns2).index(after) + 1
     else:
         pos = list(columns2).index(before)
-    return data[list(columns2[:pos]) + list(x) + list(columns2[pos:])]
+    return data.select(list(columns2[:pos]) + list(x) + list(columns2[pos:]))
+
+
+def _check_convert_df(data: pl.DataFrame | pd.DataFrame) -> pl.DataFrame:
+    """
+    Internal function to check if `data` is a pandas or polars data frame. If a 
+    pandas data frame is passed, it will be converted to a polars data frame and 
+    all datetime columns will be converted to dates.
+
+    Parameters
+    ----------
+    data : pl.DataFrame | pd.DataFrame
+
+    Returns
+    -------
+    pl.DataFrame
+    """
+    if isinstance(data, pd.DataFrame):
+        data = pl.from_pandas(data).with_columns(
+            cs.datetime().cast(pl.Date)
+        )
+
+    assert isinstance(data, pl.DataFrame), \
+        '`data` must be a DataFrame'
+
+    return data

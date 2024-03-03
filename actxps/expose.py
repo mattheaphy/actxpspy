@@ -1,12 +1,14 @@
+import polars as pl
+import polars.selectors as cs
 import pandas as pd
-from pandas.tseries.offsets import Day
 import numpy as np
-from datetime import datetime
+from datetime import date
 from actxps.tools import (
     arg_match,
-    _verify_col_names
+    _verify_col_names,
+    _check_convert_df
 )
-from actxps.dates import frac_interval, add_interval
+from actxps.dates import frac_interval, _date_str
 from warnings import warn
 from functools import singledispatchmethod
 from itertools import product
@@ -22,12 +24,14 @@ class ExposedDF():
 
     Parameters
     ----------
-    data : pd.DataFrame
+    data : pl.DataFrame | pd.DataFrame
         A data frame with census-level records
-    end_date : datetime
-        Experience study end date
-    start_date : datetime, default='1900-01-01'
-        Experience study start date
+    end_date : date | str
+        Experience study end date. If a string is passed, it must be in 
+        %Y-%m-%d format.
+    start_date : date | str, default=date(1900, 1, 1)
+        Experience study start date. If a string is passed, it must be in 
+        %Y-%m-%d format.
     target_status : str | list | np.ndarray, default=`None`
         Target status values
     cal_expo : bool, default=`False`
@@ -41,7 +45,7 @@ class ExposedDF():
         name of the column in `data` containing the policy status
     col_issue_date : str, default='issue_date'
         name of the column in `data` containing the issue date
-    col_term_date str, default='term_date'
+    col_term_date : str, default='term_date'
         name of the column in `data` containing the termination date
     default_status : str, default=`None`
         Default active status code. If `None`, the most common status is
@@ -50,8 +54,8 @@ class ExposedDF():
 
     Attributes
     ----------
-    data : pd.DataFrame
-        A data frame with exposure level records. The results include all
+    data : pl.DataFrame
+        A Polars data frame with exposure level records. The results include all
         existing columns in the original input data plus new columns for
         exposures and observation periods. Observation periods include counters
         for policy exposures, start dates, and end dates. Both start dates and
@@ -143,14 +147,22 @@ class ExposedDF():
         "month": "mth",
         "week": "wk"
     }
-    
+
+    # helper dictionary for polars interval abbreviations
+    abbr_pl = {
+        "year": "y",
+        "quarter": "q",
+        "month": "mo",
+        "week": "w"
+    }
+
     from actxps.exp_shiny import exp_shiny
 
     @singledispatchmethod
     def __init__(self,
-                 data: pd.DataFrame,
-                 end_date: datetime,
-                 start_date: datetime = datetime(1900, 1, 1),
+                 data: pl.DataFrame | pd.DataFrame,
+                 end_date: date | str,
+                 start_date: date | str = date(1900, 1, 1),
                  target_status: str | list | np.ndarray = None,
                  cal_expo: bool = False,
                  expo_length: str = 'year',
@@ -160,39 +172,39 @@ class ExposedDF():
                  col_term_date: str = "term_date",
                  default_status: str = None):
 
-        end_date = pd.to_datetime(end_date)
-        start_date = pd.to_datetime(start_date)
+        end_date = _date_str(end_date, "end_date")
+        start_date = _date_str(start_date, "start_date")
         target_status = np.atleast_1d(target_status)
 
+        # convert data to polars dataframe if necessary
+        data = _check_convert_df(data)
+
         # column rename helper function
-        def rename_col(prefix: str,
-                       suffix: str = ""):
-            res = ExposedDF.abbr_period[expo_length]
-            return prefix + "_" + res + suffix
+        def rename_col(prefix: str, suffix: str = ""):
+            return prefix + "_" + abbrev + suffix
 
         # set up exposure period lengths
         arg_match('expo_length', expo_length,
                   ["year", "quarter", "month", "week"])
+        abbrev = ExposedDF.abbr_period[expo_length]
+        interval = ExposedDF.abbr_pl[expo_length]
 
-        def per_frac(start, end): return frac_interval(start, end, expo_length)
-        def per_add(dates, x): return add_interval(dates, x, expo_length)
+        # call frac_intervals using a polars struct
+        def per_frac(x):
+            return frac_interval(x.struct[0], x.struct[1], expo_length)
+
+        # add time intervals to a date expression
+        def add_per(x: pl.Expr, n: pl.Expr):
+            return (x.dt.offset_by(pl.format('{}', n.cast(str) + interval)))
 
         if cal_expo:
-            match expo_length:
-                case 'year':
-                    floor_date = pd.offsets.YearBegin()
-
-                case 'quarter':
-                    floor_date = pd.offsets.QuarterBegin(startingMonth=1)
-
-                case 'month':
-                    floor_date = pd.offsets.MonthBegin()
-
-                case 'week':
-                    floor_date = pd.offsets.Week(weekday=6)
+            if expo_length != 'week':
+                floor_date = '1' + interval,
+            else:
+                floor_date = ('1' + interval, '-1d')
 
         # column renames and name conflicts
-        data = data.rename(columns={
+        data = data.rename({
             col_pol_num: 'pol_num',
             col_status: 'status',
             col_issue_date: 'issue_date',
@@ -200,16 +212,13 @@ class ExposedDF():
         })
 
         # check for potential name conflicts
-        abbrev = ExposedDF.abbr_period[expo_length]
-        x = np.array([
-            "exposure",
-            ("cal_" if cal_expo else "pol_") + abbrev,
-            'pol_date_' + abbrev if not cal_expo else None,
-            ('cal_' if cal_expo else 'pol_date_') + abbrev + '_end'
-        ])
+        x = {"exposure",
+             ("cal_" if cal_expo else "pol_") + abbrev,
+             'pol_date_' + abbrev if not cal_expo else None,
+             ('cal_' if cal_expo else 'pol_date_') + abbrev + '_end'}
 
-        x = x[np.isin(x, data.columns)]
-        data = data.drop(columns=x)
+        x = x.intersection(data.columns)
+        data = data.drop(x)
 
         if len(x) > 0:
             warn("`data` contains the following conflicting columns that "
@@ -218,127 +227,152 @@ class ExposedDF():
                  "`ExposedDF` object.")
 
         # set up default status
-        status_levels = data.status.unique()
+        status_levels = data['status'].unique().to_list()
         if default_status is None:
-            default_status = pd.Categorical(
-                [_most_common(data.status)],
-                categories=status_levels)
+            status_levels = pl.Enum(status_levels)
+            default_status = pl.Series([_most_common(data['status'])],
+                                       dtype=status_levels)
         else:
-            status_levels = np.union1d(status_levels, default_status)
-            default_status = pd.Categorical(
-                [default_status],
-                categories=status_levels
-            )
+            status_levels = list(set(status_levels).union([default_status]))
+            status_levels = pl.Enum(status_levels)
+            default_status = pl.Series([default_status],
+                                       dtype=status_levels)
 
         # pre-exposure updates
         # drop policies issued after the study end and
         #   policies that terminated before the study start
-        data = data.loc[(data.issue_date < end_date) &
-                        (data.term_date.isna() | (data.term_date > start_date))]
-        data.term_date = pd.to_datetime(
-            np.where(data.term_date > end_date,
-                     pd.NaT, data.term_date))
-        data.status = np.where(data.term_date.isna(),
-                               default_status, data.status)
-        data['last_date'] = data.term_date.fillna(end_date)
+        data = data.filter(
+            pl.col('issue_date') < end_date,
+            (pl.col('term_date').is_null()) | (
+                pl.col('term_date') > start_date)
+        ).with_columns(
+            term_date=(pl.when(pl.col('term_date') > end_date).
+                       then(None).
+                       otherwise(pl.col('term_date')))
+        ).with_columns(
+            status=(pl.when(pl.col('term_date').is_null()).
+                    then(default_status).
+                    otherwise(pl.col('status').cast(status_levels))),
+            last_date=pl.col('term_date').fill_null(end_date)
+        )
 
         if cal_expo:
 
-            start_dates = pd.Series(np.repeat(start_date, len(data)),
-                                    index=data.index)
-            data['first_date'] = np.maximum(data.issue_date, start_dates)
-            data['cal_b'] = data.first_date + Day() - floor_date
-            data['tot_per'] = per_frac((data.cal_b - Day()), data.last_date)
+            start_dates = pl.Series(pl.repeat(start_date, len(data),
+                                              eager=True))
+            data = data.with_columns(
+                first_date=pl.max_horizontal('issue_date', start_dates),
+            ).with_columns(
+                cal_b=pl.col('first_date').dt.truncate(*floor_date)
+            ).with_columns(
+                tot_per=pl.struct(pl.col('cal_b').dt.offset_by('-1d'),
+                                  pl.col('last_date')).
+                map_batches(per_frac)
+            )
 
         else:
-            data['tot_per'] = per_frac((data.issue_date - Day()),
-                                       data.last_date)
+            data = data.with_columns(
+                tot_per=pl.struct(pl.col('issue_date').dt.offset_by('-1d'),
+                                  pl.col('last_date')).
+                map_batches(per_frac)
+            )
 
-        data['rep_n'] = np.ceil(data.tot_per)
+        data = (data.with_columns(rep_n=pl.col('tot_per').ceil()).
+                with_row_index('index'))
 
         # apply exposures
-        ndx = data.index
-        data = data.loc[np.repeat(ndx, data.rep_n)].reset_index(drop=True)
-        data['time'] = data.groupby('pol_num').cumcount() + 1
-        data['last_per'] = data.time == data.rep_n
-        data.status = np.where(data.last_per, data.status, default_status)
-        data.term_date = pd.to_datetime(
-            np.where(data.last_per, data.term_date, pd.NaT))
+        data = (
+            data[np.repeat(data['index'], data['rep_n'])].
+            lazy().
+            with_columns(
+                time=pl.cum_count('index').over('pol_num')
+            ).
+            with_columns(
+                last_per=pl.col('time') == pl.col('rep_n')
+            ).
+            with_columns(
+                status=(pl.when(pl.col('last_per')).
+                        then(pl.col('status')).
+                        otherwise(default_status)),
+                term_date=(pl.when(pl.col('last_per')).
+                           then(pl.col('term_date')).
+                           otherwise(None))
+            ).
+            drop('index'))
 
         if cal_expo:
-            data['first_per'] = data.time == 1
-            # necessary to convert to a series to avoid an error when Day() \
-            # is subtracted
-            data['cal_e'] = pd.Series(per_add(data.cal_b, data.time)) - Day(1)
-            data['cal_b'] = per_add(data.cal_b, data.time - 1)
-            data['cal_days'] = (data.cal_e - data.cal_b).dt.days + 1
+            data = data.with_columns(
+                first_per=pl.col('time') == 1,
+                cal_e=(add_per(pl.col('cal_b'), pl.col('time')).
+                       dt.offset_by('-1d')),
+                cal_b=add_per(pl.col('cal_b'), pl.col('time') - 1)
+            ).with_columns(
+                cal_days=(pl.col('cal_e') - pl.col('cal_b')
+                          ).dt.total_days() + 1
+            )
 
-            def cal_frac(x):
+            def cal_frac(x: pl.Expr):
                 """
                 Faster function than per_frac for computing the distance
                 between two calendar dates. Only works for partial periods
                 less than 1 full period.
                 """
-                numer = (x - data.cal_b).dt.days + 1
-                return numer / data.cal_days
+                numer = (x - pl.col('cal_b')).dt.total_days() + 1
+                return numer / pl.col('cal_days')
 
-            # partial exposure calculations
-            expo_cond = [
-                data.status.isin(target_status),
-                data.first_per & data.last_per,
-                data.first_per,
-                data.last_per
-            ]
-
-            expo_choice = [
-                1,
-                cal_frac(data.last_date) - cal_frac(data.first_date - Day(1)),
-                1 - cal_frac(data.first_date - Day(1)),
-                cal_frac(data.last_date)
-            ]
-
-            data['exposure'] = np.select(expo_cond, expo_choice, 1)
-
-            data = (data.
-                    drop(columns={'rep_n', 'first_date', 'last_date', 'cal_days',
-                                  'first_per', 'last_per', 'time', 'tot_per'}).
-                    rename(columns={
-                        'cal_b': rename_col('cal'),
-                        'cal_e': rename_col('cal', '_end')
-                    })
-                    )
+            data = data.with_columns(
+                exposure=(
+                    # fully expose target status
+                    pl.when(pl.col('status').is_in(
+                        pl.Series(target_status, dtype=status_levels))).
+                    then(1).
+                    # partially expose all else
+                    # first period and last period
+                    when(pl.col('first_per') & pl.col('last_per')).
+                    then(cal_frac(pl.col('last_date')) -
+                         cal_frac(pl.col('first_date').dt.offset_by('-1d'))).
+                    # first period
+                    when(pl.col('first_per')).
+                    then(1 -
+                         cal_frac(pl.col('first_date').dt.offset_by('-1d'))).
+                    # last period
+                    when(pl.col('last_per')).
+                    then(cal_frac(pl.col('last_date'))).
+                    # default
+                    otherwise(1))
+            ).drop(
+                ['rep_n', 'first_date', 'last_date', 'cal_days',
+                    'first_per', 'last_per', 'time', 'tot_per']
+            ).rename(
+                {'cal_b': rename_col('cal'),
+                 'cal_e': rename_col('cal', '_end')})
 
         else:
-            data['cal_b'] = per_add(data.issue_date, data.time - 1)
-            # necessary to convert to a series to avoid an error when Day() \
-            # is subtracted
-            data['cal_e'] = pd.Series(per_add(data.issue_date, data.time)) - \
-                Day(1)
 
-            # partial exposure calculations
-            data['exposure'] = np.where(
-                data.last_per & ~data.status.isin(target_status),
-                data.tot_per % 1, 1)
-            # exposure = 0 is possible if exactly 1 period has elapsed.
-            # replace these with 1's
-            data['exposure'] = np.where(data.exposure == 0, 1, data.exposure)
-
-            data = (data.
-                    drop(columns={'last_per', 'last_date', 'tot_per', 'rep_n'}).
-                    loc[(data.cal_b >= start_date) & (data.cal_b <= end_date)].
-                    rename(columns={
-                        'time': rename_col('pol'),
-                        'cal_b': rename_col('pol_date'),
-                        'cal_e': rename_col('pol_date', '_end')
-                    })
-                    )
-
-        # convert status to categorical
-        data.status = data.status.astype('category')
-        data.status = data.status.cat.set_categories(status_levels)
+            data = data.with_columns(
+                cal_b=add_per(pl.col('issue_date'), pl.col('time') - 1),
+                cal_e=(add_per(pl.col('issue_date'), pl.col('time')).
+                       dt.offset_by('-1d')),
+                exposure=(pl.when(pl.col('last_per') & ~pl.col('status').
+                                  is_in(pl.Series(target_status,
+                                                  dtype=status_levels))).
+                          then(pl.col('tot_per') % 1).
+                          otherwise(1).
+                          # exposure = 0 is possible if exactly 1 period
+                          # has elapsed. replace these with 1's.
+                          replace(0, 1))
+            ).drop(
+                ['last_per', 'last_date', 'tot_per', 'rep_n']
+            ).filter(
+                pl.col('cal_b') >= start_date,
+                pl.col('cal_b') <= end_date
+            ).rename(
+                {'time': rename_col('pol'),
+                 'cal_b': rename_col('pol_date'),
+                 'cal_e': rename_col('pol_date', '_end')})
 
         # set up other properties
-        self._finalize(data, end_date, start_date, target_status,
+        self._finalize(data.collect(), end_date, start_date, target_status,
                        cal_expo, expo_length, default_status=default_status[0])
 
         return None
@@ -373,35 +407,40 @@ class ExposedDF():
             self.trx_types = trx_types
 
     @classmethod
-    def expose_py(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_py(cls, data: pl.DataFrame | pd.DataFrame,
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy year exposures
         """
         return cls(data, end_date, expo_length='year', **kwargs)
 
     @classmethod
-    def expose_pq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_pq(cls, data: pl.DataFrame | pd.DataFrame,
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy quarter exposures
         """
         return cls(data, end_date, expo_length='quarter', **kwargs)
 
     @classmethod
-    def expose_pm(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_pm(cls, data: pl.DataFrame | pd.DataFrame,
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy month exposures
         """
         return cls(data, end_date, expo_length='month', **kwargs)
 
     @classmethod
-    def expose_pw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_pw(cls, data: pl.DataFrame | pd.DataFrame,
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with policy week exposures
         """
         return cls(data, end_date, expo_length='week', **kwargs)
 
     @classmethod
-    def expose_cy(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_cy(cls, data: pl.DataFrame | pd.DataFrame,
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar year exposures
         """
@@ -409,7 +448,8 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cq(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_cq(cls, data: pl.DataFrame | pd.DataFrame,
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar quarter exposures
         """
@@ -417,7 +457,8 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cm(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_cm(cls, data: pl.DataFrame | pd.DataFrame,
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar month exposures
         """
@@ -425,7 +466,8 @@ class ExposedDF():
                    **kwargs)
 
     @classmethod
-    def expose_cw(cls, data: pd.DataFrame, end_date: datetime, **kwargs):
+    def expose_cw(cls, data: pl.DataFrame | pd.DataFrame,
+                  end_date: date, **kwargs):
         """
         Create an `ExposedDF` with calendar week exposures
         """
@@ -434,9 +476,9 @@ class ExposedDF():
 
     @classmethod
     def from_DataFrame(cls,
-                       data: pd.DataFrame,
-                       end_date: datetime,
-                       start_date: datetime = datetime(1900, 1, 1),
+                       data: pl.DataFrame | pd.DataFrame,
+                       end_date: date | str,
+                       start_date: date | str = date(1900, 1, 1),
                        target_status: str = None,
                        cal_expo: bool = False,
                        expo_length: str = 'year',
@@ -461,11 +503,11 @@ class ExposedDF():
 
         Parameters
         ----------
-        data : pd.DataFrame
+        data : pl.DataFrame | pd.DataFrame
             A data frame with exposure-level records
-        end_date : datetime
+        end_date : date | str
             Experience study end date
-        start_date : datetime, default='1900-01-01'
+        start_date : date | str, default=date(1900, 1, 1)
             Experience study start date
         target_status : str | list | np.ndarray, default=`None`
             Target status values
@@ -513,18 +555,21 @@ class ExposedDF():
             An `ExposedDF` object.
         """
 
-        end_date = pd.to_datetime(end_date)
-        start_date = pd.to_datetime(start_date)
+        end_date = _date_str(end_date, "end_date")
+        start_date = _date_str(start_date, "start_date")
         target_status = np.atleast_1d(target_status)
+
+        # convert data to polars dataframe if necessary
+        data = _check_convert_df(data)
 
         arg_match('expo_length', expo_length,
                   ["year", "quarter", "month", "week"])
 
-        assert isinstance(data, pd.DataFrame), \
-            '`data` must be a Pandas DataFrame'
+        assert isinstance(data, pl.DataFrame | pd.DataFrame), \
+            '`data` must be a DataFrame'
 
         # column name alignment
-        data = data.rename(columns={
+        data = data.rename({
             col_pol_num: 'pol_num',
             col_status: 'status',
             col_exposure: 'exposure'
@@ -534,9 +579,7 @@ class ExposedDF():
         if not cal_expo:
             exp_col_pol_per = 'pol_' + ExposedDF.abbr_period[expo_length]
             if col_pol_per is not None:
-                data = data.rename(columns={
-                    col_pol_per: exp_col_pol_per
-                })
+                data = data.rename({col_pol_per: exp_col_pol_per})
         else:
             exp_col_pol_per = None
 
@@ -547,7 +590,7 @@ class ExposedDF():
             assert len(cols_dates) == 2, \
                 "`cols_dates` must be a length 2 character vector"
 
-            data = data.rename(columns={
+            data = data.rename({
                 cols_dates[0]: exp_cols_dates[0],
                 cols_dates[1]: exp_cols_dates[1]
             })
@@ -557,7 +600,7 @@ class ExposedDF():
         req_names = {"pol_num", "status", "exposure", exp_col_pol_per}
 
         # check transaction types
-        if trx_types != None:
+        if trx_types is not None:
 
             def trx_renamer(x):
                 return x.replace(col_trx_n_, 'trx_n_').\
@@ -574,7 +617,7 @@ class ExposedDF():
         _verify_col_names(data.columns, req_names)
 
         if default_status is None:
-            default_status = _most_common(data.status)
+            default_status = _most_common(data['status'])
 
         return cls('already_exposed',
                    data, end_date, start_date, target_status, cal_expo,
@@ -583,9 +626,9 @@ class ExposedDF():
     @__init__.register(str)
     def _special_init(self,
                       style,
-                      data: pd.DataFrame,
-                      end_date: datetime,
-                      start_date: datetime = datetime(1900, 1, 1),
+                      data: pl.DataFrame,
+                      end_date: date | str,
+                      start_date: date | str = date(1900, 1, 1),
                       target_status: str = None,
                       cal_expo: bool = False,
                       expo_length: str = 'year',
@@ -626,7 +669,7 @@ class ExposedDF():
         ----------
         The `ExposedDF` must have calendar year, quarter, month, or week 
         exposure records. Calendar year exposures are created by passing 
-        `cal_expo = True` to `ExposedDF` (or alternatively, with the class 
+        `cal_expo=True` to `ExposedDF` (or alternatively, with the class 
         methods `ExposedDF.expose_cy()`, `ExposedDF.expose_cq()`, 
         `ExposedDF.expose_cm()`, and `ExposedDF.expose_cw()`).
 
@@ -665,12 +708,11 @@ class ExposedDF():
         if self.trx_types != []:
             repr += f"Transaction types: {', '.join(self.trx_types)}\n"
 
-        repr += (f"\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}"
-                 f'\n{self.data.head(10)}')
+        repr += f"\n{self.data}"
 
         return repr
 
-    def groupby(self, *by):
+    def group_by(self, *by):
         """
         Set grouping variables for summary methods like `exp_stats()` and
         `trx_stats()`.
@@ -682,7 +724,7 @@ class ExposedDF():
 
         Notes
         ----------
-        This function will not directly apply the `DataFrame.groupby()` method
+        This function will not directly apply the `DataFrame.group_by()` method
         to the `data` property. Instead, it will set the `groups` property of
         the `ExposedDF` object. The `groups` property is subsequently used to
         group data within summary methods like `exp_stats()` and `trx_stats()`.
@@ -693,7 +735,7 @@ class ExposedDF():
         if len(by) == 0:
             by = None
         else:
-            assert all(pd.Series(by).isin(self.data.columns)), \
+            assert all(pl.Series(by).is_in(self.data.columns)), \
                 "All grouping variables passed to `*by` must be in the `data` property."
 
         self.groups = by
@@ -749,7 +791,7 @@ class ExposedDF():
 
         Notes
         ----------
-        If the `ExposedDF` object is grouped (see the `groupby()` method), the
+        If the `ExposedDF` object is grouped (see the `group_by()` method), the
         returned `ExpStats` object's data will contain one row per group.
 
         If nothing is passed to `target_status`, the `target_status` property
@@ -826,8 +868,8 @@ class ExposedDF():
         (xp.ExposedDF(xp.load_census_dat(),
                       "2019-12-31", 
                       target_status="Surrender").
-                   groupby('pol_yr', 'inc_guar').
-                   exp_stats(conf_int=True))
+            group_by('pol_yr', 'inc_guar').
+            exp_stats(conf_int=True))
         ```        
         """
         from actxps.exp_stats import ExpStats
@@ -835,7 +877,7 @@ class ExposedDF():
                         credibility, conf_level, cred_r, col_exposure)
 
     def add_transactions(self,
-                         trx_data: pd.DataFrame,
+                         trx_data: pl.DataFrame | pd.DataFrame,
                          col_pol_num: str = "pol_num",
                          col_trx_date: str = "trx_date",
                          col_trx_type: str = "trx_type",
@@ -845,7 +887,7 @@ class ExposedDF():
 
         Parameters
         ----------
-        trx_data : pd.DataFrame
+        trx_data : pl.DataFrame | pd.DataFrame
             A data frame containing transactions details. This data frame must
             have columns for policy numbers, transaction dates, transaction
             types, and transaction amounts.
@@ -878,20 +920,20 @@ class ExposedDF():
         census = xp.load_census_dat()
         withdrawals = xp.load_withdrawals()
         expo = xp.ExposedDF.expose_py(census, "2019-12-31",
-                                      target_status = "Surrender")
+                                      target_status="Surrender")
         expo.add_transactions(withdrawals)
         ```
         """
 
-        assert isinstance(trx_data, pd.DataFrame), \
-            "`data` must be a DataFrame"
+        # convert data to polars dataframe if necessary
+        trx_data = _check_convert_df(trx_data)
         date_cols = list(self.date_cols)
 
         # select a minimum subset of columns
-        date_lookup = self.data.copy()[['pol_num'] + date_cols]
+        date_lookup = self.data[['pol_num'] + date_cols].lazy()
 
         # column renames
-        trx_data = trx_data.rename(columns={
+        trx_data = trx_data.rename({
             col_pol_num: 'pol_num',
             col_trx_date: 'trx_date',
             col_trx_type: 'trx_type',
@@ -899,10 +941,10 @@ class ExposedDF():
         })
 
         # check for conflicting transaction types
-        new_trx_types = pd.unique(trx_data.trx_type)
+        new_trx_types = trx_data['trx_type'].unique().to_list()
         existing_trx_types = self.trx_types
-        conflict_trx_types = np.intersect1d(new_trx_types,
-                                            existing_trx_types)
+        conflict_trx_types = set(
+            new_trx_types).intersection(existing_trx_types)
         if len(conflict_trx_types) > 0:
             raise ValueError("`trx_data` contains transaction types that " +
                              "have already been attached to `data`: " +
@@ -912,40 +954,33 @@ class ExposedDF():
 
         # add dates to transaction data
         trx_data = (trx_data.
-                    merge(date_lookup, how='inner', on='pol_num').
-                    query(f"(trx_date >= {date_cols[0]}) & " +
-                          f"(trx_date <= {date_cols[1]})"))
-
-        # pivot / summarize to match the grain of exposure data
-        trx_data['trx_n'] = 1
+                    lazy().
+                    join(date_lookup, how='inner', on='pol_num').
+                    filter(pl.col('trx_date') >= pl.col(date_cols[0]),
+                           pl.col('trx_date') <= pl.col(date_cols[1])).
+                    with_columns(
+                        trx_n=1
+                    ).collect())
 
         trx_data = (trx_data.
-                    pivot_table(values=['trx_n', 'trx_amt'],
-                                index=['pol_num', date_cols[0]],
-                                columns='trx_type',
-                                aggfunc='sum',
-                                observed=True,
-                                fill_value=0).
-                    reset_index())
-
-        # flatten column index
-        cols = trx_data.columns.to_flat_index()
-        cols = ['_'.join(x) if x[1] != '' else x[0] for x in cols]
-        trx_data.columns = cols
+                    pivot(values=['trx_n', 'trx_amt'],
+                          index=['pol_num', date_cols[0]],
+                          columns='trx_type',
+                          aggregate_function='sum').
+                    rename(lambda x: x.replace('trx_type_', '')).
+                    lazy())
 
         # add new transaction types
-        self.trx_types = self.trx_types + list(new_trx_types)
+        self.trx_types = self.trx_types + new_trx_types
 
         # update exposed_df structure to document transaction types
-        self.data = (self.data.
-                     merge(trx_data,
-                           on=['pol_num', date_cols[0]],
-                           how='left'))
-
-        # replace missing values
-        trx_cols = [x for x in self.data.columns if x.startswith('trx_')]
-        self.data.loc[:, trx_cols] = \
-            self.data.loc[:, trx_cols].apply(lambda x: x.fillna(0))
+        self.data = (self.data.lazy().
+                     join(trx_data,
+                          on=['pol_num', date_cols[0]],
+                          how='left').
+                     # replace missing values
+                     with_columns(cs.matches("^trx_(n|amt)_").fill_null(0)).
+                     collect())
 
         return self
 
@@ -992,7 +1027,7 @@ class ExposedDF():
 
         Notes
         ----------
-        If the `ExposedDF` object is grouped (see the `groupby()` method), the
+        If the `ExposedDF` object is grouped (see the `group_by()` method), the
         returned `TrxStats` object's data will contain one row per group.
 
         Any number of transaction types can be passed to the `trx_types` 
@@ -1102,15 +1137,16 @@ class ExposedDF():
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        expo.groupby('inc_guar').trx_stats(percent_of="premium",
-                                           combine_trx=True,
-                                           conf_int=True)
+        expo.group_by('inc_guar').trx_stats(percent_of="premium",
+                                            combine_trx=True,
+                                            conf_int=True)
         ```            
         """
         from actxps.trx_stats import TrxStats
         return TrxStats(self, trx_types, percent_of, combine_trx,
                         full_exposures_only,
                         conf_int, conf_level, col_exposure)
+
 
 def _most_common(x: pd.Series):
     """
@@ -1126,4 +1162,4 @@ def _most_common(x: pd.Series):
     str
         Label of the most common policy status
     """
-    return x.value_counts(sort=True).index[0]
+    return x.value_counts(sort=True)[x.name][0]

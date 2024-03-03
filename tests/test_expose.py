@@ -1,7 +1,7 @@
 from actxps.expose import *
 from actxps.datasets import *
 from actxps.expose_split import SplitExposedDF
-import pandas as pd
+from datetime import date
 from pandas.tseries.offsets import Day
 import pytest
 
@@ -24,69 +24,79 @@ class TestExposeInit():
 class TestPolExpo():
 
     def test_min_expo(self):
-        assert all(study_py.data.exposure >= 0)
+        assert all(study_py.data['exposure'] >= 0)
 
     def test_max_expo(self):
-        assert all(study_py.data.exposure <= 1)
+        assert all(study_py.data['exposure'] <= 1)
 
     def test_no_na(self):
-        assert study_py.data.exposure.isna().sum() == 0
+        assert study_py.data['exposure'].is_nan().sum() == 0
 
     def test_full_expo_targ(self):
-        assert all(study_py.data.loc[study_py.data.status == "Surrender",
-                                     "exposure"] == 1)
+        assert all(study_py.data.
+                   filter(pl.col('status') == "Surrender")['exposure'] == 1)
+
+    def test_pandas(self):
+        assert isinstance(ExposedDF.expose_cy(census_dat.to_pandas(),
+                                              "2019-12-31",
+                                              target_status="Surrender"),
+                          ExposedDF)
 
 
 # Calendar year exposure checks
 class TestCalExpo():
 
     def test_min_expo(self):
-        assert all(study_cy.data.exposure >= 0)
+        assert all(study_cy.data['exposure'] >= 0)
 
     def test_max_expo(self):
-        assert all(study_cy.data.exposure <= 1)
+        assert all(study_cy.data['exposure'] <= 1)
 
     def test_no_na(self):
-        assert study_cy.data.exposure.isna().sum() == 0
+        assert study_cy.data['exposure'].is_nan().sum() == 0
 
     def test_full_expo_targ(self):
-        assert all(study_cy.data.loc[study_cy.data.status == "Surrender",
-                                     "exposure"] == 1)
+        assert all(study_cy.data.
+                   filter(pl.col('status') == "Surrender")["exposure"] == 1)
+
+    def test_pandas(self):
+        assert isinstance(ExposedDF.expose_py(census_dat.to_pandas(),
+                                              "2019-12-31",
+                                              target_status="Surrender"),
+                          ExposedDF)
 
 
-check_period_end_pol = (ExposedDF.expose_pw(toy_census, "2020-12-31",
-                                            target_status="Surrender").
-                        data[['pol_num', 'pol_date_wk', 'pol_date_wk_end']])
-check_period_end_pol['x'] = (check_period_end_pol.
-                             groupby('pol_num').
-                             pol_date_wk.
-                             shift(-1))
-check_period_end_pol = check_period_end_pol.dropna()
-check_period_end_pol = check_period_end_pol.\
-    loc[check_period_end_pol.x !=
-        check_period_end_pol.pol_date_wk_end + Day(1)].shape[0]
+check_period_end_pol = (
+    ExposedDF.expose_pw(toy_census, "2020-12-31",
+                        target_status="Surrender").
+    data[['pol_num', 'pol_date_wk', 'pol_date_wk_end']].
+    with_columns(
+        x=pl.col('pol_date_wk').shift(-1).over('pol_num')
+    ).drop_nulls().filter(
+        pl.col('x') != pl.col('pol_date_wk_end').dt.offset_by('1d')
+    ).height)
 
-check_period_end_cal = (ExposedDF.expose_cm(toy_census, "2020-12-31",
-                                            target_status="Surrender").
-                        data[['pol_num', 'cal_mth', 'cal_mth_end']])
-check_period_end_cal['x'] = (check_period_end_cal.
-                             groupby('pol_num').
-                             cal_mth.
-                             shift(-1))
-check_period_end_cal = check_period_end_cal.dropna()
-check_period_end_cal = check_period_end_cal.\
-    loc[check_period_end_cal.x !=
-        check_period_end_cal.cal_mth_end + Day(1)].shape[0]
+check_period_end_cal = (
+    ExposedDF.expose_cm(toy_census, "2020-12-31",
+                        target_status="Surrender").
+    data[['pol_num', 'cal_mth', 'cal_mth_end']].
+    with_columns(
+        x=pl.col('cal_mth').shift(-1).over('pol_num')
+    ).
+    drop_nulls().filter(
+        pl.col('x') != pl.col('cal_mth_end').dt.offset_by('1d')
+    ).height)
 
 
 # Period start and end dates roll
 class TestRollDates():
 
     def test_beg_lt_end1(self):
-        assert all(study_py.data.pol_date_yr < study_py.data.pol_date_yr_end)
+        assert all(study_py.data['pol_date_yr'] <
+                   study_py.data['pol_date_yr_end'])
 
     def test_beg_lt_end1(self):
-        assert all(study_cy.data.cal_yr < study_cy.data.cal_yr_end)
+        assert all(study_cy.data['cal_yr'] < study_cy.data['cal_yr_end'])
 
     def test_roll_1(self):
         assert check_period_end_pol == 0
@@ -95,19 +105,21 @@ class TestRollDates():
         assert check_period_end_cal == 0
 
 
-leap_day = pd.DataFrame({'pol_num': 1,
+leap_day = pl.DataFrame({'pol_num': 1,
                          'status': 'Active',
-                         'issue_date': pd.to_datetime('2020-02-29'),
-                         'term_date': pd.NaT},
-                        index=[0])
+                         'issue_date': date(2020, 2, 29),
+                         'term_date': None}).with_columns(
+                             pl.col('term_date').cast(date)
+)
 
 leap_expose = ExposedDF.expose_pm(leap_day, end_date="2021-02-28")
 
-march_1 = pd.DataFrame({'pol_num': 1,
+march_1 = pl.DataFrame({'pol_num': 1,
                         'status': 'Active',
-                        'issue_date': pd.to_datetime('2019-03-01'),
-                        'term_date': pd.NaT},
-                       index=[0])
+                        'issue_date': date(2019, 3, 1),
+                        'term_date': None}).with_columns(
+    pl.col('term_date').cast(date)
+)
 
 march_1_expose = ExposedDF.expose_pm(march_1, end_date="2020-02-29")
 
@@ -133,17 +145,14 @@ with_start_date = ExposedDF.expose_py(
 class TestStartEnd():
 
     def test_min_date(self):
-        assert min(with_start_date.data.pol_date_yr) == \
-            pd.to_datetime("2018-12-31")
+        assert min(with_start_date.data['pol_date_yr']) == date(2018, 12, 31)
 
     def test_man_date(self):
-        assert max(with_start_date.data.pol_date_yr) == \
-            pd.to_datetime("2019-12-31")
+        assert max(with_start_date.data['pol_date_yr']) == date(2019, 12, 31)
 
 
 exposed_strings = ExposedDF(toy_census, "2020-12-31", "2016-04-01")
-exposed_dates = ExposedDF(toy_census, pd.to_datetime("2020-12-31"),
-                          pd.to_datetime("2016-04-01"))
+exposed_dates = ExposedDF(toy_census, date(2020, 12, 31), date(2016, 4, 1))
 
 
 # Expose date arguments can be passed strings
@@ -157,14 +166,14 @@ renamer = {"pol_num": "a",
            "status": "b",
            "issue_date": "c",
            "term_date": "d"}
-toy_census2 = toy_census.rename(columns=renamer)
+toy_census2 = toy_census.rename(renamer)
 
 
 # Renaming and name conflict warnings work
 class TestRenames():
 
     def test_name_error(self):
-        with pytest.raises(AttributeError, match='object has no attribute'):
+        with pytest.raises(pl.ColumnNotFoundError, match='status'):
             ExposedDF(toy_census2, '2020-12-31')
 
     def test_rename_works(self):
@@ -176,37 +185,39 @@ class TestRenames():
 
     def test_warn_conflict_expo(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
-            ExposedDF(toy_census.assign(exposure=1), "2020-12-31")
+            ExposedDF(toy_census.with_columns(exposure=1), "2020-12-31")
 
     def test_warn_conflict_pol_yr(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
-            ExposedDF(toy_census.assign(pol_yr=1), "2020-12-31")
+            ExposedDF(toy_census.with_columns(pol_yr=1), "2020-12-31")
 
     def test_warn_conflict_pol_date_yr(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
-            ExposedDF(toy_census.assign(pol_date_yr=1), "2020-12-31")
+            ExposedDF(toy_census.with_columns(pol_date_yr=1), "2020-12-31")
 
     def test_warn_conflict_pol_date_yr_end(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
-            ExposedDF(toy_census.assign(pol_date_yr_end=1), "2020-12-31")
+            ExposedDF(toy_census.with_columns(pol_date_yr_end=1), "2020-12-31")
 
     def test_warn_conflict_cal_yr(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
-            ExposedDF.expose_cy(toy_census.assign(cal_yr=1), "2020-12-31")
+            ExposedDF.expose_cy(
+                toy_census.with_columns(cal_yr=1), "2020-12-31")
 
     def test_warn_conflict_cal_yr_end(self):
         with pytest.warns(UserWarning, match="`data` contains the following"):
-            ExposedDF.expose_cy(toy_census.assign(cal_yr_end=1), "2020-12-31")
+            ExposedDF.expose_cy(toy_census.with_columns(cal_yr_end=1),
+                                "2020-12-31")
 
 
 expo = ExposedDF(toy_census, "2020-12-31", target_status="Surrender")
-expo2 = expo.data.copy()
-expo3 = expo2.rename(columns={'pol_num': 'pnum'})
-expo4 = expo3.rename(columns={'status': 'stat',
-                              'exposure': 'expo',
-                              'pol_yr': 'py',
-                              'pol_date_yr': 'start',
-                              'pol_date_yr_end': 'end'})
+expo2 = expo.data.clone()
+expo3 = expo2.rename({'pol_num': 'pnum'})
+expo4 = expo3.rename({'status': 'stat',
+                      'exposure': 'expo',
+                      'pol_yr': 'py',
+                      'pol_date_yr': 'start',
+                      'pol_date_yr_end': 'end'})
 
 
 # .from_DataFrame method
@@ -215,7 +226,7 @@ class TestFromDataFrame():
     def test_wrong_format(self):
         with pytest.raises(AssertionError,
                            match='The following columns are missing'):
-            x = pd.DataFrame({'a': range(3)})
+            x = pl.DataFrame({'a': range(3)})
             ExposedDF.from_DataFrame(x, '2019-12-31')
 
     def test_bad_expo_length(self):
@@ -247,16 +258,22 @@ class TestFromDataFrame():
             ExposedDF)
 
     def test_only_dataframe(self):
-        with pytest.raises(AssertionError, match='must be a Pandas DataFrame'):
+        with pytest.raises(AssertionError, match='must be a DataFrame'):
             ExposedDF.from_DataFrame(1, '2020-12-31')
 
+    def test_pandas(self):
+        assert isinstance(
+            ExposedDF.from_DataFrame(expo2.to_pandas(), '2019-12-31'),
+            ExposedDF)
 
-expo6 = expo2.copy()
-expo6['trx_n_A'] = 1
-expo6['trx_amt_A'] = 2
-expo6['trx_n_B'] = 3
-expo6['trx_amt_B'] = 4
-expo7 = expo6.copy().rename(columns={
+
+expo6 = expo2.clone()
+expo6 = expo6.with_columns(
+    trx_n_A=1,
+    trx_amt_A=2,
+    trx_n_B=3,
+    trx_amt_B=4)
+expo7 = expo6.clone().rename({
     'trx_n_A': 'n_A',
     'trx_n_B': 'n_B',
     'trx_amt_A': 'amt_A',
@@ -337,20 +354,20 @@ study_cy = study_cy.add_transactions(withdrawals)
 class TestSplitEquivalence():
 
     def test_expo(self):
-        assert abs(sum(study_cy.data.exposure) -
-                   sum(study_split.data.exposure_cal)) < 1E-8
+        assert abs(sum(study_cy.data['exposure']) -
+                   sum(study_split.data['exposure_cal'])) < 1E-8
 
     def test_term_count(self):
-        assert sum(study_cy.data.status != "Active") == \
-            sum(study_split.data.status != "Active")
+        assert sum(study_cy.data['status'] != "Active") == \
+            sum(study_split.data['status'] != "Active")
 
     def test_trx_amt_1(self):
-        assert sum(study_cy.data.trx_amt_Base) == \
-            sum(study_split.data.trx_amt_Base)
+        assert sum(study_cy.data['trx_amt_Base']) == \
+            sum(study_split.data['trx_amt_Base'])
 
     def test_trx_amt_2(self):
-        assert sum(study_cy.data.trx_amt_Rider) == \
-            sum(study_split.data.trx_amt_Rider)
+        assert sum(study_cy.data['trx_amt_Rider']) == \
+            sum(study_split.data['trx_amt_Rider'])
 
 
 # expose_split() warns about transactions attached too early
@@ -371,25 +388,23 @@ class TestSplitErrorsWarnings():
             study_split.trx_stats()
 
 
-split_dat = (
+check_period_end_split = (
     ExposedDF.expose_cy(
         toy_census, "2020-12-31", target_status="Surrender").
     expose_split().
-    data[["pol_num", "cal_yr", "cal_yr_end"]])
-split_dat['x'] = split_dat.groupby('pol_num')['cal_yr'].shift(-1)
-split_dat = split_dat.dropna()
-
-check_period_end_split = (split_dat[
-    split_dat.x != split_dat.cal_yr_end + Day(1)].
-    shape[0]
-)
+    data[["pol_num", "cal_yr", "cal_yr_end"]].
+    with_columns(
+        x=pl.col('cal_yr').shift(-1).over('pol_num')
+    ).drop_nulls().
+    filter(pl.col('x') != pl.col('cal_yr_end').dt.offset_by('1d')).
+    height)
 
 
 # Split period start and end dates roll"
 class TestSplitDateRoll():
 
     def test_study_split_roll_1(self):
-        assert all(study_split.data.cal_yr <= study_split.data.cal_yr_end)
+        assert all(study_split.data['cal_yr'] <= study_split.data['cal_yr_end'])
 
     def test_study_split_roll_2(self):
         assert check_period_end_split == 0

@@ -1,4 +1,4 @@
-,pol_num,status,issue_date,term_date
-0,1,Active,2010-01-01,
-1,2,Death,2011-05-27,2020-09-14
-2,3,Surrender,2009-11-10,2022-02-25
+pol_num,status,issue_date,term_date
+1,Active,2010-01-01,
+2,Death,2011-05-27,2020-09-14
+3,Surrender,2009-11-10,2022-02-25

@@ -1,4 +1,5 @@
-import pandas as pd
+import polars as pl
+import polars.selectors as cs
 import numpy as np
 from warnings import warn
 from datetime import datetime
@@ -9,10 +10,12 @@ from plotnine import (aes,
                       theme,
                       element_text,
                       element_rect)
-from actxps.col_select import col_contains
+from actxps.col_select import col_matches
+from actxps.tools import _date_str
 import matplotlib.pyplot as plt
 import io
 import great_tables.shiny as gts
+from functools import reduce
 
 
 def exp_shiny(self,
@@ -169,6 +172,7 @@ def exp_shiny(self,
     ----------
     ```{python}
     import actxps as xp
+    import polars as pl
     import numpy as np
 
     census_dat = xp.load_census_dat()
@@ -176,14 +180,16 @@ def exp_shiny(self,
     account_vals = xp.load_account_vals()
 
     expo = xp.ExposedDF(census_dat, "2019-12-31",
-                        target_status = "Surrender")
+                        target_status="Surrender")
     expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
                                     [.2, .15], np.repeat(0.05, 3)))
-    expo.data['expected_1'] = expected_table[expo.data.pol_yr - 1]
-    expo.data['expected_2'] = np.where(expo.data.inc_guar, 0.015, 0.03)
+    expo.data = expo.data.with_columns(
+        expected_1=expected_table[expo.data['pol_yr'] - 1],
+        expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+    )                                
     expo.add_transactions(withdrawals)
-    expo.data = expo.data.merge(account_vals, how='left',
-                                on=["pol_num", "pol_date_yr"])
+    expo.data = expo.data.join(account_vals, how='left',
+                               on=["pol_num", "pol_date_yr"])
 
     app = expo.exp_shiny(expected=['expected_1', 'expected_2'])
     ```
@@ -201,89 +207,105 @@ def exp_shiny(self,
     from actxps import SplitExposedDF
     from actxps.expose_split import _check_split_expose_basis
 
-    # special logic required for split exposed data frames
-    if isinstance(self, SplitExposedDF):
-        _check_split_expose_basis(self, col_exposure)
-        dat = dat.rename(columns={col_exposure: 'exposure'})
-
-        if col_exposure == "exposure_cal":
-            dat.drop(columns=['exposure_pol'], inplace=True)
-        else:
-            dat.drop(columns=['exposure_cal'], inplace=True)
-
     # make a copy of the ExposedDF to avoid unexpected changes
     expo = deepcopy(self)
     dat = expo.data
     cols = dat.columns
 
+    # special logic required for split exposed data frames
+    if isinstance(self, SplitExposedDF):
+        _check_split_expose_basis(self, col_exposure)
+        dat = dat.rename({col_exposure: 'exposure'})
+
+        if col_exposure == "exposure_cal":
+            dat = dat.drop('exposure_pol')
+        else:
+            dat = dat.drop('exposure_cal')
+
     # convert boolean columns to strings
-    dat[dat.select_dtypes(bool).columns] = \
-        dat.select_dtypes(bool).apply(lambda x: x.astype(str))
+    dat = dat.with_columns(cs.boolean().cast(str))
+    expo.data = dat
 
     if predictors is None:
         predictors = cols
     else:
-        predictors = pd.Index(np.atleast_1d(predictors))
+        predictors = np.atleast_1d(predictors).tolist()
 
     if expected is None:
-        expected = pd.Index(col_contains(dat, 'expected'))
+        expected = col_matches(dat, 'expected')
     else:
-        expected = pd.Index(np.atleast_1d(expected))
+        expected = np.atleast_1d(expected).tolist()
 
     # check for presence of transactions
     has_trx = len(expo.trx_types) > 0
-    trx_cols = col_contains(dat, "^trx_(?:n|amt)_")
+    trx_cols = col_matches(dat, "^trx_(?:n|amt)_")
 
-    if any(~(predictors.append(expected)).isin(cols)):
-        warn("All predictors and expected values must be columns in `dat`. " +
-             "Unexpected values will be removed.")
-        predictors = predictors[predictors.isin(cols)]
-        expected = expected[expected.isin(cols)]
-
-    predictors = predictors.tolist()
-    expected = expected.tolist()
+    if len(set(predictors + expected).difference(cols)) > 0:
+        warn("All predictors and expected values must be columns in " +
+             "the `data` attribute. Unexpected values will be removed.")
+        predictors = list(set(predictors).intersection(cols))
+        expected = list(set(expected).intersection(cols))
 
     total_rows = len(dat)
 
     # organize predictors
-    preds = pd.DataFrame({'predictors': predictors})
     # drop non-predictors (if any)
     non_preds = ["pol_num", "status", "term_date", "exposure"]
     if has_trx:
         non_preds.extend(trx_cols)
-    preds = preds.loc[~preds.predictors.isin(non_preds)]
+    predictors = [x for x in predictors if x not in non_preds]
 
-    preds['dtype'] = dat[preds.predictors].dtypes.to_numpy()
-    preds['dtype'] = preds['dtype'].apply(str)
-    preds['is_number'] = preds['dtype'].str.contains('(?:int|float)')
-    preds['is_integer'] = preds['dtype'].str.contains('(?:int)')
+    # small data frame used for determining data types
+    mini_dat = dat.head().select(predictors)
 
-    dtype_cond = [
-        preds['dtype'].str.contains('date'),
-        (preds['dtype'] == 'category') | (preds['dtype'] == 'object'),
-        preds.is_number,
-        np.repeat(True, len(preds))
-    ]
-    dtype_labels = ['Dates', 'Categorical', 'Numeric', 'other']
-    preds['order'] = np.select(dtype_cond, range(len(dtype_cond)))
-    preds['dtype'] = np.select(dtype_cond, dtype_labels)
-    preds['n_unique'] = preds.predictors.apply(
-        lambda x: len(dat[x].unique())
+    def is_type(*sel):
+        check = mini_dat.select(*sel).columns
+        return pl.col('predictors').is_in(check)
+
+    order = {
+        'Dates': 0,
+        'Categorical': 1,
+        'Numeric': 2,
+        'other': 3
+    }
+
+    def calc_scope(x):
+        p, c = x['predictors'], x['dtype']
+        if (c in ['Dates', 'Numeric']):
+            scope = dat[p].min(), dat[p].max()
+        else:
+            scope = dat[p].unique()
+        return [str(s) for s in scope]
+
+    preds = (
+        pl.DataFrame({
+            'predictors': predictors,
+        }).
+        with_columns(
+            is_number=is_type(cs.numeric()),
+            is_integer=is_type(cs.integer())).
+        with_columns(
+            dtype=(pl.when(is_type(cs.date(), cs.datetime())).
+                   then(pl.lit('Dates')).
+                   when(is_type(cs.string(), cs.categorical())).
+                   then(pl.lit('Categorical')).
+                   when(pl.col('is_number')).
+                   then(pl.lit('Numeric')).
+                   otherwise(pl.lit('other')))
+        ).
+        with_columns(
+            order=pl.col('dtype').replace(order, default=None),
+            n_unique=pl.col('predictors').map_elements(
+                lambda x: len(dat[x].unique())),
+            scope=(pl.struct(pl.col('predictors'), pl.col('dtype')).
+                   map_elements(calc_scope))
+        ).
+        sort('order').drop('order')
     )
 
-    def calc_scope(p, c):
-        if (c in ['Dates', 'Numeric']):
-            return min(dat[p]), max(dat[p])
-        else:
-            return dat[p].unique()
-    preds['scope'] = preds[['predictors', 'dtype']].\
-        apply(lambda x: calc_scope(x['predictors'], x['dtype']), axis=1)
-
-    preds = (preds.
-             sort_values('order').
-             drop(columns='order').
-             set_index('predictors'))
-    preds_small = preds.copy()[preds.n_unique <= distinct_max].index.to_list()
+    preds_small = (preds.
+                   filter(pl.col('n_unique') <= distinct_max)['predictors'].
+                   to_list())
 
     yVar_exp = ["q_obs", "n_claims", "claims", "exposure"]
     if credibility:
@@ -304,40 +326,42 @@ def exp_shiny(self,
             f"Error creating an input widget for {x}. " + \
             f"{x} does not exist in the input data."
 
-        info = preds.loc[x]
-        choices = info['scope']
+        info = preds.filter(pl.col('predictors') == x)
+        choices = info['scope'][0]
+        dtype = info['dtype'][0]
 
-        if info['dtype'] == "Numeric":
+        if dtype == "Numeric":
+
+            if info['is_integer'][0]:
+                choices = choices.cast(int).to_list()
+            else:
+                choices = choices.cast(float).to_list()
 
             inp = ui.input_slider(
                 inputId, ui.strong(x),
                 min=choices[0],
                 max=choices[1],
                 value=choices,
-                step=1 if info['is_integer'] and info['n_unique'] < 100
+                step=1 if info['is_integer'][0] and info['n_unique'][0] < 100
                 else None
             )
 
-        elif info['dtype'] == "Dates":
+        elif dtype == "Dates":
 
-            def fmt_date(x):
-                return datetime.strftime(x, "%Y-%m-%d")
-
-            min_val = fmt_date(choices[0])
-            max_val = fmt_date(choices[1])
+            choices = choices.str.to_date()
 
             inp = ui.input_date_range(
                 inputId, ui.strong(x),
-                start=min_val,
-                end=max_val,
-                min=min_val,
-                max=max_val,
+                start=choices[0],
+                end=choices[1],
+                min=choices[0],
+                max=choices[1],
                 startview="year"
             )
 
-        elif info['dtype'] == 'Categorical':
+        elif dtype == 'Categorical':
 
-            choices = choices.tolist()
+            choices = choices.to_list()
 
             if len(choices) > checkbox_limit:
                 inp = ui.input_selectize(
@@ -362,7 +386,7 @@ def exp_shiny(self,
         def new_fun(inputId, label, width, choices=None, **kwargs):
 
             if choices is None:
-                choices = ["None"] + preds.index.to_list()
+                choices = ["None"] + preds['predictors'].to_list()
 
             return ui.column(
                 width,
@@ -405,8 +429,8 @@ def exp_shiny(self,
                 selectPred("weightVar",
                            "Weight by:", 4,
                            choices=["None"] +
-                           preds.loc[preds.is_number].index.to_list(
-                           ))
+                           (preds.filter(pl.col('is_number'))['predictors'].
+                            to_list()))
             ),
 
             value="exp")
@@ -415,7 +439,8 @@ def exp_shiny(self,
     # transactions set up
     if has_trx:
 
-        percent_of_choices = preds.loc[preds.is_number].index.to_list()
+        percent_of_choices = (preds.filter(pl.col('is_number'))['predictors'].
+                              to_list())
 
         trx_tab = ui.nav_panel(
             ["Transaction study ",
@@ -479,8 +504,8 @@ def exp_shiny(self,
             ui.accordion(
                 *map(lambda x: ui.accordion_panel(
                     x[0],
-                    [widget(y) for y in x[1].index]),
-                    preds.groupby('dtype', observed=True, sort=False)),
+                    [widget(y) for y in x[1]['predictors']]),
+                    preds.group_by('dtype', maintain_order=True)),
                 open=True
             ),
 
@@ -785,16 +810,26 @@ def exp_shiny(self,
             # instances of `if not input.play()` can be removed.
             # ui.validate(ui.need(input.play(), "Paused"))
             if not input.play():
-                return None
+                return []
 
             def is_active(x):
-                info = preds.loc[x]
-                scope = info['scope']
+                info = preds.filter(pl.col('predictors') == x)
+                scope = info['scope'][0]
                 selected = input["i_" + x]()
-                if info['dtype'] == "Dates":
-                    res = (scope[0] != pd.to_datetime(selected[0]) or
-                           scope[1] != pd.to_datetime(selected[1]))
-                elif info['is_number']:
+
+                if info['dtype'][0] == "Dates":
+
+                    scope = scope.str.to_date()
+                    res = (scope[0] != selected[0] or
+                           scope[1] != selected[1])
+
+                elif info['is_number'][0]:
+
+                    if info['is_integer'][0]:
+                        scope = scope.cast(int)
+                    else:
+                        scope = scope.cast(float)
+
                     res = (not np.isclose(scope[0], selected[0]) or
                            not np.isclose(scope[1], selected[1]))
                 else:
@@ -802,7 +837,7 @@ def exp_shiny(self,
                 if res:
                     return x
 
-            keep = [is_active(x) for x in preds.index]
+            keep = [is_active(x) for x in preds['predictors']]
 
             return [x for x in keep if x is not None]
 
@@ -812,36 +847,30 @@ def exp_shiny(self,
 
             if not input.play():
                 return None
-
+            
+            # if no active filters, return the current data
+            if len(active_filters()) == 0:
+                return expo
+            
             # function to build filter expressions
-            def expr_filter(x):
+            def expr_filter(lazy: pl.LazyFrame, x):
 
                 inp_val = input["i_" + x]()
-
-                # ensure that dates are quoted
-                if preds.loc[x]['dtype'] == 'Dates':
-                    inp_val = [f"'{a}'" for a in inp_val]
+                dtype = preds.filter(pl.col('predictors') == x)['dtype'][0]
 
                 # create filter expressions
-                if preds.loc[x]['dtype'] in ['Dates', 'Numeric']:
-                    res = f"({x} >= {inp_val[0]}) & ({x} <= {inp_val[1]})"
+                if dtype in ['Dates', 'Numeric']:
+                    return lazy.filter(
+                        pl.col(x).is_between(inp_val[0], inp_val[1]))
+
                 else:
                     # categorical
-                    res = f"({x}.isin({inp_val}))"
-
-                return res
-
-            # determine which filters are active
-            filters = [expr_filter(x) for x in active_filters()]
-
-            # if no active filters, return the current data
-            if len(filters) == 0:
-                return expo
+                    return lazy.filter(pl.col(x).is_in(inp_val))
 
             # apply filters
-            filters = ' & '.join(filters)
             new_expo = deepcopy(expo)
-            new_expo.data = new_expo.data.query(filters)
+            new_expo.data = reduce(expr_filter, active_filters(),
+                                   dat.lazy()).collect()
 
             return new_expo
 
@@ -882,7 +911,7 @@ def exp_shiny(self,
 
             if input.study_type() == "exp":
                 return (expo.
-                        groupby(*groups).
+                        group_by(*groups).
                         exp_stats(wt=wt,
                                   credibility=credibility,
                                   expected=ex,
@@ -891,7 +920,7 @@ def exp_shiny(self,
                                   conf_int=True))
             else:
                 return (expo.
-                        groupby(*groups).
+                        group_by(*groups).
                         trx_stats(percent_of=list(input.pct_checks()),
                                   trx_types=list(input.trx_types_checks()),
                                   combine_trx=input.trx_combine(),
@@ -918,7 +947,7 @@ def exp_shiny(self,
             if input.xVar() != "None":
                 x = input.xVar()
             else:
-                new_rxp.data["All"] = ""
+                new_rxp.data = new_rxp.data.with_columns(All = pl.lit(""))
                 x = "All"
 
             if input.colorVar() != "None":
@@ -1037,16 +1066,22 @@ def exp_shiny(self,
         @output
         @render.text()
         def rem_pct():
+            if not input.play():
+                return None
             return f"{(rdat().data.shape[0] / total_rows) * 100:.0f}%"
 
         @output
         @render.text()
         def rem_rows():
+            if not input.play():
+                return None
             return f"Remaining rows: {rdat().data.shape[0]:,d}"
 
         @output
         @render.plot(pad_inches=0)
         def filter_pie():
+            if not input.play():
+                return None
             return plt.pie([rdat().data.shape[0],
                             total_rows - rdat().data.shape[0]],
                            wedgeprops=dict(width=0.5), startangle=90,
@@ -1056,20 +1091,25 @@ def exp_shiny(self,
         def describe_filter(x):
 
             selected = input["i_" + x]()
-            info = preds.loc[x]
-            choices = info['scope']
+            info = preds.filter(pl.col('predictors') == x)
+            scope = info['scope'][0]
+            dtype = info['dtype'][0]
 
             # numeric or date
-            if (info['dtype'] == "Numeric") | (info['dtype'] == "Dates"):
+            if dtype in ["Numeric", "Dates"]:
 
-                if (info['dtype'] == 'Dates'):
-                    selected = pd.to_datetime(selected)
-
+                if dtype == "Dates":
+                    scope = scope.str.to_date()
+                elif info['is_integer'][0]:
+                    scope = scope.cast(int)
+                else:
+                    scope = scope.cast(float)                    
+                    
                 if selected[0] == selected[1]:
                     # exactly equal
                     return f"{x} == {selected[0]}"
-                elif selected[0] > choices[0]:
-                    if selected[1] < choices[1]:
+                elif selected[0] > scope[0]:
+                    if selected[1] < scope[1]:
                         # between
                         return f"{selected[0]} <= {x} <= {selected[1]}"
                     else:
@@ -1094,12 +1134,12 @@ def exp_shiny(self,
                     else:
                         return f"{y[0]} or {y[1]}"
 
-                if len(selected) < 0.5 * info.n_unique:
+                if len(selected) < 0.5 * info['n_unique'][0]:
                     # minority selected - list all selections
                     return f"{x} is {or_list(selected)}"
                 else:
                     # majority selected - list all NOT selected
-                    y = set(choices).difference(selected)
+                    y = set(scope).difference(selected)
                     return f"{x} is NOT {or_list(y)}"
 
         # filter description output
@@ -1130,7 +1170,7 @@ def exp_shiny(self,
             if rdat().data.shape[0] == 0:
                 return None
             with io.BytesIO() as buf:
-                rxp().data.to_csv(buf)
+                rxp().data.write_csv(buf)
                 yield buf.getvalue()
 
         @render.download(

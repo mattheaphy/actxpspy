@@ -1,6 +1,7 @@
+import polars as pl
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import date
 from functools import singledispatchmethod
 from itertools import product
 from actxps.expose import ExposedDF
@@ -11,21 +12,22 @@ from actxps.tools import (
     _conf_int_warning,
     _verify_col_names,
     _date_str,
-    _qnorm
+    _qbinom,
+    _qnorm,
+    _check_convert_df
 )
 from actxps.col_select import (
-    col_contains,
+    col_matches,
     col_starts_with
 )
 from actxps.expose_split import _check_split_expose_basis
-from actxps.dates import len2
+from actxps.dates import _len2
 from plotnine import aes
 from great_tables import (
     GT,
     pct,
     md
 )
-from matplotlib.colors import Colormap
 from scipy.stats import binom
 
 
@@ -71,7 +73,7 @@ class TrxStats():
     Attributes
     ----------
 
-    data : pd.DataFrame
+    data : pl.DataFrame
         A data framethat includes columns for any grouping variables and
         transaction types, plus the following: `trx_n` (the number of unique 
         transactions), `trx_amt` (total transaction amount), `trx_flag` (the 
@@ -91,7 +93,7 @@ class TrxStats():
 
     Notes
     ----------
-    If the `ExposedDF` object is grouped (see the `groupby()` method), the
+    If the `ExposedDF` object is grouped (see the `group_by()` method), the
     returned `TrxStats` object's data will contain one row per group.
 
     Any number of transaction types can be passed to the `trx_types` 
@@ -192,28 +194,25 @@ class TrxStats():
 
         start_date = expo.start_date
         end_date = expo.end_date
-        data = expo.data.copy()
+        data = expo.data.lazy().rename({col_exposure: 'exposure'})
         groups = expo.groups
         if groups is None:
             groups = []
 
-        data = data.rename(columns={col_exposure: 'exposure'})
-
         # remove partial exposures
         if full_exposures_only:
-            data = data.loc[np.isclose(data.exposure, 1)]
+            data = data.filter((pl.col('exposure') - 1).abs() <=
+                               np.finfo(float).eps ** 0.5)
 
-        trx_cols = data.columns[data.columns.str.match('trx_(n|amt)_')]
-        trx_cols = trx_cols[trx_cols.str.contains('|'.join(trx_types))]
+        trx_cols = col_matches(data, f'trx_(n|amt)_({"|".join(trx_types)})')
 
         if combine_trx:
-            trx_n_cols = trx_cols[trx_cols.str.contains("_n_")]
-            trx_amt_cols = trx_cols[trx_cols.str.contains("_amt_")]
-            data['trx_n_All'] = 0
-            data['trx_amt_All'] = 0
-            for n, amt in zip(trx_n_cols, trx_amt_cols):
-                data['trx_n_All'] += data[n]
-                data['trx_amt_All'] += data[amt]
+            trx_n_cols = [x for x in trx_cols if "_n_" in x]
+            trx_amt_cols = [x for x in trx_cols if "_amt_" in x]
+            data = data.with_columns(
+                trx_n_All=pl.sum_horizontal(trx_n_cols),
+                trx_amt_All=pl.sum_horizontal(trx_amt_cols),
+            )
             trx_cols = ["trx_n_All", "trx_amt_All"]
 
         if percent_of is None:
@@ -223,32 +222,39 @@ class TrxStats():
             percent_of = np.atleast_1d(percent_of).tolist()
 
         # subset columns
-        id_vars = ['pol_num', 'exposure'] + groups + percent_of
-        data = data[id_vars + list(trx_cols)]
-        # pivot longer
-        data = data.reset_index().melt(id_vars=id_vars + ['index'])
-        # split transaction types from kinds
-        data.variable = data.variable.str.replace('^trx_', '', regex=True)
-        data[['kind', 'trx_type']] = \
-            data.variable.str.split('_', expand=True, n=1)
-        # pivot wider
-        data = (data.
-                pivot(index=['index'] + id_vars + ['trx_type'],
-                      values='value', columns='kind').
-                reset_index().
-                drop(columns='index').
-                rename(columns={'n': 'trx_n',
-                                'amt': 'trx_amt'}))
-        data.columns.name = None
-        # fill in missing values
-        data.trx_n = data.trx_n.fillna(0)
-        data.trx_amt = data.trx_amt.fillna(0)
-        data['trx_flag'] = data.trx_n.abs() > 0
+        id_vars = ['index', 'pol_num', 'exposure'] + groups + percent_of
+        data = (
+            data.
+            with_row_index('index').
+            select(id_vars + trx_cols).
+            # pivot longer
+            melt(id_vars=id_vars).
+            with_columns(
+                pl.col('variable').str.replace('^trx_', '')).
+            # split transaction types from kinds
+            with_columns(
+                pl.col('variable').str.split_exact('_', 1).
+                struct.rename_fields(['kind', 'trx_type'])
+            ).unnest('variable').
+            collect().
+            # pivot wider
+            pivot(index=id_vars + ['trx_type'],
+                  values='value', columns='kind').
+            lazy().
+            rename({'n': 'trx_n', 'amt': 'trx_amt'}).
+            # fill in missing values
+            with_columns(pl.col('trx_n', 'trx_amt').fill_null(0)).
+            with_columns(trx_flag=pl.col('trx_n').abs() > 0).
+            drop('index')
+        )
+
         if conf_int:
-            data['trx_amt_sq'] = data.trx_amt ** 2
+            data = data.with_columns(trx_amt_sq=pl.col('trx_amt') ** 2)
 
         for x in percent_of:
-            data[x + '_w_trx'] = data[x] * data.trx_flag
+            data = data.with_columns(
+                (pl.col(percent_of) * pl.col('trx_flag')).name.map(
+                    lambda x: x + '_w_trx'))
 
         xp_params = {'conf_level': conf_level,
                      'conf_int': conf_int}
@@ -257,7 +263,7 @@ class TrxStats():
                        groups, start_date, end_date, xp_params)
 
     def _finalize(self,
-                  data: pd.DataFrame,
+                  data: pl.LazyFrame | pl.DataFrame,
                   trx_types,
                   percent_of,
                   groups,
@@ -279,102 +285,108 @@ class TrxStats():
 
         # finish trx stats
         if agg:
-            res = (data.groupby(groups + ['trx_type'], observed=True).
-                   apply(self._calc, include_groups=False).
-                   reset_index().
-                   drop(columns=[f'level_{len(groups) + 1}']))
-            self.data = res
+            self.data = self._calc(data)
         else:
             self.data = data
 
         return None
 
-    def _calc(self, data: pd.DataFrame):
+    def _calc(self, data:  pl.LazyFrame) -> pl.DataFrame:
         """
         Support function for summarizing data for one group
         """
-        # safe divide by zero that returns infinite without warning
-        def div(x, y):
-            if y == 0:
-                if x > 0:
-                    return np.Inf
-                elif x == 0:
-                    return np.nan
-                else:
-                    return -np.Inf
-            else:
-                return x / y
-
-        # dictionary of summarized values
-        fields = {'trx_n': sum(data.trx_n),
-                  'trx_flag': sum(data.trx_flag),
-                  'trx_amt': sum(data.trx_amt),
-                  'exposure': sum(data.exposure)}
 
         conf_level = self.xp_params['conf_level']
         conf_int = self.xp_params['conf_int']
 
-        fields['avg_trx'] = div(fields['trx_amt'], fields['trx_flag'])
-        fields['avg_all'] = div(fields['trx_amt'], fields['exposure'])
-        fields['trx_freq'] = div(fields['trx_n'], fields['trx_flag'])
-        fields['trx_util'] = div(fields['trx_flag'], fields['exposure'])
+        if self.groups is None:
+            groups = ['trx_type']
+        else:
+            groups = self.groups + ['trx_type']
 
-        for x in self.percent_of:
-            xw = x + "_w_trx"
-            fields[x] = sum(data[x])
-            fields[xw] = sum(data[xw])
-            fields[f"pct_of_{x}_all"] = div(fields['trx_amt'], fields[x])
-            fields[f"pct_of_{xw}"] = div(fields['trx_amt'], fields[xw])
+        # dictionary of summarized values
+        fields = {'trx_n': pl.col('trx_n').sum(),
+                  'trx_flag': pl.col('trx_flag').sum(),
+                  'trx_amt': pl.col('trx_amt').sum(),
+                  'exposure': pl.col('exposure').sum()}
+
+        if len(self.percent_of) > 0:
+            for x in self.percent_of:
+                xw = x + "_w_trx"
+                fields[x] = pl.col(x).sum()
+                fields[xw] = pl.col(xw).sum()
+            if conf_int:
+                fields['trx_amt_sq'] = pl.col('trx_amt_sq').sum()
+
+        # apply summary fields
+        data = (data.group_by(groups).agg(**fields).sort(groups).
+                with_columns(
+                    avg_trx=pl.col('trx_amt') / pl.col('trx_flag'),
+                    avg_all=pl.col('trx_amt') / pl.col('exposure'),
+                    trx_freq=pl.col('trx_n') / pl.col('trx_flag'),
+                    trx_util=pl.col('trx_flag') / pl.col('exposure'))
+                )
+
+        if len(self.percent_of) > 0:
+            pct_cols = {}
+            for x in self.percent_of:
+                xw = x + "_w_trx"
+                pct_cols[f"pct_of_{x}_all"] = pl.col('trx_amt') / pl.col(x)
+                pct_cols[f"pct_of_{xw}"] = pl.col('trx_amt') / pl.col(xw)
+
+            data = data.with_columns(**pct_cols)
 
         # confidence interval formulas
         if conf_int:
 
             p = [(1 - conf_level) / 2, 1 - (1 - conf_level) / 2]
 
-            fields['trx_util_lower'] = div(
-                binom.ppf(p[0], np.round(fields['exposure']),
-                          fields['trx_util']), fields['exposure'])
-            fields['trx_util_upper'] = div(
-                binom.ppf(p[1], np.round(fields['exposure']),
-                          fields['trx_util']), fields['exposure'])
+            data = data.with_columns(
+                trx_util_lower=_qbinom(p[0], prob='trx_util'),
+                trx_util_upper=_qbinom(p[1], prob='trx_util'),
+            )
 
             if len(self.percent_of) > 0:
                 # standard deviations
-
-                fields['trx_amt_sq'] = sum(data['trx_amt_sq'])
-                sd_trx = (div(fields['trx_amt_sq'], fields['trx_flag']) -
-                          fields['avg_trx'] ** 2) ** 0.5
                 # For binomial N
                 # Var(S) = n * p * (Var(X) + E(X)**2 * (1 - p))
-                sd_all = (fields['trx_flag'] *
-                          (sd_trx ** 2 + fields['avg_trx'] ** 2 *
-                           (1 - fields['trx_util']))) ** 0.5
+                data = (data.with_columns(
+                    sd_trx=((pl.col('trx_amt_sq') / pl.col('trx_flag')) -
+                            pl.col('avg_trx') ** 2) ** 0.5
+                ).with_columns(
+                    sd_all=(pl.col('trx_flag') *
+                              (pl.col('sd_trx') ** 2 + pl.col('avg_trx') ** 2 *
+                               (1 - pl.col('trx_util')))) ** 0.5
+                ))
+
+            ci_cols = {}
 
             for x in self.percent_of:
 
                 xw = x + "_w_trx"
 
                 # confidence intervals with transactions
-                fields[f'pct_of_{xw}_lower'] = div(
-                    _qnorm(p[0], fields['trx_amt'], sd_trx *
-                           fields['trx_flag'] ** 0.5), fields[xw])
-                fields[f'pct_of_{xw}_upper'] = div(
-                    _qnorm(p[1], fields['trx_amt'], sd_trx *
-                           fields['trx_flag'] ** 0.5), fields[xw])
+                ci_cols[f'pct_of_{xw}_lower'] = \
+                    _qnorm(p[0], 'trx_amt', pl.col('sd_trx') *
+                           pl.col('trx_flag') ** 0.5) / pl.col(xw)
+                ci_cols[f'pct_of_{xw}_upper'] = \
+                    _qnorm(p[1], 'trx_amt', pl.col('sd_trx') *
+                           pl.col('trx_flag') ** 0.5) / pl.col(xw)
                 # confidence intervals across all records
-                fields[f'pct_of_{x}_all_lower'] = div(
-                    _qnorm(p[0], fields['trx_amt'], sd_all), fields[x])
-                fields[f'pct_of_{x}_all_upper'] = div(
-                    _qnorm(p[1], fields['trx_amt'], sd_all), fields[x])
+                ci_cols[f'pct_of_{x}_all_lower'] = \
+                    _qnorm(p[0], 'trx_amt', 'sd_all') / pl.col(x)
+                ci_cols[f'pct_of_{x}_all_upper'] = \
+                    _qnorm(p[1], 'trx_amt', 'sd_all') / pl.col(x)
 
-        # convert data to a data frame
-        data = pd.DataFrame(fields, index=range(1))
+            data = data.with_columns(**ci_cols)
+            if conf_int and (len(self.percent_of) > 0):
+                data = data.drop('sd_all', 'sd_trx')
 
-        return data
+        return data.collect()
 
     @classmethod
     def from_DataFrame(cls,
-                       data: pd.DataFrame,
+                       data: pl.DataFrame | pd.DataFrame,
                        conf_int: bool = False,
                        conf_level: float = 0.95,
                        col_trx_amt: str = 'trx_amt',
@@ -384,8 +396,8 @@ class TrxStats():
                        col_percent_of: str = None,
                        col_percent_of_w_trx: str = None,
                        col_trx_amt_sq: str = "trx_amt_sq",
-                       start_date: datetime | int | str = datetime(1900, 1, 1),
-                       end_date: datetime | int | str = None):
+                       start_date: date | str = date(1900, 1, 1),
+                       end_date: date | str = None):
         """
         Convert a data frame containing aggregate transaction experience study
         results to the `TrxStats` class.
@@ -399,7 +411,7 @@ class TrxStats():
 
         Parameters
         ----------
-        data : pd.DataFrame
+        data : pl.DataFrame | pd.DataFrame
             A DataFrame containing aggregate transaction study results. See the 
             Notes section for required columns that must be present.
         conf_int : bool, default=False
@@ -428,9 +440,9 @@ class TrxStats():
             Only required when `col_percent_of` is passed and `conf_int` is 
             `True`. Name of the column in `data` containing squared transaction 
             amounts.
-        start_date : datetime | int | str, optional
+        start_date : date | str, default=date(1900, 1, 1)
             Transaction study start date
-        end_date : datetime | int | str, optional
+        end_date : date | str, optional
             Transaction study end date
 
         Returns
@@ -480,10 +492,11 @@ class TrxStats():
         ```{python}
         # convert pre-aggregated experience into a TrxStats object
         import actxps as xp
+        import polars as pl
 
         agg_sim_dat = xp.load_agg_sim_dat()
         dat = xp.TrxStats.from_DataFrame(
-            agg_sim_dat,
+            agg_sim_dat.with_columns(pl.col('n').cast(float)),
             col_exposure="n",
             col_trx_amt="wd",
             col_trx_n="wd_n",
@@ -505,8 +518,8 @@ class TrxStats():
         typically created from individual exposure records.
         """
 
-        assert isinstance(data, pd.DataFrame), \
-            '`data` must be a Pandas DataFrame'
+        # convert data to polars dataframe if necessary
+        data = _check_convert_df(data)
 
         # column name alignment
         rename_dict = {col_trx_amt: 'trx_amt',
@@ -530,8 +543,8 @@ class TrxStats():
             rename_dict.update(
                 {col_percent_of_w_trx: col_percent_of + "_w_trx"})
 
-        data = data.rename(columns=rename_dict)
-        data['trx_type'] = col_trx_amt
+        data = (data.rename(rename_dict).
+                with_columns(trx_type=pl.lit(col_trx_amt)))
 
         # check required columns
         _verify_col_names(data.columns, req_names)
@@ -551,8 +564,8 @@ class TrxStats():
                                    'conf_level': conf_level},
                         agg=False)
 
-    @ __init__.register(pd.DataFrame)
-    def _special_init(self, data: pd.DataFrame, **kwargs):
+    @ __init__.register(pl.DataFrame)
+    def _special_init(self, data: pl.DataFrame, **kwargs):
         """
         Special constructor for the TrxStats class. This constructor is used
         by the `from_DataFrame()` class method to create new TrxStats objects 
@@ -589,7 +602,7 @@ class TrxStats():
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        trx_res = (expo.groupby('inc_guar', 'pol_yr').
+        trx_res = (expo.group_by('inc_guar', 'pol_yr').
                    trx_stats(percent_of='premium'))
         trx_res.summary('inc_guar')
         ```            
@@ -606,11 +619,12 @@ class TrxStats():
         by = list(by)
 
         if len(by) > 0:
-            assert all(pd.Series(by).isin(old_self.data.columns)), \
+            assert all(pl.Series(by).is_in(old_self.data.columns)), \
                 "All grouping variables passed to `*by` must be in the " + \
                 "`.data` property."
 
-        self._finalize(old_self.data, old_self.trx_types, old_self.percent_of,
+        self._finalize(old_self.data.lazy(),
+                       old_self.trx_types, old_self.percent_of,
                        by, old_self.start_date, old_self.end_date,
                        old_self.xp_params)
 
@@ -628,9 +642,7 @@ class TrxStats():
             repr += f"Transactions as % of: {', '.join([str(i) for i in self.percent_of])}\n"
 
         if self.data is not None:
-            repr = (repr +
-                    f"\n\nA DataFrame: {self.data.shape[0]:,} x {self.data.shape[1]:,}" +
-                    f'\n{self.data.head(10)}')
+            repr = repr + f'\n{self.data}'
 
         return repr
 
@@ -706,7 +718,7 @@ class TrxStats():
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        trx_res = (expo.groupby('pol_yr').
+        trx_res = (expo.group_by('pol_yr').
                    trx_stats(percent_of='premium'))
 
         trx_res.plot()
@@ -749,10 +761,10 @@ class TrxStats():
         expo = xp.ExposedDF.expose_py(census, "2019-12-31",
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
-        expo.data = expo.data.merge(account_vals, how='left',
-                                    on=["pol_num", "pol_date_yr"])        
+        expo.data = expo.data.join(account_vals, how='left',
+                                   on=["pol_num", "pol_date_yr"])        
 
-        trx_res = (expo.groupby('pol_yr').
+        trx_res = (expo.group_by('pol_yr').
                    trx_stats(percent_of='av_anniv', combine_trx=True))
 
         trx_res.plot_utilization_rates()
@@ -763,7 +775,7 @@ class TrxStats():
             [f"pct_of_{x}_w_trx" for x in self.percent_of],
             self.data.columns))
 
-        if len2(self.groups) == 1:
+        if _len2(self.groups) == 1:
             kwargs.update({'color': '_no_color'})
 
         if 'facets' not in kwargs:
@@ -854,7 +866,7 @@ class TrxStats():
                                       target_status="Surrender")
         expo.add_transactions(withdrawals)
 
-        trx_res = (expo.groupby('pol_yr').
+        trx_res = (expo.group_by('pol_yr').
                    trx_stats(percent_of='premium'))
 
         trx_res.table()
@@ -862,7 +874,7 @@ class TrxStats():
         """
 
         # set up properties
-        data = self.data.copy()
+        data = self.data.clone()
         percent_of = self.percent_of
         trx_types = self.trx_types
         start_date = self.start_date
@@ -871,33 +883,33 @@ class TrxStats():
 
         # remove unnecessary columns
         if len(percent_of) > 0:
-            data.drop(columns=percent_of + [x + "_w_trx" for x in percent_of],
-                      inplace=True)
+            data = data.drop(percent_of + [x + "_w_trx" for x in percent_of])
             if conf_int:
-                data.drop(columns=['trx_amt_sq'], inplace=True)
+                data = data.drop('trx_amt_sq')
 
-        ci_cols = col_contains(data, '_(?:upp|low)er$')
+        ci_cols = col_matches(data, '_(?:upp|low)er$')
         if show_conf_int and not conf_int:
             _conf_int_warning()
         elif conf_int and not show_conf_int:
-            data.drop(columns=ci_cols, inplace=True)
+            data = data.drop(ci_cols)
             ci_cols = []
         conf_int = show_conf_int and conf_int
 
         # set up index and groups
         data = (data.
-                drop(columns=['exposure']).
-                sort_values(['trx_type'] + self.groups).
-                reset_index())
+                drop('exposure').
+                sort(['trx_type'] + self.groups))
         if len(self.groups) > 0:
+            groupname_col = 'trx_type'
             rowname_col = self.groups[0]
-            data = data.drop(columns='index')
+            data = data.drop('index')
         else:
-            rowname_col = 'index'
+            groupname_col = None
+            rowname_col = None
 
         # TODO - once implemented, add `sub_missing()`
         tab = (GT(data,
-                  groupname_col='trx_type',
+                  groupname_col=groupname_col,
                   rowname_col=rowname_col).
                fmt_number(['trx_n', 'trx_amt', 'trx_flag',
                            'avg_trx', 'avg_all'],
@@ -943,13 +955,13 @@ class TrxStats():
             tab = _span_percent_of(tab, i, conf_int)
 
         if colorful:
-            if data['trx_util'].nunique() > 1:
+            if data['trx_util'].n_unique() > 1:
                 tab = tab.data_color(['trx_util'], palette=color_util)
 
             if len(percent_of) > 0:
                 pct_of_cols = [f"pct_of_{x}_w_trx" for x in percent_of] + \
                     [f"pct_of_{x}_all" for x in percent_of]
-                pct_of_vals = data[pct_of_cols].values
+                pct_of_vals = data[pct_of_cols].to_numpy()
                 pct_of_vals = pct_of_vals[~np.isnan(pct_of_vals)]
                 domain_pct = pct_of_vals.min(), pct_of_vals.max()
                 if domain_pct[0] != domain_pct[1]:

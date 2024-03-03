@@ -28,6 +28,7 @@ Before we start plotting, we need to create experience study data. The examples 
 ```{python}
 #| label: expo-data
 import actxps as xp
+import polars as pl
 import numpy as np
 
 # create exposure records
@@ -39,10 +40,10 @@ exposed_data = xp.ExposedDF(census_dat, end_date="2019-12-31",
 expected_table = np.concatenate((np.linspace(0.005, 0.03, 10),
                                  [.2, .15], np.repeat(0.05, 3)))
 
-exposed_data.data['expected_1'] = \
-    expected_table[exposed_data.data.pol_yr - 1]
-exposed_data.data['expected_2'] = \
-    np.where(exposed_data.data.inc_guar, 0.015, 0.03)
+exposed_data.data = exposed_data.data.with_columns(
+    expected_1=expected_table[exposed_data.data['pol_yr'] - 1],
+    expected_2=pl.when(pl.col('inc_guar')).then(0.015).otherwise(0.03)
+)
 
 # add transactions
 withdrawals = xp.load_withdrawals()
@@ -58,7 +59,7 @@ Below, an `ExpStats` object is created using `exp_stats()`.
 ```{python}
 #| label: plot-data
 exp_res = (exposed_data.
-           groupby('pol_yr').
+           group_by('pol_yr').
            exp_stats(conf_int=True))
 ```
 
@@ -75,7 +76,7 @@ If there is a second grouping variable, it is mapped onto color.
 ```{python}
 #| label: plot-color
 (exposed_data.
-    groupby('pol_yr', 'inc_guar').
+    group_by('pol_yr', 'inc_guar').
     exp_stats().
     plot())
 ```
@@ -85,7 +86,7 @@ Any additional grouping variables beyond two are used to create facets.
 ```{python}
 #| label: plot-facets
 exp_res2 = (exposed_data. 
-    groupby('pol_yr', 'product', 'inc_guar').
+    group_by('pol_yr', 'product', 'inc_guar').
     exp_stats())
 
 exp_res2.plot()
@@ -175,7 +176,7 @@ In the example below, a new `ExpStats` object is created that contains two sets 
 ```{python}
 #| label: plot-term-1
 exp_res3 = (exposed_data .
-            groupby('pol_yr').
+            group_by('pol_yr').
             exp_stats(expected=["expected_1", "expected_2"], credibility=True))
 
 exp_res3.plot_termination_rates()
@@ -224,7 +225,7 @@ In addition to the above, facets are also created for each transaction type foun
 ```{python}
 # | label: trx-plot
 trx_res = (exposed_data .
-           groupby('pol_yr', 'inc_guar').
+           group_by('pol_yr', 'inc_guar').
            trx_stats(percent_of="premium"))
 
 trx_res.plot(y='pct_of_premium_all')
@@ -319,5 +320,4 @@ The export pop-up menu contains options for saving summarized experience data or
 - `title`: an optional title for the app
 - `credibility`, `conf_level`, `cred_r`: credibility options for termination studies. See `exp_stats()` for more information. Limited fluctuation credibility estimates at a 95% confidence within 5% of the theoretical mean assuming a binomial distribution are used as a default.
 - The `conf_level` argument is also used for confidence intervals for both termination and transaction studies.
-<!-- TODO -->
-<!-- - `theme`: replace the default theme of the app by passing the name of a theme accepted by the `preset` argument in `bslib::bs_theme()`. Alternatively, a complete theme created by `bslib::bs_theme()` can be passed as well. -->
+- `bootswatch_theme`: replace the default theme of the app by passing the name of a preset bootswatch theme.

@@ -160,7 +160,8 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#v0.0.1-2024-02-18" id="toc-v0.0.1-2024-02-18" class="nav-link active" data-scroll-target="#v0.0.1-2024-02-18">v0.0.1 (2024-02-18)</a></li>
+  <li><a href="#v1.0.0" id="toc-v1.0.0" class="nav-link active" data-scroll-target="#v1.0.0">v1.0.0</a></li>
+  <li><a href="#v0.0.1-2024-02-18" id="toc-v0.0.1-2024-02-18" class="nav-link" data-scroll-target="#v0.0.1-2024-02-18">v0.0.1 (2024-02-18)</a></li>
   <li><a href="#v0.0.0.9000-2023-12-14" id="toc-v0.0.0.9000-2023-12-14" class="nav-link" data-scroll-target="#v0.0.0.9000-2023-12-14">v0.0.0.9000 (2023-12-14)</a></li>
   </ul>
 </nav>
@@ -185,6 +186,18 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
+<section id="v1.0.0" class="level2">
+<h2 class="anchored" data-anchor-id="v1.0.0">v1.0.0</h2>
+<ul>
+<li>To improve speed and efficiency, the data frame backend was changed from Pandas to Polars.
+<ul>
+<li>The <code>data</code> property of <code>ExposedDF</code>, <code>ExpStats</code>, and <code>TrxStats</code> is now a Polars data frame.</li>
+<li><code>ExposedDF</code>, <code>ExpStats.from_DataFrame</code>, and <code>TrxStats.from_DataFrame</code> will accept both Polars and Pandas data frames. However, Pandas data frames are immediately converted to Polars.</li>
+</ul></li>
+<li>Removed all add_* date functions which are no longer needed under Polars</li>
+<li><code>ExposedDF</code>’s <code>groupby</code> method was renamed to <code>group_by</code>.</li>
+</ul>
+</section>
 <section id="v0.0.1-2024-02-18" class="level2">
 <h2 class="anchored" data-anchor-id="v0.0.1-2024-02-18">v0.0.1 (2024-02-18)</h2>
 <ul>

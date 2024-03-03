@@ -93,6 +93,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -196,6 +199,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#working-with-aggregate-experience-data" id="toc-working-with-aggregate-experience-data" class="nav-link active" data-scroll-target="#working-with-aggregate-experience-data">Working with aggregate experience data</a></li>
   <li><a href="#policy-duration-functions" id="toc-policy-duration-functions" class="nav-link" data-scroll-target="#policy-duration-functions">Policy duration functions</a></li>
+  <li><a href="#fractional-period-functions" id="toc-fractional-period-functions" class="nav-link" data-scroll-target="#fractional-period-functions">Fractional period functions</a></li>
   </ul>
 </nav>
     </div>
@@ -222,8 +226,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>This article features functions that are not covered in other articles.</p>
 <div id="packages" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> date</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="working-with-aggregate-experience-data" class="level2">
 <h2 class="anchored" data-anchor-id="working-with-aggregate-experience-data">Working with aggregate experience data</h2>
@@ -256,19 +260,24 @@ Groups: pol_yr
 Target status: Surrender
 Study range: 2005 to 2019
 
-
-A DataFrame: 15 x 7
-   pol_yr  n_claims  claims      exposure     q_obs  q_obs_lower  q_obs_upper
-0       1       102     102  19252.212366  0.005298     0.004311     0.006337
-1       2       160     160  17714.780418  0.009032     0.007677     0.010443
-2       3       124     124  16097.137376  0.007703     0.006399     0.009070
-3       4       168     168  14535.852953  0.011558     0.009838     0.013346
-4       5       164     164  12915.526244  0.012698     0.010840     0.014634
-5       6       152     152  11375.931769  0.013362     0.011252     0.015471
-6       7       164     164   9916.841762  0.016538     0.014117     0.019058
-7       8       190     190   8447.885912  0.022491     0.019413     0.025687
-8       9       181     181   6959.806363  0.026006     0.022271     0.029742
-9      10       152     152   5604.283330  0.027122     0.023018     0.031405</code></pre>
+shape: (15, 7)
+┌────────┬──────────┬────────┬──────────────┬──────────┬─────────────┬─────────────┐
+│ pol_yr ┆ n_claims ┆ claims ┆ exposure     ┆ q_obs    ┆ q_obs_lower ┆ q_obs_upper │
+│ ---    ┆ ---      ┆ ---    ┆ ---          ┆ ---      ┆ ---         ┆ ---         │
+│ i64    ┆ i64      ┆ i64    ┆ f64          ┆ f64      ┆ f64         ┆ f64         │
+╞════════╪══════════╪════════╪══════════════╪══════════╪═════════════╪═════════════╡
+│ 1      ┆ 102      ┆ 102    ┆ 19252.212366 ┆ 0.005298 ┆ 0.004311    ┆ 0.006337    │
+│ 2      ┆ 160      ┆ 160    ┆ 17714.780418 ┆ 0.009032 ┆ 0.007677    ┆ 0.010443    │
+│ 3      ┆ 124      ┆ 124    ┆ 16097.137376 ┆ 0.007703 ┆ 0.006399    ┆ 0.00907     │
+│ 4      ┆ 168      ┆ 168    ┆ 14535.852953 ┆ 0.011558 ┆ 0.009838    ┆ 0.013346    │
+│ 5      ┆ 164      ┆ 164    ┆ 12915.526244 ┆ 0.012698 ┆ 0.01084     ┆ 0.014634    │
+│ …      ┆ …        ┆ …      ┆ …            ┆ …        ┆ …           ┆ …           │
+│ 11     ┆ 804      ┆ 804    ┆ 4390.402949  ┆ 0.183127 ┆ 0.171738    ┆ 0.194515    │
+│ 12     ┆ 330      ┆ 330    ┆ 2663.379931  ┆ 0.123903 ┆ 0.111512    ┆ 0.136668    │
+│ 13     ┆ 99       ┆ 99     ┆ 1619.90935   ┆ 0.061115 ┆ 0.050003    ┆ 0.072844    │
+│ 14     ┆ 62       ┆ 62     ┆ 871.838738   ┆ 0.071114 ┆ 0.055056    ┆ 0.088319    │
+│ 15     ┆ 17       ┆ 17     ┆ 268.178711   ┆ 0.063391 ┆ 0.037289    ┆ 0.093221    │
+└────────┴──────────┴────────┴──────────────┴──────────┴─────────────┴─────────────┘</code></pre>
 </div>
 </div>
 <p>Results summarized by income guarantee presence and product</p>
@@ -281,63 +290,536 @@ Groups: inc_guar, product
 Target status: Surrender
 Study range: 2005 to 2019
 
-
-A DataFrame: 6 x 8
-   inc_guar product  n_claims  claims      exposure     q_obs  q_obs_lower  \
-0     False       a       449     449  12738.212621  0.035248     0.032108   
-1     False       b       392     392  13489.708578  0.029059     0.026242   
-2     False       c       760     760  25895.314881  0.029349     0.027302   
-3      True       a       361     361  19966.028820  0.018081     0.016278   
-4      True       b       273     273  19694.192761  0.013862     0.012237   
-5      True       c       634     634  40850.510510  0.015520     0.014345   
-
-   q_obs_upper  
-0     0.038467  
-1     0.031950  
-2     0.031434  
-3     0.019934  
-4     0.015538  
-5     0.016719  </code></pre>
+shape: (6, 8)
+┌──────────┬─────────┬──────────┬────────┬──────────────┬──────────┬─────────────┬─────────────┐
+│ inc_guar ┆ product ┆ n_claims ┆ claims ┆ exposure     ┆ q_obs    ┆ q_obs_lower ┆ q_obs_upper │
+│ ---      ┆ ---     ┆ ---      ┆ ---    ┆ ---          ┆ ---      ┆ ---         ┆ ---         │
+│ bool     ┆ cat     ┆ i64      ┆ i64    ┆ f64          ┆ f64      ┆ f64         ┆ f64         │
+╞══════════╪═════════╪══════════╪════════╪══════════════╪══════════╪═════════════╪═════════════╡
+│ false    ┆ a       ┆ 449      ┆ 449    ┆ 12738.212621 ┆ 0.035248 ┆ 0.032108    ┆ 0.038467    │
+│ false    ┆ b       ┆ 392      ┆ 392    ┆ 13489.708578 ┆ 0.029059 ┆ 0.026242    ┆ 0.03195     │
+│ false    ┆ c       ┆ 760      ┆ 760    ┆ 25895.314881 ┆ 0.029349 ┆ 0.027302    ┆ 0.031434    │
+│ true     ┆ a       ┆ 361      ┆ 361    ┆ 19966.02882  ┆ 0.018081 ┆ 0.016278    ┆ 0.019934    │
+│ true     ┆ b       ┆ 273      ┆ 273    ┆ 19694.192761 ┆ 0.013862 ┆ 0.012237    ┆ 0.015538    │
+│ true     ┆ c       ┆ 634      ┆ 634    ┆ 40850.51051  ┆ 0.01552  ┆ 0.014345    ┆ 0.016719    │
+└──────────┴─────────┴──────────┴────────┴──────────────┴──────────┴─────────────┴─────────────┘</code></pre>
 </div>
 </div>
 <p><code>ExpStats.from_DataFrame()</code> and <code>TrxStats.from_DataFrame()</code> contain several arguments for optional calculations like confidence intervals, expected values, weighting variables, and more. These arguments mirror the functionality in <code>exp_stats()</code> and <code>trx_stats()</code>. Both functions also contain multiple arguments for specifying column names associated with required values like exposures and claims.</p>
 </section>
 <section id="policy-duration-functions" class="level2">
 <h2 class="anchored" data-anchor-id="policy-duration-functions">Policy duration functions</h2>
-<p>The <code>pol_()</code> family of functions calculates policy years, months, quarters, weeks, or any other arbitrary duration. Each function accepts a vector of dates and a vector of issue dates.</p>
+<p>The <code>pol_*()</code> family of functions calculates policy years, months, quarters, or weeks. Each function accepts strings, single dates, or Polars series of dates and issue dates.</p>
 <p><strong>Example</strong>: assume a policy was issued on 2022-05-10 and we are interested in calculating various policy duration values at the end of calendar years 2022-2032.</p>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pd.to_datetime({</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'year'</span>: <span class="dv">2022</span> <span class="op">+</span> np.arange(<span class="dv">11</span>),</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'month'</span>: <span class="dv">12</span>,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'day'</span>: <span class="dv">31</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>})</span>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pl.date_range(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    date(<span class="dv">2022</span>, <span class="dv">12</span>, <span class="dv">31</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    date(<span class="dv">2033</span>, <span class="dv">12</span>, <span class="dv">31</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> <span class="st">'1y'</span>, </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    eager<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># policy years</span></span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>xp.pol_yr(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="pol-dur1" class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([ 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (12,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>u32</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+</tr>
+<tr class="even">
+<td>2</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+</tr>
+<tr class="even">
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+</tr>
+<tr class="even">
+<td>6</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+</tr>
+<tr class="even">
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+</tr>
+<tr class="even">
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+</tr>
+<tr class="even">
+<td>12</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy quarters</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>xp.pol_qtr(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy quarters</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>xp.pol_qtr(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="pol-dur2" class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>array([ 3,  7, 11, 15, 19, 23, 27, 31, 35, 39, 43])</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (12,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>u32</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>3</td>
+</tr>
+<tr class="even">
+<td>7</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+</tr>
+<tr class="even">
+<td>15</td>
+</tr>
+<tr class="odd">
+<td>19</td>
+</tr>
+<tr class="even">
+<td>23</td>
+</tr>
+<tr class="odd">
+<td>27</td>
+</tr>
+<tr class="even">
+<td>31</td>
+</tr>
+<tr class="odd">
+<td>35</td>
+</tr>
+<tr class="even">
+<td>39</td>
+</tr>
+<tr class="odd">
+<td>43</td>
+</tr>
+<tr class="even">
+<td>47</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy months</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>xp.pol_mth(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy months</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>xp.pol_mth(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="pol-dur3" class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>array([  8,  20,  32,  44,  56,  68,  80,  92, 104, 116, 128])</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (12,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>u32</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>8</td>
+</tr>
+<tr class="even">
+<td>20</td>
+</tr>
+<tr class="odd">
+<td>32</td>
+</tr>
+<tr class="even">
+<td>44</td>
+</tr>
+<tr class="odd">
+<td>56</td>
+</tr>
+<tr class="even">
+<td>68</td>
+</tr>
+<tr class="odd">
+<td>80</td>
+</tr>
+<tr class="even">
+<td>92</td>
+</tr>
+<tr class="odd">
+<td>104</td>
+</tr>
+<tr class="even">
+<td>116</td>
+</tr>
+<tr class="odd">
+<td>128</td>
+</tr>
+<tr class="even">
+<td>140</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy weeks</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>xp.pol_wk(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># policy weeks</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>xp.pol_wk(dates, <span class="st">"2022-05-10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="pol-dur4" class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>array([ 34,  86, 139, 191, 243, 295, 347, 399, 452, 504, 556], dtype=int64)</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (12,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>u32</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>34</td>
+</tr>
+<tr class="even">
+<td>86</td>
+</tr>
+<tr class="odd">
+<td>139</td>
+</tr>
+<tr class="even">
+<td>191</td>
+</tr>
+<tr class="odd">
+<td>243</td>
+</tr>
+<tr class="even">
+<td>295</td>
+</tr>
+<tr class="odd">
+<td>347</td>
+</tr>
+<tr class="even">
+<td>399</td>
+</tr>
+<tr class="odd">
+<td>452</td>
+</tr>
+<tr class="even">
+<td>504</td>
+</tr>
+<tr class="odd">
+<td>556</td>
+</tr>
+<tr class="even">
+<td>608</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="fractional-period-functions" class="level2">
+<h2 class="anchored" data-anchor-id="fractional-period-functions">Fractional period functions</h2>
+<p>The <code>frac_*()</code> family of functions calculates the fractional number of years, months, quarters, or weeks between two sets of dates. Similar to the <code>pol_*()</code> functions, strings, single dates, or Polars series are accepted.</p>
+<p><strong>Example</strong>: Continuing from the previous example, fractional durations from an issue date of 2022-05-10 can be calculated as follows:</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>xp.frac_yr(<span class="st">"2022-05-10"</span>, dates)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="frac-dur1" class="cell-output cell-output-display" data-execution_count="10">
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (12,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0.643836</td>
+</tr>
+<tr class="even">
+<td>1.642077</td>
+</tr>
+<tr class="odd">
+<td>2.643836</td>
+</tr>
+<tr class="even">
+<td>3.643836</td>
+</tr>
+<tr class="odd">
+<td>4.643836</td>
+</tr>
+<tr class="even">
+<td>5.642077</td>
+</tr>
+<tr class="odd">
+<td>6.643836</td>
+</tr>
+<tr class="even">
+<td>7.643836</td>
+</tr>
+<tr class="odd">
+<td>8.643836</td>
+</tr>
+<tr class="even">
+<td>9.642077</td>
+</tr>
+<tr class="odd">
+<td>10.643836</td>
+</tr>
+<tr class="even">
+<td>11.643836</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>xp.frac_qtr(<span class="st">"2022-05-10"</span>, dates)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="frac-dur2" class="cell-output cell-output-display" data-execution_count="11">
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (12,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2.554348</td>
+</tr>
+<tr class="even">
+<td>6.554348</td>
+</tr>
+<tr class="odd">
+<td>10.554348</td>
+</tr>
+<tr class="even">
+<td>14.554348</td>
+</tr>
+<tr class="odd">
+<td>18.554348</td>
+</tr>
+<tr class="even">
+<td>22.554348</td>
+</tr>
+<tr class="odd">
+<td>26.554348</td>
+</tr>
+<tr class="even">
+<td>30.554348</td>
+</tr>
+<tr class="odd">
+<td>34.554348</td>
+</tr>
+<tr class="even">
+<td>38.554348</td>
+</tr>
+<tr class="odd">
+<td>42.554348</td>
+</tr>
+<tr class="even">
+<td>46.554348</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>xp.frac_mth(<span class="st">"2022-05-10"</span>, dates)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="frac-dur3" class="cell-output cell-output-display" data-execution_count="12">
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (12,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>7.677419</td>
+</tr>
+<tr class="even">
+<td>19.677419</td>
+</tr>
+<tr class="odd">
+<td>31.677419</td>
+</tr>
+<tr class="even">
+<td>43.677419</td>
+</tr>
+<tr class="odd">
+<td>55.677419</td>
+</tr>
+<tr class="even">
+<td>67.677419</td>
+</tr>
+<tr class="odd">
+<td>79.677419</td>
+</tr>
+<tr class="even">
+<td>91.677419</td>
+</tr>
+<tr class="odd">
+<td>103.677419</td>
+</tr>
+<tr class="even">
+<td>115.677419</td>
+</tr>
+<tr class="odd">
+<td>127.677419</td>
+</tr>
+<tr class="even">
+<td>139.677419</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>xp.frac_wk(<span class="st">"2022-05-10"</span>, dates)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="frac-dur4" class="cell-output cell-output-display" data-execution_count="13">
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (12,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">literal</th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>33.571429</td>
+</tr>
+<tr class="even">
+<td>85.714286</td>
+</tr>
+<tr class="odd">
+<td>138.0</td>
+</tr>
+<tr class="even">
+<td>190.142857</td>
+</tr>
+<tr class="odd">
+<td>242.285714</td>
+</tr>
+<tr class="even">
+<td>294.428571</td>
+</tr>
+<tr class="odd">
+<td>346.714286</td>
+</tr>
+<tr class="even">
+<td>398.857143</td>
+</tr>
+<tr class="odd">
+<td>451.0</td>
+</tr>
+<tr class="even">
+<td>503.142857</td>
+</tr>
+<tr class="odd">
+<td>555.428571</td>
+</tr>
+<tr class="even">
+<td>607.571429</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 

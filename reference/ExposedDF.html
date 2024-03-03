@@ -405,23 +405,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
-          <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
- <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">add_interval</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
       </ul>
   </li>
     </ul>
@@ -453,7 +436,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#actxps.expose.ExposedDF.expose_py" id="toc-actxps.expose.ExposedDF.expose_py" class="nav-link" data-scroll-target="#actxps.expose.ExposedDF.expose_py">expose_py</a></li>
   <li><a href="#actxps.expose.ExposedDF.expose_split" id="toc-actxps.expose.ExposedDF.expose_split" class="nav-link" data-scroll-target="#actxps.expose.ExposedDF.expose_split">expose_split</a></li>
   <li><a href="#actxps.expose.ExposedDF.from_DataFrame" id="toc-actxps.expose.ExposedDF.from_DataFrame" class="nav-link" data-scroll-target="#actxps.expose.ExposedDF.from_DataFrame">from_DataFrame</a></li>
-  <li><a href="#actxps.expose.ExposedDF.groupby" id="toc-actxps.expose.ExposedDF.groupby" class="nav-link" data-scroll-target="#actxps.expose.ExposedDF.groupby">groupby</a></li>
+  <li><a href="#actxps.expose.ExposedDF.group_by" id="toc-actxps.expose.ExposedDF.group_by" class="nav-link" data-scroll-target="#actxps.expose.ExposedDF.group_by">group_by</a></li>
   <li><a href="#actxps.expose.ExposedDF.trx_stats" id="toc-actxps.expose.ExposedDF.trx_stats" class="nav-link" data-scroll-target="#actxps.expose.ExposedDF.trx_stats">trx_stats</a></li>
   <li><a href="#actxps.expose.ExposedDF.ungroup" id="toc-actxps.expose.ExposedDF.ungroup" class="nav-link" data-scroll-target="#actxps.expose.ExposedDF.ungroup">ungroup</a></li>
   </ul></li>
@@ -480,17 +463,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p><code>expose.ExposedDF(self, data, end_date, start_date=datetime(1900, 1, 1), target_status=None, cal_expo=False, expo_length='year', col_pol_num='pol_num', col_status='status', col_issue_date='issue_date', col_term_date='term_date', default_status=None)</code></p>
+<p><code>expose.ExposedDF(self, data, end_date, start_date=date(1900, 1, 1), target_status=None, cal_expo=False, expo_length='year', col_pol_num='pol_num', col_status='status', col_issue_date='issue_date', col_term_date='term_date', default_status=None)</code></p>
 <p>Exposed data frame class</p>
 <p>Convert a data frame of census-level records into an object with exposure-level records.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 11%">
-<col style="width: 22%">
-<col style="width: 55%">
 <col style="width: 10%">
+<col style="width: 29%">
+<col style="width: 49%">
+<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -503,21 +486,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td><code>data</code></td>
-<td>pandas.pandas.DataFrame</td>
+<td>polars.polars.DataFrame | pandas.pandas.DataFrame</td>
 <td>A data frame with census-level records</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td><code>end_date</code></td>
-<td>datetime.datetime</td>
-<td>Experience study end date</td>
+<td>datetime.date | str</td>
+<td>Experience study end date. If a string is passed, it must be in %Y-%m-%d format.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="odd">
 <td><code>start_date</code></td>
-<td>datetime.datetime</td>
-<td>Experience study start date</td>
-<td><code>'1900-01-01'</code></td>
+<td>datetime.date | str</td>
+<td>Experience study start date. If a string is passed, it must be in %Y-%m-%d format.</td>
+<td><code>date(1900, 1, 1)</code></td>
 </tr>
 <tr class="even">
 <td><code>target_status</code></td>
@@ -588,8 +571,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>data</td>
-<td>pandas.pandas.DataFrame</td>
-<td>A data frame with exposure level records. The results include all existing columns in the original input data plus new columns for exposures and observation periods. Observation periods include counters for policy exposures, start dates, and end dates. Both start dates and end dates are inclusive bounds. For policy year exposures, two observation period columns are returned. Columns beginning with (<code>pol_</code>) are integer policy periods. Columns beginning with (<code>pol_date_</code>) are calendar dates representing anniversary dates, monthiversary dates, etc.</td>
+<td>polars.polars.DataFrame</td>
+<td>A Polars data frame with exposure level records. The results include all existing columns in the original input data plus new columns for exposures and observation periods. Observation periods include counters for policy exposures, start dates, and end dates. Both start dates and end dates are inclusive bounds. For policy year exposures, two observation period columns are returned. Columns beginning with (<code>pol_</code>) are integer policy periods. Columns beginning with (<code>pol_date_</code>) are calendar dates representing anniversary dates, monthiversary dates, etc.</td>
 </tr>
 <tr class="even">
 <td>end_date, start_date, target_status, cal_expo, expo_length, default_status</td>
@@ -645,30 +628,24 @@ Exposure type: policy_year
 Target status: Surrender
 Study range: 1900-01-01 to 2020-12-31
 
-A DataFrame: 33 x 8
-   pol_num  status issue_date term_date  pol_yr pol_date_yr pol_date_yr_end  \
-0        1  Active 2010-01-01       NaT       1  2010-01-01      2010-12-31   
-1        1  Active 2010-01-01       NaT       2  2011-01-01      2011-12-31   
-2        1  Active 2010-01-01       NaT       3  2012-01-01      2012-12-31   
-3        1  Active 2010-01-01       NaT       4  2013-01-01      2013-12-31   
-4        1  Active 2010-01-01       NaT       5  2014-01-01      2014-12-31   
-5        1  Active 2010-01-01       NaT       6  2015-01-01      2015-12-31   
-6        1  Active 2010-01-01       NaT       7  2016-01-01      2016-12-31   
-7        1  Active 2010-01-01       NaT       8  2017-01-01      2017-12-31   
-8        1  Active 2010-01-01       NaT       9  2018-01-01      2018-12-31   
-9        1  Active 2010-01-01       NaT      10  2019-01-01      2019-12-31   
-
-   exposure  
-0       1.0  
-1       1.0  
-2       1.0  
-3       1.0  
-4       1.0  
-5       1.0  
-6       1.0  
-7       1.0  
-8       1.0  
-9       1.0  </code></pre>
+shape: (33, 8)
+┌─────────┬────────┬────────────┬───────────┬────────┬─────────────┬─────────────────┬──────────┐
+│ pol_num ┆ status ┆ issue_date ┆ term_date ┆ pol_yr ┆ pol_date_yr ┆ pol_date_yr_end ┆ exposure │
+│ ---     ┆ ---    ┆ ---        ┆ ---       ┆ ---    ┆ ---         ┆ ---             ┆ ---      │
+│ i64     ┆ enum   ┆ date       ┆ date      ┆ u32    ┆ date        ┆ date            ┆ f64      │
+╞═════════╪════════╪════════════╪═══════════╪════════╪═════════════╪═════════════════╪══════════╡
+│ 1       ┆ Active ┆ 2010-01-01 ┆ null      ┆ 1      ┆ 2010-01-01  ┆ 2010-12-31      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2010-01-01 ┆ null      ┆ 2      ┆ 2011-01-01  ┆ 2011-12-31      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2010-01-01 ┆ null      ┆ 3      ┆ 2012-01-01  ┆ 2012-12-31      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2010-01-01 ┆ null      ┆ 4      ┆ 2013-01-01  ┆ 2013-12-31      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2010-01-01 ┆ null      ┆ 5      ┆ 2014-01-01  ┆ 2014-12-31      ┆ 1.0      │
+│ …       ┆ …      ┆ …          ┆ …         ┆ …      ┆ …           ┆ …               ┆ …        │
+│ 3       ┆ Active ┆ 2009-11-10 ┆ null      ┆ 8      ┆ 2016-11-10  ┆ 2017-11-09      ┆ 1.0      │
+│ 3       ┆ Active ┆ 2009-11-10 ┆ null      ┆ 9      ┆ 2017-11-10  ┆ 2018-11-09      ┆ 1.0      │
+│ 3       ┆ Active ┆ 2009-11-10 ┆ null      ┆ 10     ┆ 2018-11-10  ┆ 2019-11-09      ┆ 1.0      │
+│ 3       ┆ Active ┆ 2009-11-10 ┆ null      ┆ 11     ┆ 2019-11-10  ┆ 2020-11-09      ┆ 1.0      │
+│ 3       ┆ Active ┆ 2009-11-10 ┆ null      ┆ 12     ┆ 2020-11-10  ┆ 2021-11-09      ┆ 0.142466 │
+└─────────┴────────┴────────────┴───────────┴────────┴─────────────┴─────────────────┴──────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -731,7 +708,7 @@ A DataFrame: 33 x 8
 <td>Coerce a data frame to an <code>ExposedDF</code> object</td>
 </tr>
 <tr class="odd">
-<td><a href="#actxps.expose.ExposedDF.groupby">groupby</a></td>
+<td><a href="#actxps.expose.ExposedDF.group_by">group_by</a></td>
 <td>Set grouping variables for summary methods like <code>exp_stats()</code> and</td>
 </tr>
 <tr class="even">
@@ -752,10 +729,10 @@ A DataFrame: 33 x 8
 <h4 class="anchored" data-anchor-id="parameters-1">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 7%">
-<col style="width: 11%">
-<col style="width: 74%">
 <col style="width: 6%">
+<col style="width: 21%">
+<col style="width: 66%">
+<col style="width: 5%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -768,7 +745,7 @@ A DataFrame: 33 x 8
 <tbody>
 <tr class="odd">
 <td><code>trx_data</code></td>
-<td>pandas.pandas.DataFrame</td>
+<td>polars.polars.DataFrame | pandas.pandas.DataFrame</td>
 <td>A data frame containing transactions details. This data frame must have columns for policy numbers, transaction dates, transaction types, and transaction amounts.</td>
 <td><em>required</em></td>
 </tr>
@@ -811,7 +788,7 @@ A DataFrame: 33 x 8
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                              target_status <span class="op">=</span> <span class="st">"Surrender"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>Exposure data
@@ -821,42 +798,25 @@ Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 
-A DataFrame: 141,252 x 19
-   pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
-0        1  Active 2014-12-17      True  False   56       b      F      77   
-1        1  Active 2014-12-17      True  False   56       b      F      77   
-2        1  Active 2014-12-17      True  False   56       b      F      77   
-3        1  Active 2014-12-17      True  False   56       b      F      77   
-4        1  Active 2014-12-17      True  False   56       b      F      77   
-5        1  Active 2014-12-17      True  False   56       b      F      77   
-6        2  Active 2007-09-24     False  False   71       a      F      71   
-7        2  Active 2007-09-24     False  False   71       a      F      71   
-8        2  Active 2007-09-24     False  False   71       a      F      71   
-9        2  Active 2007-09-24     False  False   71       a      F      71   
-
-   premium term_date  pol_yr pol_date_yr pol_date_yr_end  exposure  \
-0    370.0       NaT       1  2014-12-17      2015-12-16  1.000000   
-1    370.0       NaT       2  2015-12-17      2016-12-16  1.000000   
-2    370.0       NaT       3  2016-12-17      2017-12-16  1.000000   
-3    370.0       NaT       4  2017-12-17      2018-12-16  1.000000   
-4    370.0       NaT       5  2018-12-17      2019-12-16  1.000000   
-5    370.0       NaT       6  2019-12-17      2020-12-16  0.040984   
-6    708.0       NaT       1  2007-09-24      2008-09-23  1.000000   
-7    708.0       NaT       2  2008-09-24      2009-09-23  1.000000   
-8    708.0       NaT       3  2009-09-24      2010-09-23  1.000000   
-9    708.0       NaT       4  2010-09-24      2011-09-23  1.000000   
-
-   trx_amt_Base  trx_amt_Rider  trx_n_Base  trx_n_Rider  
-0           0.0            0.0         0.0          0.0  
-1           0.0            0.0         0.0          0.0  
-2           0.0            0.0         0.0          0.0  
-3           0.0            0.0         0.0          0.0  
-4           0.0            0.0         0.0          0.0  
-5           0.0            0.0         0.0          0.0  
-6          25.0            0.0         1.0          0.0  
-7          12.0            0.0         1.0          0.0  
-8           7.0            0.0         1.0          0.0  
-9          52.0            0.0         1.0          0.0  </code></pre>
+shape: (141_252, 19)
+┌─────────┬────────┬────────────┬──────────┬───┬────────────┬────────────┬────────────┬────────────┐
+│ pol_num ┆ status ┆ issue_date ┆ inc_guar ┆ … ┆ trx_n_Base ┆ trx_n_Ride ┆ trx_amt_Ba ┆ trx_amt_Ri │
+│ ---     ┆ ---    ┆ ---        ┆ ---      ┆   ┆ ---        ┆ r          ┆ se         ┆ der        │
+│ i64     ┆ enum   ┆ date       ┆ bool     ┆   ┆ i32        ┆ ---        ┆ ---        ┆ ---        │
+│         ┆        ┆            ┆          ┆   ┆            ┆ i32        ┆ f64        ┆ f64        │
+╞═════════╪════════╪════════════╪══════════╪═══╪════════════╪════════════╪════════════╪════════════╡
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ …       ┆ …      ┆ …          ┆ …        ┆ … ┆ …          ┆ …          ┆ …          ┆ …          │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 547.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 106.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 31.0       │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 75.0       │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 466.0      │
+└─────────┴────────┴────────────┴──────────┴───┴────────────┴────────────┴────────────┴────────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -937,7 +897,7 @@ A DataFrame: 141,252 x 19
 </section>
 <section id="notes-2" class="level4">
 <h4 class="anchored" data-anchor-id="notes-2">Notes</h4>
-<p>If the <code>ExposedDF</code> object is grouped (see the <code>groupby()</code> method), the returned <code>ExpStats</code> object’s data will contain one row per group.</p>
+<p>If the <code>ExposedDF</code> object is grouped (see the <code>group_by()</code> method), the returned <code>ExpStats</code> object’s data will contain one row per group.</p>
 <p>If nothing is passed to <code>target_status</code>, the <code>target_status</code> property of the <code>ExposedDF</code> object will be used. If that property is <code>None</code>, all status values except the first level will be assumed. This will produce a warning message.</p>
 <p><strong>Expected values</strong></p>
 <p>The <code>expected</code> argument is optional. If provided, this argument must be a string, list, or array with values corresponding to columns in the <code>data</code> property containing expected experience. More than one expected basis can be provided.</p>
@@ -982,8 +942,8 @@ A DataFrame: 141,252 x 19
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>(xp.ExposedDF(xp.load_census_dat(),</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>              <span class="st">"2019-12-31"</span>, </span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>              target_status<span class="op">=</span><span class="st">"Surrender"</span>).</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>           exp_stats(conf_int<span class="op">=</span><span class="va">True</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    group_by(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    exp_stats(conf_int<span class="op">=</span><span class="va">True</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <pre><code>Experience study results
 
@@ -991,31 +951,24 @@ Groups: pol_yr, inc_guar
 Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 
-
-A DataFrame: 30 x 8
-   pol_yr  inc_guar  n_claims  claims      exposure     q_obs  q_obs_lower  \
-0       1     False        56      56   7719.807740  0.007254     0.005441   
-1       1      True        46      46  11532.404626  0.003989     0.002862   
-2       2     False        92      92   7102.813160  0.012953     0.010418   
-3       2      True        68      68  10611.967258  0.006408     0.004900   
-4       3     False        67      67   6446.916146  0.010393     0.008066   
-5       3      True        57      57   9650.221229  0.005907     0.004456   
-6       4     False       123     123   5798.909986  0.021211     0.017590   
-7       4      True        45      45   8736.954420  0.005151     0.003663   
-8       5     False        97      97   5105.875799  0.018998     0.015277   
-9       5      True        67      67   7809.650445  0.008579     0.006658   
-
-   q_obs_upper  
-0     0.009197  
-1     0.005203  
-2     0.015628  
-3     0.008010  
-4     0.012874  
-5     0.007461  
-6     0.025005  
-7     0.006753  
-8     0.022915  
-9     0.010628  </code></pre>
+shape: (30, 8)
+┌────────┬──────────┬──────────┬────────┬──────────────┬──────────┬─────────────┬─────────────┐
+│ pol_yr ┆ inc_guar ┆ n_claims ┆ claims ┆ exposure     ┆ q_obs    ┆ q_obs_lower ┆ q_obs_upper │
+│ ---    ┆ ---      ┆ ---      ┆ ---    ┆ ---          ┆ ---      ┆ ---         ┆ ---         │
+│ u32    ┆ bool     ┆ u32      ┆ u32    ┆ f64          ┆ f64      ┆ f64         ┆ f64         │
+╞════════╪══════════╪══════════╪════════╪══════════════╪══════════╪═════════════╪═════════════╡
+│ 1      ┆ false    ┆ 56       ┆ 56     ┆ 7719.80774   ┆ 0.007254 ┆ 0.005441    ┆ 0.009197    │
+│ 1      ┆ true     ┆ 46       ┆ 46     ┆ 11532.404626 ┆ 0.003989 ┆ 0.002862    ┆ 0.005203    │
+│ 2      ┆ false    ┆ 92       ┆ 92     ┆ 7102.81316   ┆ 0.012953 ┆ 0.010418    ┆ 0.015628    │
+│ 2      ┆ true     ┆ 68       ┆ 68     ┆ 10611.967258 ┆ 0.006408 ┆ 0.0049      ┆ 0.00801     │
+│ 3      ┆ false    ┆ 67       ┆ 67     ┆ 6446.916146  ┆ 0.010393 ┆ 0.008066    ┆ 0.012874    │
+│ …      ┆ …        ┆ …        ┆ …      ┆ …            ┆ …        ┆ …           ┆ …           │
+│ 13     ┆ true     ┆ 49       ┆ 49     ┆ 1117.137361  ┆ 0.043862 ┆ 0.032225    ┆ 0.056394    │
+│ 14     ┆ false    ┆ 33       ┆ 33     ┆ 262.622262   ┆ 0.125656 ┆ 0.087578    ┆ 0.167541    │
+│ 14     ┆ true     ┆ 29       ┆ 29     ┆ 609.216476   ┆ 0.047602 ┆ 0.031188    ┆ 0.065658    │
+│ 15     ┆ false    ┆ 8        ┆ 8      ┆ 74.050109    ┆ 0.108035 ┆ 0.040513    ┆ 0.189061    │
+│ 15     ┆ true     ┆ 9        ┆ 9      ┆ 194.128602   ┆ 0.046361 ┆ 0.020605    ┆ 0.077268    │
+└────────┴──────────┴──────────┴────────┴──────────────┴──────────┴─────────────┴─────────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -1088,7 +1041,7 @@ A DataFrame: 30 x 8
 </section>
 <section id="notes-3" class="level4">
 <h4 class="anchored" data-anchor-id="notes-3">Notes</h4>
-<p>The <code>ExposedDF</code> must have calendar year, quarter, month, or week exposure records. Calendar year exposures are created by passing <code>cal_expo = True</code> to <code>ExposedDF</code> (or alternatively, with the class methods <code>ExposedDF.expose_cy()</code>, <code>ExposedDF.expose_cq()</code>, <code>ExposedDF.expose_cm()</code>, and <code>ExposedDF.expose_cw()</code>).</p>
+<p>The <code>ExposedDF</code> must have calendar year, quarter, month, or week exposure records. Calendar year exposures are created by passing <code>cal_expo=True</code> to <code>ExposedDF</code> (or alternatively, with the class methods <code>ExposedDF.expose_cy()</code>, <code>ExposedDF.expose_cq()</code>, <code>ExposedDF.expose_cm()</code>, and <code>ExposedDF.expose_cw()</code>).</p>
 <p>After splitting, the resulting data will contain both calendar exposures and policy year exposures. These columns will be named ‘exposure_cal’ and ‘exposure_pol’, respectively. Calendar exposures will be in the original units passed to <code>SplitExposedDF()</code>. Policy exposures will always be expressed in years. Downstream functions like <code>exp_stats()</code> and <code>exp_shiny()</code> will require clarification as to which exposure basis should be used to summarize results.</p>
 <p>After splitting, the column ‘pol_yr’ will contain policy years.</p>
 </section>
@@ -1106,30 +1059,25 @@ Exposure type: split_year
 Target status: None
 Study range: 1900-01-01 to 2022-12-31
 
-A DataFrame: 58 x 9
-   pol_num  status issue_date term_date     cal_yr cal_yr_end  pol_yr  \
-0        1  Active 2010-01-01       NaT 2010-01-01 2010-12-31       1   
-1        1  Active 2010-01-01       NaT 2011-01-01 2011-12-31       2   
-2        1  Active 2010-01-01       NaT 2012-01-01 2012-12-31       3   
-3        1  Active 2010-01-01       NaT 2013-01-01 2013-12-31       4   
-4        1  Active 2010-01-01       NaT 2014-01-01 2014-12-31       5   
-5        1  Active 2010-01-01       NaT 2015-01-01 2015-12-31       6   
-6        1  Active 2010-01-01       NaT 2016-01-01 2016-12-31       7   
-7        1  Active 2010-01-01       NaT 2017-01-01 2017-12-31       8   
-8        1  Active 2010-01-01       NaT 2018-01-01 2018-12-31       9   
-9        1  Active 2010-01-01       NaT 2019-01-01 2019-12-31      10   
-
-   exposure_pol  exposure_cal  
-0           1.0           1.0  
-1           1.0           1.0  
-2           1.0           1.0  
-3           1.0           1.0  
-4           1.0           1.0  
-5           1.0           1.0  
-6           1.0           1.0  
-7           1.0           1.0  
-8           1.0           1.0  
-9           1.0           1.0  </code></pre>
+shape: (58, 9)
+┌─────────┬───────────┬────────────┬────────────┬───┬────────────┬────────┬────────────┬───────────┐
+│ pol_num ┆ status    ┆ issue_date ┆ term_date  ┆ … ┆ cal_yr_end ┆ pol_yr ┆ exposure_p ┆ exposure_ │
+│ ---     ┆ ---       ┆ ---        ┆ ---        ┆   ┆ ---        ┆ ---    ┆ ol         ┆ cal       │
+│ i64     ┆ enum      ┆ date       ┆ date       ┆   ┆ date       ┆ i32    ┆ ---        ┆ ---       │
+│         ┆           ┆            ┆            ┆   ┆            ┆        ┆ f64        ┆ f64       │
+╞═════════╪═══════════╪════════════╪════════════╪═══╪════════════╪════════╪════════════╪═══════════╡
+│ 1       ┆ Active    ┆ 2010-01-01 ┆ null       ┆ … ┆ 2010-12-31 ┆ 1      ┆ 1.0        ┆ 1.0       │
+│ 1       ┆ Active    ┆ 2010-01-01 ┆ null       ┆ … ┆ 2011-12-31 ┆ 2      ┆ 1.0        ┆ 1.0       │
+│ 1       ┆ Active    ┆ 2010-01-01 ┆ null       ┆ … ┆ 2012-12-31 ┆ 3      ┆ 1.0        ┆ 1.0       │
+│ 1       ┆ Active    ┆ 2010-01-01 ┆ null       ┆ … ┆ 2013-12-31 ┆ 4      ┆ 1.0        ┆ 1.0       │
+│ 1       ┆ Active    ┆ 2010-01-01 ┆ null       ┆ … ┆ 2014-12-31 ┆ 5      ┆ 1.0        ┆ 1.0       │
+│ …       ┆ …         ┆ …          ┆ …          ┆ … ┆ …          ┆ …      ┆ …          ┆ …         │
+│ 3       ┆ Active    ┆ 2009-11-10 ┆ null       ┆ … ┆ 2020-11-09 ┆ 11     ┆ 0.857923   ┆ 0.857923  │
+│ 3       ┆ Active    ┆ 2009-11-10 ┆ null       ┆ … ┆ 2020-12-31 ┆ 12     ┆ 0.142466   ┆ 0.142077  │
+│ 3       ┆ Active    ┆ 2009-11-10 ┆ null       ┆ … ┆ 2021-11-09 ┆ 12     ┆ 0.857534   ┆ 0.857534  │
+│ 3       ┆ Active    ┆ 2009-11-10 ┆ null       ┆ … ┆ 2021-12-31 ┆ 13     ┆ 0.142466   ┆ 0.142466  │
+│ 3       ┆ Surrender ┆ 2009-11-10 ┆ 2022-02-25 ┆ … ┆ 2022-11-09 ┆ 13     ┆ 0.153425   ┆ 0.153425  │
+└─────────┴───────────┴────────────┴────────────┴───┴────────────┴────────┴────────────┴───────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -1140,17 +1088,17 @@ A DataFrame: 58 x 9
 </section>
 <section id="actxps.expose.ExposedDF.from_DataFrame" class="level3">
 <h3 class="anchored" data-anchor-id="actxps.expose.ExposedDF.from_DataFrame">from_DataFrame</h3>
-<p><code>expose.ExposedDF.from_DataFrame(data, end_date, start_date=datetime(1900, 1, 1), target_status=None, cal_expo=False, expo_length='year', trx_types=None, col_pol_num='pol_num', col_status='status', col_exposure='exposure', col_pol_per=None, cols_dates=None, col_trx_n_='trx_n_', col_trx_amt_='trx_amt_', default_status=None)</code></p>
+<p><code>expose.ExposedDF.from_DataFrame(data, end_date, start_date=date(1900, 1, 1), target_status=None, cal_expo=False, expo_length='year', trx_types=None, col_pol_num='pol_num', col_status='status', col_exposure='exposure', col_pol_per=None, cols_dates=None, col_trx_n_='trx_n_', col_trx_amt_='trx_amt_', default_status=None)</code></p>
 <p>Coerce a data frame to an <code>ExposedDF</code> object</p>
 <p>The input data frame must have columns for policy numbers, statuses, exposures, policy periods (for policy exposures only), and exposure start / end dates. Optionally, if <code>data</code> has transaction counts and amounts by type, these can be specified without calling <code>add_transactions()</code>.</p>
 <section id="parameters-3" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-3">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 4%">
-<col style="width: 8%">
-<col style="width: 83%">
 <col style="width: 3%">
+<col style="width: 11%">
+<col style="width: 80%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1163,21 +1111,21 @@ A DataFrame: 58 x 9
 <tbody>
 <tr class="odd">
 <td><code>data</code></td>
-<td>pandas.pandas.DataFrame</td>
+<td>polars.polars.DataFrame | pandas.pandas.DataFrame</td>
 <td>A data frame with exposure-level records</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td><code>end_date</code></td>
-<td>datetime.datetime</td>
+<td>datetime.date | str</td>
 <td>Experience study end date</td>
 <td><em>required</em></td>
 </tr>
 <tr class="odd">
 <td><code>start_date</code></td>
-<td>datetime.datetime</td>
+<td>datetime.date | str</td>
 <td>Experience study start date</td>
-<td><code>'1900-01-01'</code></td>
+<td><code>date(1900, 1, 1)</code></td>
 </tr>
 <tr class="even">
 <td><code>target_status</code></td>
@@ -1272,9 +1220,9 @@ A DataFrame: 58 x 9
 </table>
 </section>
 </section>
-<section id="actxps.expose.ExposedDF.groupby" class="level3">
-<h3 class="anchored" data-anchor-id="actxps.expose.ExposedDF.groupby">groupby</h3>
-<p><code>expose.ExposedDF.groupby(*by)</code></p>
+<section id="actxps.expose.ExposedDF.group_by" class="level3">
+<h3 class="anchored" data-anchor-id="actxps.expose.ExposedDF.group_by">group_by</h3>
+<p><code>expose.ExposedDF.group_by(*by)</code></p>
 <p>Set grouping variables for summary methods like <code>exp_stats()</code> and <code>trx_stats()</code>.</p>
 <section id="parameters-4" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-4">Parameters</h4>
@@ -1305,7 +1253,7 @@ A DataFrame: 58 x 9
 </section>
 <section id="notes-4" class="level4">
 <h4 class="anchored" data-anchor-id="notes-4">Notes</h4>
-<p>This function will not directly apply the <code>DataFrame.groupby()</code> method to the <code>data</code> property. Instead, it will set the <code>groups</code> property of the <code>ExposedDF</code> object. The <code>groups</code> property is subsequently used to group data within summary methods like <code>exp_stats()</code> and <code>trx_stats()</code>.</p>
+<p>This function will not directly apply the <code>DataFrame.group_by()</code> method to the <code>data</code> property. Instead, it will set the <code>groups</code> property of the <code>ExposedDF</code> object. The <code>groups</code> property is subsequently used to group data within summary methods like <code>exp_stats()</code> and <code>trx_stats()</code>.</p>
 </section>
 </section>
 <section id="actxps.expose.ExposedDF.trx_stats" class="level3">
@@ -1378,7 +1326,7 @@ A DataFrame: 58 x 9
 </section>
 <section id="notes-5" class="level4">
 <h4 class="anchored" data-anchor-id="notes-5">Notes</h4>
-<p>If the <code>ExposedDF</code> object is grouped (see the <code>groupby()</code> method), the returned <code>TrxStats</code> object’s data will contain one row per group.</p>
+<p>If the <code>ExposedDF</code> object is grouped (see the <code>group_by()</code> method), the returned <code>TrxStats</code> object’s data will contain one row per group.</p>
 <p>Any number of transaction types can be passed to the <code>trx_types</code> argument, however each transaction type <strong>must</strong> appear in the <code>trx_types</code> property of the <code>ExposedDF</code> object. In addition, <code>trx_stats()</code> expects to see columns named <code>trx_n_{*}</code> (for transaction counts) and <code>trx_amt_{*}</code> for (transaction amounts) for each transaction type. To ensure <code>data</code> is in the appropriate format, use the class method <code>ExposedDF.from_DataFrame()</code> to convert an existing data frame with transactions or use <code>add_transactions()</code> to attach transactions to an existing <code>ExposedDF</code> object.</p>
 <p><strong>“Percentage of” calculations</strong></p>
 <p>The <code>percent_of</code> argument is optional. If provided, this argument must be list with values corresponding to columns in the <code>data</code> property containing values to use as denominators in the calculation of utilization rates or actual-to-expected ratios. Example usage:</p>
@@ -1429,9 +1377,9 @@ A DataFrame: 58 x 9
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>expo.groupby(<span class="st">'inc_guar'</span>).trx_stats(percent_of<span class="op">=</span><span class="st">"premium"</span>,</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>                                   combine_trx<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>                                   conf_int<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>expo.group_by(<span class="st">'inc_guar'</span>).trx_stats(percent_of<span class="op">=</span><span class="st">"premium"</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>                                    combine_trx<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>                                    conf_int<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>Transaction study results
 
@@ -1440,29 +1388,17 @@ Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 Transactions as % of: premium
 
-
-A DataFrame: 2 x 21
-   inc_guar trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx  \
-0     False      All  52939.0     24703   952629.0   48938.0  38.563292   
-1      True      All  84882.0     39462  2983999.0   75235.0  75.617024   
-
-     avg_all  trx_freq  trx_util  ...  premium_w_trx  pct_of_premium_all  \
-0  19.466039  2.143019  0.504782  ...     33915201.0            0.014557   
-1  39.662378  2.150981  0.524517  ...     52828206.0            0.029566   
-
-   pct_of_premium_w_trx  trx_util_lower  trx_util_upper   trx_amt_sq  \
-0              0.028089        0.500347        0.509216  121475735.0   
-1              0.056485        0.520954        0.528079  785237847.0   
-
-   pct_of_premium_w_trx_lower  pct_of_premium_w_trx_upper  \
-0                    0.027557                    0.028621   
-1                    0.055607                    0.057363   
-
-   pct_of_premium_all_lower  pct_of_premium_all_upper  
-0                  0.014253                  0.014861  
-1                  0.029064                  0.030067  
-
-[2 rows x 21 columns]</code></pre>
+shape: (2, 21)
+┌──────────┬──────────┬─────────┬──────────┬───┬────────────┬────────────┬────────────┬────────────┐
+│ inc_guar ┆ trx_type ┆ trx_n   ┆ trx_flag ┆ … ┆ pct_of_pre ┆ pct_of_pre ┆ pct_of_pre ┆ pct_of_pre │
+│ ---      ┆ ---      ┆ ---     ┆ ---      ┆   ┆ mium_w_trx ┆ mium_w_trx ┆ mium_all_l ┆ mium_all_u │
+│ bool     ┆ str      ┆ f64     ┆ u32      ┆   ┆ _lower     ┆ _upper     ┆ ower       ┆ pper       │
+│          ┆          ┆         ┆          ┆   ┆ ---        ┆ ---        ┆ ---        ┆ ---        │
+│          ┆          ┆         ┆          ┆   ┆ f64        ┆ f64        ┆ f64        ┆ f64        │
+╞══════════╪══════════╪═════════╪══════════╪═══╪════════════╪════════════╪════════════╪════════════╡
+│ false    ┆ All      ┆ 52939.0 ┆ 24703    ┆ … ┆ 0.027557   ┆ 0.028621   ┆ 0.014253   ┆ 0.014861   │
+│ true     ┆ All      ┆ 84882.0 ┆ 39462    ┆ … ┆ 0.055607   ┆ 0.057363   ┆ 0.029064   ┆ 0.030067   │
+└──────────┴──────────┴─────────┴──────────┴───┴────────────┴────────────┴────────────┴────────────┘</code></pre>
 </div>
 </div>
 </section>

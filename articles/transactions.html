@@ -263,11 +263,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The <code>add_transactions()</code> method attaches transactions to an <code>ExposedDF</code> object, which contains a data frame with exposure-level records. For our example, we first need to convert <code>census_dat</code> into exposure records using <code>ExposedDF()</code>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> This example will use policy year exposures.</p>
 <div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(census_dat, <span class="st">"2019-12-31"</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                            target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>exposed_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(census_dat, <span class="st">"2019-12-31"</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                            target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>exposed_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="packages" class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>Exposure data
 
@@ -275,30 +276,24 @@ Exposure type: policy_year
 Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 
-A DataFrame: 141,252 x 15
-   pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
-0        1  Active 2014-12-17      True  False   56       b      F      77   
-1        1  Active 2014-12-17      True  False   56       b      F      77   
-2        1  Active 2014-12-17      True  False   56       b      F      77   
-3        1  Active 2014-12-17      True  False   56       b      F      77   
-4        1  Active 2014-12-17      True  False   56       b      F      77   
-5        1  Active 2014-12-17      True  False   56       b      F      77   
-6        2  Active 2007-09-24     False  False   71       a      F      71   
-7        2  Active 2007-09-24     False  False   71       a      F      71   
-8        2  Active 2007-09-24     False  False   71       a      F      71   
-9        2  Active 2007-09-24     False  False   71       a      F      71   
-
-   premium term_date  pol_yr pol_date_yr pol_date_yr_end  exposure  
-0    370.0       NaT       1  2014-12-17      2015-12-16  1.000000  
-1    370.0       NaT       2  2015-12-17      2016-12-16  1.000000  
-2    370.0       NaT       3  2016-12-17      2017-12-16  1.000000  
-3    370.0       NaT       4  2017-12-17      2018-12-16  1.000000  
-4    370.0       NaT       5  2018-12-17      2019-12-16  1.000000  
-5    370.0       NaT       6  2019-12-17      2020-12-16  0.040984  
-6    708.0       NaT       1  2007-09-24      2008-09-23  1.000000  
-7    708.0       NaT       2  2008-09-24      2009-09-23  1.000000  
-8    708.0       NaT       3  2009-09-24      2010-09-23  1.000000  
-9    708.0       NaT       4  2010-09-24      2011-09-23  1.000000  </code></pre>
+shape: (141_252, 15)
+┌─────────┬────────┬────────────┬──────────┬───┬────────┬─────────────┬─────────────────┬──────────┐
+│ pol_num ┆ status ┆ issue_date ┆ inc_guar ┆ … ┆ pol_yr ┆ pol_date_yr ┆ pol_date_yr_end ┆ exposure │
+│ ---     ┆ ---    ┆ ---        ┆ ---      ┆   ┆ ---    ┆ ---         ┆ ---             ┆ ---      │
+│ i64     ┆ enum   ┆ date       ┆ bool     ┆   ┆ u32    ┆ date        ┆ date            ┆ f64      │
+╞═════════╪════════╪════════════╪══════════╪═══╪════════╪═════════════╪═════════════════╪══════════╡
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 1      ┆ 2014-12-17  ┆ 2015-12-16      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 2      ┆ 2015-12-17  ┆ 2016-12-16      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 3      ┆ 2016-12-17  ┆ 2017-12-16      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 4      ┆ 2017-12-17  ┆ 2018-12-16      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 5      ┆ 2018-12-17  ┆ 2019-12-16      ┆ 1.0      │
+│ …       ┆ …      ┆ …          ┆ …        ┆ … ┆ …      ┆ …           ┆ …               ┆ …        │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 7      ┆ 2015-04-29  ┆ 2016-04-28      ┆ 1.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 8      ┆ 2016-04-29  ┆ 2017-04-28      ┆ 1.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 9      ┆ 2017-04-29  ┆ 2018-04-28      ┆ 1.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 10     ┆ 2018-04-29  ┆ 2019-04-28      ┆ 1.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 11     ┆ 2019-04-29  ┆ 2020-04-28      ┆ 0.674863 │
+└─────────┴────────┴────────────┴──────────┴───┴────────┴─────────────┴─────────────────┴──────────┘</code></pre>
 </div>
 </div>
 <p>The <code>withdrawals</code> data has 4 columns that are required for attaching transactions:</p>
@@ -312,101 +307,98 @@ A DataFrame: 141,252 x 15
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>withdrawals</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="wd-head" class="cell-output cell-output-display" data-execution_count="3">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (160_130, 4)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">trx_date</th>
 <th data-quarto-table-cell-role="th">trx_type</th>
 <th data-quarto-table-cell-role="th">trx_amt</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>date</th>
+<th>cat</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
 <td>2</td>
 <td>2007-10-05</td>
-<td>Base</td>
+<td>"Base"</td>
 <td>25.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
 <td>2</td>
 <td>2009-07-30</td>
-<td>Base</td>
+<td>"Base"</td>
 <td>12.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
 <td>2</td>
 <td>2010-02-22</td>
-<td>Base</td>
+<td>"Base"</td>
 <td>7.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
 <td>2</td>
 <td>2010-12-30</td>
-<td>Base</td>
+<td>"Base"</td>
 <td>52.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
 <td>2</td>
 <td>2012-05-07</td>
-<td>Base</td>
+<td>"Base"</td>
 <td>41.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">160125</td>
 <td>20000</td>
 <td>2015-08-08</td>
-<td>Rider</td>
+<td>"Rider"</td>
 <td>547.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">160126</td>
 <td>20000</td>
 <td>2016-07-26</td>
-<td>Rider</td>
+<td>"Rider"</td>
 <td>106.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">160127</td>
 <td>20000</td>
 <td>2017-12-29</td>
-<td>Rider</td>
+<td>"Rider"</td>
 <td>31.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">160128</td>
 <td>20000</td>
 <td>2018-06-14</td>
-<td>Rider</td>
+<td>"Rider"</td>
 <td>75.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">160129</td>
 <td>20000</td>
 <td>2019-12-09</td>
-<td>Rider</td>
+<td>"Rider"</td>
 <td>466.0</td>
 </tr>
 </tbody>
 </table>
-
-<p>160130 rows × 4 columns</p>
 </div>
 </div>
 </div>
@@ -421,34 +413,30 @@ A DataFrame: 141,252 x 15
 </ul>
 <div id="add-trx" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>exposed_data.add_transactions(withdrawals)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>exposed_data.data.info()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>exposed_data.data.glimpse()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;class 'pandas.core.frame.DataFrame'&gt;
-RangeIndex: 141252 entries, 0 to 141251
-Data columns (total 19 columns):
- #   Column           Non-Null Count   Dtype         
----  ------           --------------   -----         
- 0   pol_num          141252 non-null  int32         
- 1   status           141252 non-null  category      
- 2   issue_date       141252 non-null  datetime64[ns]
- 3   inc_guar         141252 non-null  bool          
- 4   qual             141252 non-null  bool          
- 5   age              141252 non-null  int32         
- 6   product          141252 non-null  category      
- 7   gender           141252 non-null  category      
- 8   wd_age           141252 non-null  int32         
- 9   premium          141252 non-null  float64       
- 10  term_date        4639 non-null    datetime64[ns]
- 11  pol_yr           141252 non-null  int64         
- 12  pol_date_yr      141252 non-null  datetime64[ns]
- 13  pol_date_yr_end  141252 non-null  datetime64[ns]
- 14  exposure         141252 non-null  float64       
- 15  trx_amt_Base     141252 non-null  float64       
- 16  trx_amt_Rider    141252 non-null  float64       
- 17  trx_n_Base       141252 non-null  float64       
- 18  trx_n_Rider      141252 non-null  float64       
-dtypes: bool(2), category(3), datetime64[ns](4), float64(6), int32(3), int64(1)
-memory usage: 14.1 MB</code></pre>
+<pre><code>Rows: 141252
+Columns: 19
+$ pol_num          &lt;i64&gt; 1, 1, 1, 1, 1, 1, 2, 2, 2, 2
+$ status          &lt;enum&gt; Active, Active, Active, Active, Active, Active, Active, Active, Active, Active
+$ issue_date      &lt;date&gt; 2014-12-17, 2014-12-17, 2014-12-17, 2014-12-17, 2014-12-17, 2014-12-17, 2007-09-24, 2007-09-24, 2007-09-24, 2007-09-24
+$ inc_guar        &lt;bool&gt; True, True, True, True, True, True, False, False, False, False
+$ qual            &lt;bool&gt; False, False, False, False, False, False, False, False, False, False
+$ age              &lt;i64&gt; 56, 56, 56, 56, 56, 56, 71, 71, 71, 71
+$ product          &lt;cat&gt; b, b, b, b, b, b, a, a, a, a
+$ gender           &lt;cat&gt; F, F, F, F, F, F, F, F, F, F
+$ wd_age           &lt;i64&gt; 77, 77, 77, 77, 77, 77, 71, 71, 71, 71
+$ premium          &lt;f64&gt; 370.0, 370.0, 370.0, 370.0, 370.0, 370.0, 708.0, 708.0, 708.0, 708.0
+$ term_date       &lt;date&gt; None, None, None, None, None, None, None, None, None, None
+$ pol_yr           &lt;u32&gt; 1, 2, 3, 4, 5, 6, 1, 2, 3, 4
+$ pol_date_yr     &lt;date&gt; 2014-12-17, 2015-12-17, 2016-12-17, 2017-12-17, 2018-12-17, 2019-12-17, 2007-09-24, 2008-09-24, 2009-09-24, 2010-09-24
+$ pol_date_yr_end &lt;date&gt; 2015-12-16, 2016-12-16, 2017-12-16, 2018-12-16, 2019-12-16, 2020-12-16, 2008-09-23, 2009-09-23, 2010-09-23, 2011-09-23
+$ exposure         &lt;f64&gt; 1.0, 1.0, 1.0, 1.0, 1.0, 0.04098360655737743, 1.0, 1.0, 1.0, 1.0
+$ trx_n_Base       &lt;i32&gt; 0, 0, 0, 0, 0, 0, 1, 1, 1, 1
+$ trx_n_Rider      &lt;i32&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+$ trx_amt_Base     &lt;f64&gt; 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 25.0, 12.0, 7.0, 52.0
+$ trx_amt_Rider    &lt;f64&gt; 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+</code></pre>
 </div>
 </div>
 <p>If we print <code>exposed_data</code>, we can see that it has an additional attribute for transaction types that have been attached.</p>
@@ -462,42 +450,25 @@ Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 
-A DataFrame: 141,252 x 19
-   pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
-0        1  Active 2014-12-17      True  False   56       b      F      77   
-1        1  Active 2014-12-17      True  False   56       b      F      77   
-2        1  Active 2014-12-17      True  False   56       b      F      77   
-3        1  Active 2014-12-17      True  False   56       b      F      77   
-4        1  Active 2014-12-17      True  False   56       b      F      77   
-5        1  Active 2014-12-17      True  False   56       b      F      77   
-6        2  Active 2007-09-24     False  False   71       a      F      71   
-7        2  Active 2007-09-24     False  False   71       a      F      71   
-8        2  Active 2007-09-24     False  False   71       a      F      71   
-9        2  Active 2007-09-24     False  False   71       a      F      71   
-
-   premium term_date  pol_yr pol_date_yr pol_date_yr_end  exposure  \
-0    370.0       NaT       1  2014-12-17      2015-12-16  1.000000   
-1    370.0       NaT       2  2015-12-17      2016-12-16  1.000000   
-2    370.0       NaT       3  2016-12-17      2017-12-16  1.000000   
-3    370.0       NaT       4  2017-12-17      2018-12-16  1.000000   
-4    370.0       NaT       5  2018-12-17      2019-12-16  1.000000   
-5    370.0       NaT       6  2019-12-17      2020-12-16  0.040984   
-6    708.0       NaT       1  2007-09-24      2008-09-23  1.000000   
-7    708.0       NaT       2  2008-09-24      2009-09-23  1.000000   
-8    708.0       NaT       3  2009-09-24      2010-09-23  1.000000   
-9    708.0       NaT       4  2010-09-24      2011-09-23  1.000000   
-
-   trx_amt_Base  trx_amt_Rider  trx_n_Base  trx_n_Rider  
-0           0.0            0.0         0.0          0.0  
-1           0.0            0.0         0.0          0.0  
-2           0.0            0.0         0.0          0.0  
-3           0.0            0.0         0.0          0.0  
-4           0.0            0.0         0.0          0.0  
-5           0.0            0.0         0.0          0.0  
-6          25.0            0.0         1.0          0.0  
-7          12.0            0.0         1.0          0.0  
-8           7.0            0.0         1.0          0.0  
-9          52.0            0.0         1.0          0.0  </code></pre>
+shape: (141_252, 19)
+┌─────────┬────────┬────────────┬──────────┬───┬────────────┬────────────┬────────────┬────────────┐
+│ pol_num ┆ status ┆ issue_date ┆ inc_guar ┆ … ┆ trx_n_Base ┆ trx_n_Ride ┆ trx_amt_Ba ┆ trx_amt_Ri │
+│ ---     ┆ ---    ┆ ---        ┆ ---      ┆   ┆ ---        ┆ r          ┆ se         ┆ der        │
+│ i64     ┆ enum   ┆ date       ┆ bool     ┆   ┆ i32        ┆ ---        ┆ ---        ┆ ---        │
+│         ┆        ┆            ┆          ┆   ┆            ┆ i32        ┆ f64        ┆ f64        │
+╞═════════╪════════╪════════════╪══════════╪═══╪════════════╪════════════╪════════════╪════════════╡
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ …       ┆ …      ┆ …          ┆ …        ┆ … ┆ …          ┆ …          ┆ …          ┆ …          │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 547.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 106.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 31.0       │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 75.0       │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 466.0      │
+└─────────┴────────┴────────────┴──────────┴───┴────────────┴────────────┴────────────┴────────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -530,26 +501,26 @@ A DataFrame: 141,252 x 19
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 
-
-A DataFrame: 2 x 9
-  trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx    avg_all  \
-0     Base  60500.0     28224  1093899.0  124173.0  38.757759   8.809475   
-1    Rider  77321.0     35941  2842729.0  124173.0  79.094321  22.893294   
-
-   trx_freq  trx_util  
-0  2.143566  0.227296  
-1  2.151331  0.289443  </code></pre>
+shape: (2, 9)
+┌──────────┬─────────┬──────────┬────────────┬───┬───────────┬───────────┬──────────┬──────────┐
+│ trx_type ┆ trx_n   ┆ trx_flag ┆ trx_amt    ┆ … ┆ avg_trx   ┆ avg_all   ┆ trx_freq ┆ trx_util │
+│ ---      ┆ ---     ┆ ---      ┆ ---        ┆   ┆ ---       ┆ ---       ┆ ---      ┆ ---      │
+│ str      ┆ f64     ┆ u32      ┆ f64        ┆   ┆ f64       ┆ f64       ┆ f64      ┆ f64      │
+╞══════════╪═════════╪══════════╪════════════╪═══╪═══════════╪═══════════╪══════════╪══════════╡
+│ Base     ┆ 60500.0 ┆ 28224    ┆ 1.093899e6 ┆ … ┆ 38.757759 ┆ 8.809475  ┆ 2.143566 ┆ 0.227296 │
+│ Rider    ┆ 77321.0 ┆ 35941    ┆ 2.842729e6 ┆ … ┆ 79.094321 ┆ 22.893294 ┆ 2.151331 ┆ 0.289443 │
+└──────────┴─────────┴──────────┴────────────┴───┴───────────┴───────────┴──────────┴──────────┘</code></pre>
 </div>
 </div>
 <p>The results show us that we specified no groups, which is why the output data contains a single row for each transaction type.</p>
 <section id="grouped-data" class="level3">
 <h3 class="anchored" data-anchor-id="grouped-data">Grouped data</h3>
-<p>If the data is grouped using the <code>groupby()</code> method, future calls to <code>exp_stats()</code> will contain one record for each unique group.</p>
-<p>If the data is grouped using the <code>groupby()</code> method, future calls to <code>trx_stats()</code> will contain one record for each unique group.</p>
+<p>If the data is grouped using the <code>group_by()</code> method, future calls to <code>exp_stats()</code> will contain one record for each unique group.</p>
+<p>If the data is grouped using the <code>group_by()</code> method, future calls to <code>trx_stats()</code> will contain one record for each unique group.</p>
 <p>In the following, <code>exposed_data</code> is grouped by the presence of an income guarantee (<code>inc_guar</code>) before being passed to <code>trx_stats()</code>. This results in four rows because we have two types of transactions and two distinct values of <code>inc_guar</code>.</p>
 <div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'inc_guar'</span>).</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    group_by(<span class="st">'inc_guar'</span>).</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    trx_stats())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="grouped-1" class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>Transaction study results
@@ -558,25 +529,23 @@ Groups: inc_guar
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 
-
-A DataFrame: 4 x 10
-   inc_guar trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx  \
-0     False     Base  52939.0     24703   952629.0   48938.0  38.563292   
-1     False    Rider      0.0         0        0.0   48938.0        NaN   
-2      True     Base   7561.0      3521   141270.0   75235.0  40.122124   
-3      True    Rider  77321.0     35941  2842729.0   75235.0  79.094321   
-
-     avg_all  trx_freq  trx_util  
-0  19.466039  2.143019  0.504782  
-1   0.000000       NaN  0.000000  
-2   1.877716  2.147401  0.046800  
-3  37.784661  2.151331  0.477716  </code></pre>
+shape: (4, 10)
+┌──────────┬──────────┬─────────┬──────────┬───┬───────────┬───────────┬──────────┬──────────┐
+│ inc_guar ┆ trx_type ┆ trx_n   ┆ trx_flag ┆ … ┆ avg_trx   ┆ avg_all   ┆ trx_freq ┆ trx_util │
+│ ---      ┆ ---      ┆ ---     ┆ ---      ┆   ┆ ---       ┆ ---       ┆ ---      ┆ ---      │
+│ bool     ┆ str      ┆ f64     ┆ u32      ┆   ┆ f64       ┆ f64       ┆ f64      ┆ f64      │
+╞══════════╪══════════╪═════════╪══════════╪═══╪═══════════╪═══════════╪══════════╪══════════╡
+│ false    ┆ Base     ┆ 52939.0 ┆ 24703    ┆ … ┆ 38.563292 ┆ 19.466039 ┆ 2.143019 ┆ 0.504782 │
+│ false    ┆ Rider    ┆ 0.0     ┆ 0        ┆ … ┆ NaN       ┆ 0.0       ┆ NaN      ┆ 0.0      │
+│ true     ┆ Base     ┆ 7561.0  ┆ 3521     ┆ … ┆ 40.122124 ┆ 1.877716  ┆ 2.147401 ┆ 0.0468   │
+│ true     ┆ Rider    ┆ 77321.0 ┆ 35941    ┆ … ┆ 79.094321 ┆ 37.784661 ┆ 2.151331 ┆ 0.477716 │
+└──────────┴──────────┴─────────┴──────────┴───┴───────────┴───────────┴──────────┴──────────┘</code></pre>
 </div>
 </div>
 <p>Multiple grouping variables are allowed. Below, policy year (<code>pol_yr</code>) is added as a second grouping variable.</p>
 <div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'inc_guar'</span>, <span class="st">'pol_yr'</span>).</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    group_by(<span class="st">'inc_guar'</span>, <span class="st">'pol_yr'</span>).</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    trx_stats())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="grouped-2" class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>Transaction study results
@@ -585,31 +554,24 @@ Groups: inc_guar, pol_yr
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 
-
-A DataFrame: 60 x 11
-   inc_guar  pol_yr trx_type   trx_n  trx_flag  trx_amt  exposure    avg_trx  \
-0     False       1     Base  6077.0      2881  98287.0    7435.0  34.115585   
-1     False       1    Rider     0.0         0      0.0    7435.0        NaN   
-2     False       2     Base  6091.0      2863  98413.0    6813.0  34.374083   
-3     False       2    Rider     0.0         0      0.0    6813.0        NaN   
-4     False       3     Base  6016.0      2813  97285.0    6176.0  34.584074   
-5     False       3    Rider     0.0         0      0.0    6176.0        NaN   
-6     False       4     Base  5719.0      2664  99847.0    5490.0  37.480105   
-7     False       4    Rider     0.0         0      0.0    5490.0        NaN   
-8     False       5     Base  5354.0      2492  95070.0    4852.0  38.150080   
-9     False       5    Rider     0.0         0      0.0    4852.0        NaN   
-
-     avg_all  trx_freq  trx_util  
-0  13.219502  2.109337  0.387492  
-1   0.000000       NaN  0.000000  
-2  14.444885  2.127489  0.420226  
-3   0.000000       NaN  0.000000  
-4  15.752105  2.138642  0.455473  
-5   0.000000       NaN  0.000000  
-6  18.187067  2.146772  0.485246  
-7   0.000000       NaN  0.000000  
-8  19.593982  2.148475  0.513603  
-9   0.000000       NaN  0.000000  </code></pre>
+shape: (60, 11)
+┌──────────┬────────┬──────────┬────────┬───┬────────────┬───────────┬──────────┬──────────┐
+│ inc_guar ┆ pol_yr ┆ trx_type ┆ trx_n  ┆ … ┆ avg_trx    ┆ avg_all   ┆ trx_freq ┆ trx_util │
+│ ---      ┆ ---    ┆ ---      ┆ ---    ┆   ┆ ---        ┆ ---       ┆ ---      ┆ ---      │
+│ bool     ┆ u32    ┆ str      ┆ f64    ┆   ┆ f64        ┆ f64       ┆ f64      ┆ f64      │
+╞══════════╪════════╪══════════╪════════╪═══╪════════════╪═══════════╪══════════╪══════════╡
+│ false    ┆ 1      ┆ Base     ┆ 6077.0 ┆ … ┆ 34.115585  ┆ 13.219502 ┆ 2.109337 ┆ 0.387492 │
+│ false    ┆ 1      ┆ Rider    ┆ 0.0    ┆ … ┆ NaN        ┆ 0.0       ┆ NaN      ┆ 0.0      │
+│ false    ┆ 2      ┆ Base     ┆ 6091.0 ┆ … ┆ 34.374083  ┆ 14.444885 ┆ 2.127489 ┆ 0.420226 │
+│ false    ┆ 2      ┆ Rider    ┆ 0.0    ┆ … ┆ NaN        ┆ 0.0       ┆ NaN      ┆ 0.0      │
+│ false    ┆ 3      ┆ Base     ┆ 6016.0 ┆ … ┆ 34.584074  ┆ 15.752105 ┆ 2.138642 ┆ 0.455473 │
+│ …        ┆ …      ┆ …        ┆ …      ┆ … ┆ …          ┆ …         ┆ …        ┆ …        │
+│ true     ┆ 13     ┆ Rider    ┆ 1486.0 ┆ … ┆ 94.984894  ┆ 71.698974 ┆ 2.244713 ┆ 0.754846 │
+│ true     ┆ 14     ┆ Base     ┆ 26.0   ┆ … ┆ 83.8       ┆ 2.100251  ┆ 2.6      ┆ 0.025063 │
+│ true     ┆ 14     ┆ Rider    ┆ 736.0  ┆ … ┆ 96.987342  ┆ 76.81203  ┆ 2.329114 ┆ 0.79198  │
+│ true     ┆ 15     ┆ Base     ┆ 0.0    ┆ … ┆ NaN        ┆ 0.0       ┆ NaN      ┆ 0.0      │
+│ true     ┆ 15     ┆ Rider    ┆ 19.0   ┆ … ┆ 104.888889 ┆ 85.818182 ┆ 2.111111 ┆ 0.818182 │
+└──────────┴────────┴──────────┴────────┴───┴────────────┴───────────┴──────────┴──────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -629,38 +591,34 @@ A DataFrame: 60 x 11
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># attach account values data</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>account_vals <span class="op">=</span> xp.load_account_vals()</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>exposed_data.data <span class="op">=</span> <span class="op">\</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    exposed_data.data.merge(account_vals,</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                            on<span class="op">=</span>[<span class="st">'pol_num'</span>, <span class="st">'pol_date_yr'</span>],</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                            how<span class="op">=</span><span class="st">'left'</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    exposed_data.data.join(account_vals,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                           on<span class="op">=</span>[<span class="st">'pol_num'</span>, <span class="st">'pol_date_yr'</span>],</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                           how<span class="op">=</span><span class="st">'left'</span>)</span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (exposed_data.</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>           group_by(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">"av_anniv"</span>))</span>
 <span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>trx_res.data.info()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>trx_res.data.glimpse()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;class 'pandas.core.frame.DataFrame'&gt;
-RangeIndex: 60 entries, 0 to 59
-Data columns (total 15 columns):
- #   Column                 Non-Null Count  Dtype  
----  ------                 --------------  -----  
- 0   pol_yr                 60 non-null     int64  
- 1   inc_guar               60 non-null     bool   
- 2   trx_type               60 non-null     object 
- 3   trx_n                  60 non-null     float64
- 4   trx_flag               60 non-null     int64  
- 5   trx_amt                60 non-null     float64
- 6   exposure               60 non-null     float64
- 7   avg_trx                44 non-null     float64
- 8   avg_all                60 non-null     float64
- 9   trx_freq               44 non-null     float64
- 10  trx_util               60 non-null     float64
- 11  av_anniv               60 non-null     float64
- 12  av_anniv_w_trx         60 non-null     float64
- 13  pct_of_av_anniv_all    60 non-null     float64
- 14  pct_of_av_anniv_w_trx  44 non-null     float64
-dtypes: bool(1), float64(11), int64(2), object(1)
-memory usage: 6.8+ KB</code></pre>
+<pre><code>Rows: 60
+Columns: 15
+$ pol_yr                 &lt;u32&gt; 1, 1, 1, 1, 2, 2, 2, 2, 3, 3
+$ inc_guar              &lt;bool&gt; False, False, True, True, False, False, True, True, False, False
+$ trx_type               &lt;str&gt; 'Base', 'Rider', 'Base', 'Rider', 'Base', 'Rider', 'Base', 'Rider', 'Base', 'Rider'
+$ trx_n                  &lt;f64&gt; 6077.0, 0.0, 1370.0, 8077.0, 6091.0, 0.0, 1183.0, 8232.0, 6016.0, 0.0
+$ trx_flag               &lt;u32&gt; 2881, 0, 633, 3778, 2863, 0, 559, 3834, 2813, 0
+$ trx_amt                &lt;f64&gt; 98287.0, 0.0, 21590.0, 265312.0, 98413.0, 0.0, 18554.0, 288114.0, 97285.0, 0.0
+$ exposure               &lt;f64&gt; 7435.0, 7435.0, 11106.0, 11106.0, 6813.0, 6813.0, 10158.0, 10158.0, 6176.0, 6176.0
+$ av_anniv               &lt;f64&gt; 9686914.0, 9686914.0, 14679001.0, 14679001.0, 9218561.0, 9218561.0, 13795383.0, 13795383.0, 8682868.0, 8682868.0
+$ av_anniv_w_trx         &lt;f64&gt; 3875306.0, 0.0, 865046.0, 4982082.0, 3909786.0, 0.0, 797932.0, 5022297.0, 3954457.0, 0.0
+$ avg_trx                &lt;f64&gt; 34.11558486636584, nan, 34.107424960505526, 70.22551614610906, 34.37408312958435, nan, 33.19141323792486, 75.1471048513302, 34.584073942410235, nan
+$ avg_all                &lt;f64&gt; 13.219502353732347, 0.0, 1.9439942373491805, 23.889068971726996, 14.444884779098782, 0.0, 1.8265406576097658, 28.36326048434731, 15.752104922279793, 0.0
+$ trx_freq               &lt;f64&gt; 2.109337035751475, nan, 2.1642969984202214, 2.13790365272631, 2.1274886482710444, nan, 2.116279069767442, 2.1471048513302033, 2.1386420191965874, nan
+$ trx_util               &lt;f64&gt; 0.3874915938130464, 0.0, 0.056996218260399786, 0.3401764811813434, 0.4202260384558931, 0.0, 0.055030517818468204, 0.377436503248671, 0.45547279792746115, 0.0
+$ pct_of_av_anniv_all    &lt;f64&gt; 0.01014636859581906, 0.0, 0.0014708085379924697, 0.018074254508191667, 0.010675527340980876, 0.0, 0.0013449427246782493, 0.020884813419098258, 0.011204247260237055, 0.0
+$ pct_of_av_anniv_w_trx  &lt;f64&gt; 0.025362384286556985, nan, 0.024958210314827187, 0.05325323830478904, 0.025170942859788235, nan, 0.023252607991658437, 0.057366977699646195, 0.024601354876282636, nan
+</code></pre>
 </div>
 </div>
 </section>
@@ -669,96 +627,95 @@ memory usage: 6.8+ KB</code></pre>
 <p>If <code>conf_int</code> is set to <code>True</code>, <code>trx_stats()</code> will produce lower and upper confidence interval limits for the observed utilization rate. Confidence intervals are constructed assuming a binomial distribution.</p>
 <div class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    group_by(<span class="st">'pol_yr'</span>).</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    trx_stats(conf_int<span class="op">=</span><span class="va">True</span>).</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'trx_util'</span>, <span class="st">'trx_util_lower'</span>, <span class="st">'trx_util_upper'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    data.select(<span class="st">'pol_yr'</span>, pl.col(<span class="st">'^trx_util.*$'</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="trx-conf1" class="cell-output cell-output-display" data-execution_count="10">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (30, 4)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_yr</th>
 <th data-quarto-table-cell-role="th">trx_util</th>
 <th data-quarto-table-cell-role="th">trx_util_lower</th>
 <th data-quarto-table-cell-role="th">trx_util_upper</th>
 </tr>
+<tr class="odd">
+<th>u32</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
 <td>1</td>
 <td>0.189526</td>
 <td>0.183917</td>
 <td>0.195189</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
 <td>1</td>
 <td>0.203765</td>
 <td>0.197994</td>
-<td>0.209590</td>
+<td>0.20959</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
 <td>2</td>
 <td>0.201638</td>
 <td>0.195628</td>
 <td>0.207707</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
 <td>2</td>
 <td>0.225915</td>
-<td>0.219610</td>
-<td>0.232220</td>
+<td>0.21961</td>
+<td>0.23222</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
 <td>3</td>
 <td>0.214912</td>
 <td>0.208417</td>
 <td>0.221407</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">25</td>
 <td>13</td>
 <td>0.516784</td>
 <td>0.489461</td>
 <td>0.544106</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">26</td>
 <td>14</td>
 <td>0.245645</td>
 <td>0.210801</td>
 <td>0.280488</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">27</td>
 <td>14</td>
 <td>0.550523</td>
 <td>0.510453</td>
 <td>0.590592</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">28</td>
 <td>15</td>
 <td>0.380952</td>
 <td>0.190476</td>
 <td>0.571429</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">29</td>
 <td>15</td>
 <td>0.428571</td>
 <td>0.238095</td>
@@ -766,104 +723,101 @@ memory usage: 6.8+ KB</code></pre>
 </tr>
 </tbody>
 </table>
-
-<p>30 rows × 4 columns</p>
 </div>
 </div>
 </div>
 <p>The default confidence level is 95%. This can be changed using the <code>conf_level</code> argument. Below, tighter confidence intervals are constructed by decreasing the confidence level to 90%.</p>
 <div class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    group_by(<span class="st">'pol_yr'</span>).</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    trx_stats(conf_int<span class="op">=</span><span class="va">True</span>, conf_level<span class="op">=</span><span class="fl">0.9</span>).</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'trx_util'</span>, <span class="st">'trx_util_lower'</span>, <span class="st">'trx_util_upper'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    data.select(<span class="st">'pol_yr'</span>, pl.col(<span class="st">'^trx_util.*$'</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="trx-conf2" class="cell-output cell-output-display" data-execution_count="11">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (30, 4)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_yr</th>
 <th data-quarto-table-cell-role="th">trx_util</th>
 <th data-quarto-table-cell-role="th">trx_util_lower</th>
 <th data-quarto-table-cell-role="th">trx_util_upper</th>
 </tr>
+<tr class="odd">
+<th>u32</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
 <td>1</td>
 <td>0.189526</td>
-<td>0.184780</td>
+<td>0.18478</td>
 <td>0.194272</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
 <td>1</td>
 <td>0.203765</td>
 <td>0.198911</td>
 <td>0.208619</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
 <td>2</td>
 <td>0.201638</td>
 <td>0.196571</td>
 <td>0.206706</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
 <td>2</td>
 <td>0.225915</td>
 <td>0.220671</td>
 <td>0.231218</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
 <td>3</td>
 <td>0.214912</td>
 <td>0.209456</td>
 <td>0.220368</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">25</td>
 <td>13</td>
 <td>0.516784</td>
 <td>0.494145</td>
 <td>0.539422</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">26</td>
 <td>14</td>
 <td>0.245645</td>
 <td>0.216028</td>
 <td>0.275261</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">27</td>
 <td>14</td>
 <td>0.550523</td>
 <td>0.515679</td>
 <td>0.585366</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">28</td>
 <td>15</td>
 <td>0.380952</td>
 <td>0.190476</td>
 <td>0.571429</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">29</td>
 <td>15</td>
 <td>0.428571</td>
 <td>0.238095</td>
@@ -871,8 +825,6 @@ memory usage: 6.8+ KB</code></pre>
 </tr>
 </tbody>
 </table>
-
-<p>30 rows × 4 columns</p>
 </div>
 </div>
 </div>
@@ -886,27 +838,21 @@ memory usage: 6.8+ KB</code></pre>
 \]</span> Where <code>S</code> is the aggregate transactions random variable, <code>X</code> is an individual transaction amount assumed to follow a normal distribution, and <code>N</code> is a binomial random variable for transaction utilization.</p>
 <div id="trx-conf3" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>(exposed_data.</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    group_by(<span class="st">'pol_yr'</span>).</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    trx_stats(conf_int<span class="op">=</span><span class="va">True</span>, percent_of<span class="op">=</span><span class="st">"av_anniv"</span>).</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    data[[<span class="st">'pol_yr'</span>, <span class="st">'pct_of_av_anniv_all'</span>, <span class="st">'pct_of_av_anniv_w_trx'</span>,</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>          <span class="st">'pct_of_av_anniv_w_trx_lower'</span>, <span class="st">'pct_of_av_anniv_w_trx_upper'</span>,</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>          <span class="st">'pct_of_av_anniv_all_lower'</span>, <span class="st">'pct_of_av_anniv_all_upper'</span>]].</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    info())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    data.select(<span class="st">'pol_yr'</span>, pl.col(<span class="st">'^pct_of.*$'</span>)).</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    glimpse())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;class 'pandas.core.frame.DataFrame'&gt;
-RangeIndex: 30 entries, 0 to 29
-Data columns (total 7 columns):
- #   Column                       Non-Null Count  Dtype  
----  ------                       --------------  -----  
- 0   pol_yr                       30 non-null     int64  
- 1   pct_of_av_anniv_all          30 non-null     float64
- 2   pct_of_av_anniv_w_trx        30 non-null     float64
- 3   pct_of_av_anniv_w_trx_lower  30 non-null     float64
- 4   pct_of_av_anniv_w_trx_upper  30 non-null     float64
- 5   pct_of_av_anniv_all_lower    30 non-null     float64
- 6   pct_of_av_anniv_all_upper    30 non-null     float64
-dtypes: float64(6), int64(1)
-memory usage: 1.8 KB</code></pre>
+<pre><code>Rows: 30
+Columns: 7
+$ pol_yr                      &lt;u32&gt; 1, 1, 2, 2, 3, 3, 4, 4, 5, 5
+$ pct_of_av_anniv_all         &lt;f64&gt; 0.004919864491031837, 0.010888653268305336, 0.005082440454361061, 0.012519105808200455, 0.0054184028999354535, 0.01372773518470287, 0.0057982676649823905, 0.014308868197434476, 0.006049953867711983, 0.01458240440835664
+$ pct_of_av_anniv_w_trx       &lt;f64&gt; 0.02528862835502511, 0.05325323830478904, 0.024845795776212595, 0.057366977699646195, 0.025090409528046198, 0.058707111268391836, 0.02573072327170688, 0.058632474394021104, 0.025600201973245067, 0.05745971742829165
+$ pct_of_av_anniv_w_trx_lower &lt;f64&gt; 0.024019602566381235, 0.05078956041146959, 0.02362582577122162, 0.05443418723085425, 0.02388004600357687, 0.055946842712423055, 0.024241205873009836, 0.05572760267518904, 0.024227755075207042, 0.05431596122849967
+$ pct_of_av_anniv_w_trx_upper &lt;f64&gt; 0.02655765414366899, 0.055716916198108486, 0.02606576578120357, 0.06029976816843815, 0.02630077305251553, 0.061467379824360624, 0.02722024067040392, 0.06153734611285317, 0.02697264887128309, 0.06060347362808364
+$ pct_of_av_anniv_all_lower   &lt;f64&gt; 0.004632812409391607, 0.010297256498243708, 0.004790158298104324, 0.011790284670673416, 0.00511005224674474, 0.012979911178210493, 0.005417177353585797, 0.013498165909945252, 0.005671678443875981, 0.01368698584634903
+$ pct_of_av_anniv_all_upper   &lt;f64&gt; 0.0052069165726720676, 0.011480050038366964, 0.005374722610617797, 0.013247926945727493, 0.0057267535531261675, 0.014475559191195248, 0.006179357976378984, 0.0151195704849237, 0.006428229291547985, 0.01547782297036425
+</code></pre>
 </div>
 </div>
 </section>
@@ -944,31 +890,24 @@ Groups: pol_yr
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base
 
-
-A DataFrame: 15 x 10
-   pol_yr trx_type   trx_n  trx_flag   trx_amt  exposure    avg_trx  \
-0       1     Base  7447.0      3514  119877.0   18541.0  34.114115   
-1       2     Base  7274.0      3422  116967.0   16971.0  34.180888   
-2       3     Base  7061.0      3309  116357.0   15397.0  35.163796   
-3       4     Base  6596.0      3080  114987.0   13790.0  37.333442   
-4       5     Base  6093.0      2847  109918.0   12234.0  38.608360   
-5       6     Base  5543.0      2572   97455.0   10697.0  37.890747   
-6       7     Base  4921.0      2297   92797.0    9294.0  40.399216   
-7       8     Base  4200.0      1964   85740.0    7783.0  43.655804   
-8       9     Base  3579.0      1655   70715.0    6372.0  42.728097   
-9      10     Base  3004.0      1376   57935.0    5052.0  42.103924   
-
-     avg_all  trx_freq  trx_util  
-0   6.465509  2.119237  0.189526  
-1   6.892169  2.125658  0.201638  
-2   7.557122  2.133877  0.214912  
-3   8.338434  2.141558  0.223350  
-4   8.984633  2.140148  0.232712  
-5   9.110498  2.155132  0.240441  
-6   9.984614  2.142360  0.247149  
-7  11.016318  2.138493  0.252345  
-8  11.097772  2.162538  0.259730  
-9  11.467736  2.183140  0.272367  </code></pre>
+shape: (15, 10)
+┌────────┬──────────┬────────┬──────────┬───┬───────────┬───────────┬──────────┬──────────┐
+│ pol_yr ┆ trx_type ┆ trx_n  ┆ trx_flag ┆ … ┆ avg_trx   ┆ avg_all   ┆ trx_freq ┆ trx_util │
+│ ---    ┆ ---      ┆ ---    ┆ ---      ┆   ┆ ---       ┆ ---       ┆ ---      ┆ ---      │
+│ u32    ┆ str      ┆ f64    ┆ u32      ┆   ┆ f64       ┆ f64       ┆ f64      ┆ f64      │
+╞════════╪══════════╪════════╪══════════╪═══╪═══════════╪═══════════╪══════════╪══════════╡
+│ 1      ┆ Base     ┆ 7447.0 ┆ 3514     ┆ … ┆ 34.114115 ┆ 6.465509  ┆ 2.119237 ┆ 0.189526 │
+│ 2      ┆ Base     ┆ 7274.0 ┆ 3422     ┆ … ┆ 34.180888 ┆ 6.892169  ┆ 2.125658 ┆ 0.201638 │
+│ 3      ┆ Base     ┆ 7061.0 ┆ 3309     ┆ … ┆ 35.163796 ┆ 7.557122  ┆ 2.133877 ┆ 0.214912 │
+│ 4      ┆ Base     ┆ 6596.0 ┆ 3080     ┆ … ┆ 37.333442 ┆ 8.338434  ┆ 2.141558 ┆ 0.22335  │
+│ 5      ┆ Base     ┆ 6093.0 ┆ 2847     ┆ … ┆ 38.60836  ┆ 8.984633  ┆ 2.140148 ┆ 0.232712 │
+│ …      ┆ …        ┆ …      ┆ …        ┆ … ┆ …         ┆ …         ┆ …        ┆ …        │
+│ 11     ┆ Base     ┆ 2428.0 ┆ 1115     ┆ … ┆ 48.259193 ┆ 13.804259 ┆ 2.177578 ┆ 0.286044 │
+│ 12     ┆ Base     ┆ 1320.0 ┆ 605      ┆ … ┆ 50.289256 ┆ 13.414903 ┆ 2.181818 ┆ 0.266755 │
+│ 13     ┆ Base     ┆ 700.0  ┆ 319      ┆ … ┆ 55.827586 ┆ 13.90242  ┆ 2.194357 ┆ 0.249024 │
+│ 14     ┆ Base     ┆ 315.0  ┆ 141      ┆ … ┆ 63.0      ┆ 15.47561  ┆ 2.234043 ┆ 0.245645 │
+│ 15     ┆ Base     ┆ 19.0   ┆ 8        ┆ … ┆ 28.125    ┆ 10.714286 ┆ 2.375    ┆ 0.380952 │
+└────────┴──────────┴────────┴──────────┴───┴───────────┴───────────┴──────────┴──────────┘</code></pre>
 </div>
 </div>
 <p>If the <code>combine_trx</code> argument is set to <code>True</code>, all transaction types will be combined in a group called “All” in the output.</p>
@@ -981,31 +920,24 @@ Groups: pol_yr
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 
-
-A DataFrame: 15 x 10
-   pol_yr trx_type    trx_n  trx_flag   trx_amt  exposure    avg_trx  \
-0       1      All  15524.0      7292  385189.0   18541.0  52.823505   
-1       2      All  15506.0      7256  405081.0   16971.0  55.827040   
-2       3      All  15265.0      7126  411152.0   15397.0  57.697446   
-3       4      All  14556.0      6795  398750.0   13790.0  58.682855   
-4       5      All  13629.0      6368  374857.0   12234.0  58.865735   
-5       6      All  12661.0      5914  361971.0   10697.0  61.205783   
-6       7      All  11552.0      5394  344299.0    9294.0  63.829996   
-7       8      All  10152.0      4737  312510.0    7783.0  65.972134   
-8       9      All   8752.0      4061  274715.0    6372.0  67.647131   
-9      10      All   7335.0      3374  232392.0    5052.0  68.877297   
-
-     avg_all  trx_freq  trx_util  
-0  20.774985  2.128908  0.393291  
-1  23.869012  2.136990  0.427553  
-2  26.703384  2.142155  0.462817  
-3  28.915881  2.142163  0.492748  
-4  30.640592  2.140232  0.520517  
-5  33.838553  2.140852  0.552865  
-6  37.045298  2.141639  0.580374  
-7  40.152897  2.143129  0.608634  
-8  43.112837  2.155134  0.637320  
-9  46.000000  2.173977  0.667854  </code></pre>
+shape: (15, 10)
+┌────────┬──────────┬─────────┬──────────┬───┬───────────┬───────────┬──────────┬──────────┐
+│ pol_yr ┆ trx_type ┆ trx_n   ┆ trx_flag ┆ … ┆ avg_trx   ┆ avg_all   ┆ trx_freq ┆ trx_util │
+│ ---    ┆ ---      ┆ ---     ┆ ---      ┆   ┆ ---       ┆ ---       ┆ ---      ┆ ---      │
+│ u32    ┆ str      ┆ f64     ┆ u32      ┆   ┆ f64       ┆ f64       ┆ f64      ┆ f64      │
+╞════════╪══════════╪═════════╪══════════╪═══╪═══════════╪═══════════╪══════════╪══════════╡
+│ 1      ┆ All      ┆ 15524.0 ┆ 7292     ┆ … ┆ 52.823505 ┆ 20.774985 ┆ 2.128908 ┆ 0.393291 │
+│ 2      ┆ All      ┆ 15506.0 ┆ 7256     ┆ … ┆ 55.82704  ┆ 23.869012 ┆ 2.13699  ┆ 0.427553 │
+│ 3      ┆ All      ┆ 15265.0 ┆ 7126     ┆ … ┆ 57.697446 ┆ 26.703384 ┆ 2.142155 ┆ 0.462817 │
+│ 4      ┆ All      ┆ 14556.0 ┆ 6795     ┆ … ┆ 58.682855 ┆ 28.915881 ┆ 2.142163 ┆ 0.492748 │
+│ 5      ┆ All      ┆ 13629.0 ┆ 6368     ┆ … ┆ 58.865735 ┆ 30.640592 ┆ 2.140232 ┆ 0.520517 │
+│ …      ┆ …        ┆ …       ┆ …        ┆ … ┆ …         ┆ …         ┆ …        ┆ …        │
+│ 11     ┆ All      ┆ 5896.0  ┆ 2712     ┆ … ┆ 71.323378 ┆ 49.622627 ┆ 2.174041 ┆ 0.695741 │
+│ 12     ┆ All      ┆ 3718.0  ┆ 1681     ┆ … ┆ 71.917906 ┆ 53.304233 ┆ 2.211779 ┆ 0.741182 │
+│ 13     ┆ All      ┆ 2186.0  ┆ 981      ┆ … ┆ 82.251784 ┆ 62.989071 ┆ 2.228338 ┆ 0.765808 │
+│ 14     ┆ All      ┆ 1051.0  ┆ 457      ┆ … ┆ 86.501094 ┆ 68.869338 ┆ 2.299781 ┆ 0.796167 │
+│ 15     ┆ All      ┆ 38.0    ┆ 17       ┆ … ┆ 68.764706 ┆ 55.666667 ┆ 2.235294 ┆ 0.809524 │
+└────────┴──────────┴─────────┴──────────┴───┴───────────┴───────────┴──────────┴──────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -1021,31 +953,24 @@ Groups: pol_yr
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 
-
-A DataFrame: 30 x 10
-   pol_yr trx_type   trx_n  trx_flag   trx_amt      exposure    avg_trx  \
-0       1     Base  8123.0      3818  129155.0  19252.212366  33.827920   
-1       1    Rider  8819.0      4103  290608.0  19252.212366  70.828175   
-2       2     Base  7924.0      3737  128258.0  17714.780418  34.321113   
-3       2    Rider  8976.0      4186  312661.0  17714.780418  74.692069   
-4       3     Base  7668.0      3603  127202.0  16097.137376  35.304468   
-5       3    Rider  9011.0      4193  322147.0  16097.137376  76.829716   
-6       4     Base  7299.0      3427  127108.0  14535.864406  37.090166   
-7       4    Rider  8894.0      4148  313402.0  14535.864406  75.554966   
-8       5     Base  6777.0      3166  121709.0  12915.526244  38.442514   
-9       5    Rider  8576.0      3987  298753.0  12915.526244  74.931778   
-
-     avg_all  trx_freq  trx_util  
-0   6.708580  2.127554  0.198315  
-1  15.094785  2.149403  0.213118  
-2   7.240169  2.120417  0.210954  
-3  17.649725  2.144290  0.236300  
-4   7.902150  2.128226  0.223829  
-5  20.012689  2.149058  0.260481  
-6   8.744440  2.129851  0.235762  
-7  21.560603  2.144166  0.285363  
-8   9.423464  2.140556  0.245131  
-9  23.131307  2.150991  0.308698  </code></pre>
+shape: (30, 10)
+┌────────┬──────────┬────────┬──────────┬───┬────────────┬────────────┬──────────┬──────────┐
+│ pol_yr ┆ trx_type ┆ trx_n  ┆ trx_flag ┆ … ┆ avg_trx    ┆ avg_all    ┆ trx_freq ┆ trx_util │
+│ ---    ┆ ---      ┆ ---    ┆ ---      ┆   ┆ ---        ┆ ---        ┆ ---      ┆ ---      │
+│ u32    ┆ str      ┆ f64    ┆ u32      ┆   ┆ f64        ┆ f64        ┆ f64      ┆ f64      │
+╞════════╪══════════╪════════╪══════════╪═══╪════════════╪════════════╪══════════╪══════════╡
+│ 1      ┆ Base     ┆ 8123.0 ┆ 3818     ┆ … ┆ 33.82792   ┆ 6.70858    ┆ 2.127554 ┆ 0.198315 │
+│ 1      ┆ Rider    ┆ 8819.0 ┆ 4103     ┆ … ┆ 70.828175  ┆ 15.094785  ┆ 2.149403 ┆ 0.213118 │
+│ 2      ┆ Base     ┆ 7924.0 ┆ 3737     ┆ … ┆ 34.321113  ┆ 7.240169   ┆ 2.120417 ┆ 0.210954 │
+│ 2      ┆ Rider    ┆ 8976.0 ┆ 4186     ┆ … ┆ 74.692069  ┆ 17.649725  ┆ 2.14429  ┆ 0.2363   │
+│ 3      ┆ Base     ┆ 7668.0 ┆ 3603     ┆ … ┆ 35.304468  ┆ 7.90215    ┆ 2.128226 ┆ 0.223829 │
+│ …      ┆ …        ┆ …      ┆ …        ┆ … ┆ …          ┆ …          ┆ …        ┆ …        │
+│ 13     ┆ Rider    ┆ 2285.0 ┆ 1026     ┆ … ┆ 91.708577  ┆ 58.085349  ┆ 2.227096 ┆ 0.633369 │
+│ 14     ┆ Base     ┆ 622.0  ┆ 283      ┆ … ┆ 60.55477   ┆ 19.656158  ┆ 2.19788  ┆ 0.324601 │
+│ 14     ┆ Rider    ┆ 1497.0 ┆ 663      ┆ … ┆ 102.467572 ┆ 77.922667  ┆ 2.257919 ┆ 0.760462 │
+│ 15     ┆ Base     ┆ 277.0  ┆ 121      ┆ … ┆ 75.280992  ┆ 33.966156  ┆ 2.289256 ┆ 0.451192 │
+│ 15     ┆ Rider    ┆ 705.0  ┆ 309      ┆ … ┆ 101.032362 ┆ 116.411179 ┆ 2.281553 ┆ 1.152217 │
+└────────┴──────────┴────────┴──────────┴───┴────────────┴────────────┴──────────┴──────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -1062,19 +987,16 @@ Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 Transactions as % of: av_anniv
 
-
-A DataFrame: 2 x 13
-  trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx    avg_all  \
-0     Base  60500.0     28224  1093899.0  124173.0  38.757759   8.809475   
-1    Rider  77321.0     35941  2842729.0  124173.0  79.094321  22.893294   
-
-   trx_freq  trx_util     av_anniv  av_anniv_w_trx  pct_of_av_anniv_all  \
-0  2.143566  0.227296  184065396.0      43514812.0             0.005943   
-1  2.151331  0.289443  184065396.0      47684258.0             0.015444   
-
-   pct_of_av_anniv_w_trx  
-0               0.025139  
-1               0.059616  </code></pre>
+shape: (2, 13)
+┌──────────┬─────────┬──────────┬────────────┬───┬──────────┬──────────┬─────────────┬─────────────┐
+│ trx_type ┆ trx_n   ┆ trx_flag ┆ trx_amt    ┆ … ┆ trx_freq ┆ trx_util ┆ pct_of_av_a ┆ pct_of_av_a │
+│ ---      ┆ ---     ┆ ---      ┆ ---        ┆   ┆ ---      ┆ ---      ┆ nniv_all    ┆ nniv_w_trx  │
+│ str      ┆ f64     ┆ u32      ┆ f64        ┆   ┆ f64      ┆ f64      ┆ ---         ┆ ---         │
+│          ┆         ┆          ┆            ┆   ┆          ┆          ┆ f64         ┆ f64         │
+╞══════════╪═════════╪══════════╪════════════╪═══╪══════════╪══════════╪═════════════╪═════════════╡
+│ Base     ┆ 60500.0 ┆ 28224    ┆ 1.093899e6 ┆ … ┆ 2.143566 ┆ 0.227296 ┆ 0.005943    ┆ 0.025139    │
+│ Rider    ┆ 77321.0 ┆ 35941    ┆ 2.842729e6 ┆ … ┆ 2.151331 ┆ 0.289443 ┆ 0.015444    ┆ 0.059616    │
+└──────────┴─────────┴──────────┴────────────┴───┴──────────┴──────────┴─────────────┴─────────────┘</code></pre>
 </div>
 </div>
 <p>If additional variable names are passed to the <code>summary()</code> function, then the output will group the data by those variables. In our example, if <code>pol_yr</code> is passed to <code>summary()</code>, the output will contain one row per policy year for each transaction type.</p>
@@ -1088,43 +1010,25 @@ Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 Transactions as % of: av_anniv
 
-
-A DataFrame: 30 x 14
-   pol_yr trx_type   trx_n  trx_flag   trx_amt  exposure    avg_trx  \
-0       1     Base  7447.0      3514  119877.0   18541.0  34.114115   
-1       1    Rider  8077.0      3778  265312.0   18541.0  70.225516   
-2       2     Base  7274.0      3422  116967.0   16971.0  34.180888   
-3       2    Rider  8232.0      3834  288114.0   16971.0  75.147105   
-4       3     Base  7061.0      3309  116357.0   15397.0  35.163796   
-5       3    Rider  8204.0      3817  294795.0   15397.0  77.232119   
-6       4     Base  6596.0      3080  114987.0   13790.0  37.333442   
-7       4    Rider  7960.0      3715  283763.0   13790.0  76.383042   
-8       5     Base  6093.0      2847  109918.0   12234.0  38.608360   
-9       5    Rider  7536.0      3521  264939.0   12234.0  75.245385   
-
-     avg_all  trx_freq  trx_util    av_anniv  av_anniv_w_trx  \
-0   6.465509  2.119237  0.189526  24365915.0       4740352.0   
-1  14.309476  2.137904  0.203765  24365915.0       4982082.0   
-2   6.892169  2.125658  0.201638  23013944.0       4707718.0   
-3  16.976843  2.147105  0.225915  23013944.0       5022297.0   
-4   7.557122  2.133877  0.214912  21474409.0       4637509.0   
-5  19.146262  2.149332  0.247905  21474409.0       5021453.0   
-6   8.338434  2.141558  0.223350  19831268.0       4468860.0   
-7  20.577447  2.142665  0.269398  19831268.0       4839690.0   
-8   8.984633  2.140148  0.232712  18168403.0       4293638.0   
-9  21.655959  2.140301  0.287804  18168403.0       4610865.0   
-
-   pct_of_av_anniv_all  pct_of_av_anniv_w_trx  
-0             0.004920               0.025289  
-1             0.010889               0.053253  
-2             0.005082               0.024846  
-3             0.012519               0.057367  
-4             0.005418               0.025090  
-5             0.013728               0.058707  
-6             0.005798               0.025731  
-7             0.014309               0.058632  
-8             0.006050               0.025600  
-9             0.014582               0.057460  </code></pre>
+shape: (30, 14)
+┌────────┬──────────┬────────┬──────────┬───┬──────────┬──────────┬────────────────┬───────────────┐
+│ pol_yr ┆ trx_type ┆ trx_n  ┆ trx_flag ┆ … ┆ trx_freq ┆ trx_util ┆ pct_of_av_anni ┆ pct_of_av_ann │
+│ ---    ┆ ---      ┆ ---    ┆ ---      ┆   ┆ ---      ┆ ---      ┆ v_all          ┆ iv_w_trx      │
+│ u32    ┆ str      ┆ f64    ┆ u32      ┆   ┆ f64      ┆ f64      ┆ ---            ┆ ---           │
+│        ┆          ┆        ┆          ┆   ┆          ┆          ┆ f64            ┆ f64           │
+╞════════╪══════════╪════════╪══════════╪═══╪══════════╪══════════╪════════════════╪═══════════════╡
+│ 1      ┆ Base     ┆ 7447.0 ┆ 3514     ┆ … ┆ 2.119237 ┆ 0.189526 ┆ 0.00492        ┆ 0.025289      │
+│ 1      ┆ Rider    ┆ 8077.0 ┆ 3778     ┆ … ┆ 2.137904 ┆ 0.203765 ┆ 0.010889       ┆ 0.053253      │
+│ 2      ┆ Base     ┆ 7274.0 ┆ 3422     ┆ … ┆ 2.125658 ┆ 0.201638 ┆ 0.005082       ┆ 0.024846      │
+│ 2      ┆ Rider    ┆ 8232.0 ┆ 3834     ┆ … ┆ 2.147105 ┆ 0.225915 ┆ 0.012519       ┆ 0.057367      │
+│ 3      ┆ Base     ┆ 7061.0 ┆ 3309     ┆ … ┆ 2.133877 ┆ 0.214912 ┆ 0.005418       ┆ 0.02509       │
+│ …      ┆ …        ┆ …      ┆ …        ┆ … ┆ …        ┆ …        ┆ …              ┆ …             │
+│ 13     ┆ Rider    ┆ 1486.0 ┆ 662      ┆ … ┆ 2.244713 ┆ 0.516784 ┆ 0.025157       ┆ 0.064411      │
+│ 14     ┆ Base     ┆ 315.0  ┆ 141      ┆ … ┆ 2.234043 ┆ 0.245645 ┆ 0.007851       ┆ 0.024588      │
+│ 14     ┆ Rider    ┆ 736.0  ┆ 316      ┆ … ┆ 2.329114 ┆ 0.550523 ┆ 0.027088       ┆ 0.068         │
+│ 15     ┆ Base     ┆ 19.0   ┆ 8        ┆ … ┆ 2.375    ┆ 0.380952 ┆ 0.00725        ┆ 0.02034       │
+│ 15     ┆ Rider    ┆ 19.0   ┆ 9        ┆ … ┆ 2.111111 ┆ 0.428571 ┆ 0.030418       ┆ 0.078347      │
+└────────┴──────────┴────────┴──────────┴───┴──────────┴──────────┴────────────────┴───────────────┘</code></pre>
 </div>
 </div>
 <p>Similarly, if <code>inc_guar</code> is passed to <code>summary()</code>, the output will contain a row for each transaction type and unique value in <code>inc_guar</code>.</p>
@@ -1138,25 +1042,18 @@ Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 Transactions as % of: av_anniv
 
-
-A DataFrame: 4 x 14
-   inc_guar trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx  \
-0     False     Base  52939.0     24703   952629.0   48938.0  38.563292   
-1     False    Rider      0.0         0        0.0   48938.0        NaN   
-2      True     Base   7561.0      3521   141270.0   75235.0  40.122124   
-3      True    Rider  77321.0     35941  2842729.0   75235.0  79.094321   
-
-     avg_all  trx_freq  trx_util     av_anniv  av_anniv_w_trx  \
-0  19.466039  2.143019  0.504782   74673495.0      37938943.0   
-1   0.000000       NaN  0.000000   74673495.0             0.0   
-2   1.877716  2.147401  0.046800  109391901.0       5575869.0   
-3  37.784661  2.151331  0.477716  109391901.0      47684258.0   
-
-   pct_of_av_anniv_all  pct_of_av_anniv_w_trx  
-0             0.012757               0.025110  
-1             0.000000                    NaN  
-2             0.001291               0.025336  
-3             0.025987               0.059616  </code></pre>
+shape: (4, 14)
+┌──────────┬──────────┬─────────┬──────────┬───┬──────────┬──────────┬──────────────┬──────────────┐
+│ inc_guar ┆ trx_type ┆ trx_n   ┆ trx_flag ┆ … ┆ trx_freq ┆ trx_util ┆ pct_of_av_an ┆ pct_of_av_an │
+│ ---      ┆ ---      ┆ ---     ┆ ---      ┆   ┆ ---      ┆ ---      ┆ niv_all      ┆ niv_w_trx    │
+│ bool     ┆ str      ┆ f64     ┆ u32      ┆   ┆ f64      ┆ f64      ┆ ---          ┆ ---          │
+│          ┆          ┆         ┆          ┆   ┆          ┆          ┆ f64          ┆ f64          │
+╞══════════╪══════════╪═════════╪══════════╪═══╪══════════╪══════════╪══════════════╪══════════════╡
+│ false    ┆ Base     ┆ 52939.0 ┆ 24703    ┆ … ┆ 2.143019 ┆ 0.504782 ┆ 0.012757     ┆ 0.02511      │
+│ false    ┆ Rider    ┆ 0.0     ┆ 0        ┆ … ┆ NaN      ┆ 0.0      ┆ 0.0          ┆ NaN          │
+│ true     ┆ Base     ┆ 7561.0  ┆ 3521     ┆ … ┆ 2.147401 ┆ 0.0468   ┆ 0.001291     ┆ 0.025336     │
+│ true     ┆ Rider    ┆ 77321.0 ┆ 35941    ┆ … ┆ 2.151331 ┆ 0.477716 ┆ 0.025987     ┆ 0.059616     │
+└──────────┴──────────┴─────────┴──────────┴───┴──────────┴──────────┴──────────────┴──────────────┘</code></pre>
 </div>
 </div>
 </section>

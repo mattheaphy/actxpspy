@@ -371,23 +371,6 @@ ul.task-list li input[type="checkbox"] {
 </li>
       </ul>
   </li>
-          <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
- <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">add_interval</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
       </ul>
   </li>
     </ul>
@@ -418,10 +401,12 @@ ul.task-list li input[type="checkbox"] {
 <p>Toy policy census data</p>
 <p>A tiny dataset containing 3 policies: one active, one terminated due to death, and one terminated due to surrender.</p>
 <p>A data frame with 3 rows and 4 columns:</p>
-<pre><code>- `pol_num` = policy number
-- `status` = policy status
-- `issue_date` = issue date
-- `term_date` = termination date</code></pre>
+<ul>
+<li><code>pol_num</code> = policy number</li>
+<li><code>status</code> = policy status</li>
+<li><code>issue_date</code> = issue date</li>
+<li><code>term_date</code> = termination date</li>
+</ul>
 <section id="returns" class="level2">
 <h2 class="anchored" data-anchor-id="returns">Returns</h2>
 <table class="table">
@@ -433,7 +418,7 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td>pandas.pandas.DataFrame</td>
+<td>polars.polars.DataFrame</td>
 <td></td>
 </tr>
 </tbody>

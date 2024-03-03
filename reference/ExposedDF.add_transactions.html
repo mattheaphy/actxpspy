@@ -405,23 +405,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
-          <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
- <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">add_interval</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
       </ul>
   </li>
     </ul>
@@ -466,10 +449,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 7%">
-<col style="width: 11%">
-<col style="width: 74%">
 <col style="width: 6%">
+<col style="width: 21%">
+<col style="width: 66%">
+<col style="width: 5%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -482,7 +465,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td><code>trx_data</code></td>
-<td>pandas.pandas.DataFrame</td>
+<td>polars.polars.DataFrame | pandas.pandas.DataFrame</td>
 <td>A data frame containing transactions details. This data frame must have columns for policy numbers, transaction dates, transaction types, and transaction amounts.</td>
 <td><em>required</em></td>
 </tr>
@@ -525,7 +508,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>census <span class="op">=</span> xp.load_census_dat()</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>withdrawals <span class="op">=</span> xp.load_withdrawals()</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                              target_status <span class="op">=</span> <span class="st">"Surrender"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>Exposure data
@@ -535,42 +518,25 @@ Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 
-A DataFrame: 141,252 x 19
-   pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
-0        1  Active 2014-12-17      True  False   56       b      F      77   
-1        1  Active 2014-12-17      True  False   56       b      F      77   
-2        1  Active 2014-12-17      True  False   56       b      F      77   
-3        1  Active 2014-12-17      True  False   56       b      F      77   
-4        1  Active 2014-12-17      True  False   56       b      F      77   
-5        1  Active 2014-12-17      True  False   56       b      F      77   
-6        2  Active 2007-09-24     False  False   71       a      F      71   
-7        2  Active 2007-09-24     False  False   71       a      F      71   
-8        2  Active 2007-09-24     False  False   71       a      F      71   
-9        2  Active 2007-09-24     False  False   71       a      F      71   
-
-   premium term_date  pol_yr pol_date_yr pol_date_yr_end  exposure  \
-0    370.0       NaT       1  2014-12-17      2015-12-16  1.000000   
-1    370.0       NaT       2  2015-12-17      2016-12-16  1.000000   
-2    370.0       NaT       3  2016-12-17      2017-12-16  1.000000   
-3    370.0       NaT       4  2017-12-17      2018-12-16  1.000000   
-4    370.0       NaT       5  2018-12-17      2019-12-16  1.000000   
-5    370.0       NaT       6  2019-12-17      2020-12-16  0.040984   
-6    708.0       NaT       1  2007-09-24      2008-09-23  1.000000   
-7    708.0       NaT       2  2008-09-24      2009-09-23  1.000000   
-8    708.0       NaT       3  2009-09-24      2010-09-23  1.000000   
-9    708.0       NaT       4  2010-09-24      2011-09-23  1.000000   
-
-   trx_amt_Base  trx_amt_Rider  trx_n_Base  trx_n_Rider  
-0           0.0            0.0         0.0          0.0  
-1           0.0            0.0         0.0          0.0  
-2           0.0            0.0         0.0          0.0  
-3           0.0            0.0         0.0          0.0  
-4           0.0            0.0         0.0          0.0  
-5           0.0            0.0         0.0          0.0  
-6          25.0            0.0         1.0          0.0  
-7          12.0            0.0         1.0          0.0  
-8           7.0            0.0         1.0          0.0  
-9          52.0            0.0         1.0          0.0  </code></pre>
+shape: (141_252, 19)
+┌─────────┬────────┬────────────┬──────────┬───┬────────────┬────────────┬────────────┬────────────┐
+│ pol_num ┆ status ┆ issue_date ┆ inc_guar ┆ … ┆ trx_n_Base ┆ trx_n_Ride ┆ trx_amt_Ba ┆ trx_amt_Ri │
+│ ---     ┆ ---    ┆ ---        ┆ ---      ┆   ┆ ---        ┆ r          ┆ se         ┆ der        │
+│ i64     ┆ enum   ┆ date       ┆ bool     ┆   ┆ i32        ┆ ---        ┆ ---        ┆ ---        │
+│         ┆        ┆            ┆          ┆   ┆            ┆ i32        ┆ f64        ┆ f64        │
+╞═════════╪════════╪════════════╪══════════╪═══╪════════════╪════════════╪════════════╪════════════╡
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 0          ┆ 0          ┆ 0.0        ┆ 0.0        │
+│ …       ┆ …      ┆ …          ┆ …        ┆ … ┆ …          ┆ …          ┆ …          ┆ …          │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 547.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 106.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 31.0       │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 75.0       │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 0          ┆ 1          ┆ 0.0        ┆ 466.0      │
+└─────────┴────────┴────────────┴──────────┴───┴────────────┴────────────┴────────────┴────────────┘</code></pre>
 </div>
 </div>
 

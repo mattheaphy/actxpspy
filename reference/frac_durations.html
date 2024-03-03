@@ -93,6 +93,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -405,23 +408,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
-          <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
- <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">add_interval</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
       </ul>
   </li>
     </ul>
@@ -495,10 +481,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 12%">
-<col style="width: 62%">
 <col style="width: 14%">
-<col style="width: 10%">
+<col style="width: 55%">
+<col style="width: 17%">
+<col style="width: 12%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -511,13 +497,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | datetime.date | list | polars.polars.Series</td>
 <td>Start dates</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | datetime.date | list | polars.polars.Series</td>
 <td>End dates</td>
 <td><em>required</em></td>
 </tr>
@@ -532,7 +518,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="returns" class="level2">
 <h2 class="anchored" data-anchor-id="returns">Returns</h2>
-<p>np.ndarray A vector of floats</p>
+<p>pl.Series A series of floats</p>
 </section>
 <section id="see-also" class="level2">
 <h2 class="anchored" data-anchor-id="see-also">See Also</h2>
@@ -546,7 +532,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                 [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>], </span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                 <span class="st">'year'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
-<pre><code>array([16.13150685, 15.8852459 ])</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (2,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>16.131507</td>
+</tr>
+<tr class="even">
+<td>15.885246</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </section>
@@ -558,10 +570,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="parameters-1">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
+<col style="width: 12%">
+<col style="width: 48%">
+<col style="width: 21%">
+<col style="width: 17%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -574,13 +586,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | date | list | pl.Series</td>
 <td>Start dates</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | date | list | pl.Series</td>
 <td>End dates</td>
 <td><em>required</em></td>
 </tr>
@@ -589,7 +601,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="returns-1" class="level2">
 <h2 class="anchored" data-anchor-id="returns-1">Returns</h2>
-<p>np.ndarray A vector of floats</p>
+<p>pl.Series</p>
 </section>
 <section id="see-also-1" class="level2">
 <h2 class="anchored" data-anchor-id="see-also-1">See Also</h2>
@@ -598,11 +610,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="examples-1" class="level2">
 <h2 class="anchored" data-anchor-id="examples-1">Examples</h2>
 <div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>xp.frac_yr([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>],</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>           [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>xp.frac_yr([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>],</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>           [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
-<pre><code>array([16.13150685, 15.8852459 ])</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (2,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>16.131507</td>
+</tr>
+<tr class="even">
+<td>15.885246</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </section>
@@ -615,10 +653,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="parameters-2">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
+<col style="width: 10%">
+<col style="width: 60%">
+<col style="width: 16%">
 <col style="width: 13%">
-<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -631,13 +669,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | datetime.date | list | polars.polars.Series</td>
 <td>Start dates</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | datetime.date | list | polars.polars.Series</td>
 <td>End dates</td>
 <td><em>required</em></td>
 </tr>
@@ -646,7 +684,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="returns-2" class="level2">
 <h2 class="anchored" data-anchor-id="returns-2">Returns</h2>
-<p>np.ndarray A vector of floats</p>
+<p>pl.Series</p>
 </section>
 <section id="see-also-2" class="level2">
 <h2 class="anchored" data-anchor-id="see-also-2">See Also</h2>
@@ -655,11 +693,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="examples-2" class="level2">
 <h2 class="anchored" data-anchor-id="examples-2">Examples</h2>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>xp.frac_qtr([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>],</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>            [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>xp.frac_qtr([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>],</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>            [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
-<pre><code>array([64.52173913, 63.53846154])</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (2,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>64.521739</td>
+</tr>
+<tr class="even">
+<td>63.538462</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </section>
@@ -672,10 +736,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="parameters-3">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
-<col style="width: 13%">
-<col style="width: 11%">
+<col style="width: 12%">
+<col style="width: 48%">
+<col style="width: 21%">
+<col style="width: 17%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -688,13 +752,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | date | list | pl.Series</td>
 <td>Start dates</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | date | list | pl.Series</td>
 <td>End dates</td>
 <td><em>required</em></td>
 </tr>
@@ -703,7 +767,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="returns-3" class="level2">
 <h2 class="anchored" data-anchor-id="returns-3">Returns</h2>
-<p>np.ndarray A vector of floats</p>
+<p>pl.Series</p>
 </section>
 <section id="see-also-3" class="level2">
 <h2 class="anchored" data-anchor-id="see-also-3">See Also</h2>
@@ -712,11 +776,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="examples-3" class="level2">
 <h2 class="anchored" data-anchor-id="examples-3">Examples</h2>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>xp.frac_mth([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>],</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>            [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>xp.frac_mth([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>],</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>            [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>array([193.56666667, 190.58064516])</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (2,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>193.566667</td>
+</tr>
+<tr class="even">
+<td>190.580645</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </section>
@@ -729,10 +819,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="parameters-4">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 66%">
+<col style="width: 10%">
+<col style="width: 60%">
+<col style="width: 16%">
 <col style="width: 13%">
-<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -745,13 +835,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td><code>start</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | datetime.date | list | polars.polars.Series</td>
 <td>Start dates</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td><code>end</code></td>
-<td>str | datetime.datetime | pandas.core.indexes.datetimes.DatetimeIndex</td>
+<td>str | datetime.date | list | polars.polars.Series</td>
 <td>End dates</td>
 <td><em>required</em></td>
 </tr>
@@ -760,7 +850,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="returns-4" class="level2">
 <h2 class="anchored" data-anchor-id="returns-4">Returns</h2>
-<p>np.ndarray A vector of floats</p>
+<p>pl.Series</p>
 </section>
 <section id="see-also-4" class="level2">
 <h2 class="anchored" data-anchor-id="see-also-4">See Also</h2>
@@ -769,11 +859,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="examples-4" class="level2">
 <h2 class="anchored" data-anchor-id="examples-4">Examples</h2>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>xp.frac_wk([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>],</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>           [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>xp.frac_wk([<span class="st">'2008-03-14'</span>, <span class="st">'2008-03-14'</span>],</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>           [<span class="st">'2024-05-01'</span>, <span class="st">'2024-02-01'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
-<pre><code>array([841.71428571, 828.85714286])</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (2,)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>841.714286</td>
+</tr>
+<tr class="even">
+<td>828.857143</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 

@@ -262,49 +262,69 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>toy_census <span class="op">=</span> xp.load_toy_census()</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>toy_census</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>toy_census <span class="op">=</span> xp.load_toy_census()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>toy_census</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="packages" class="cell-output cell-output-display" data-execution_count="2">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (3, 4)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">status</th>
 <th data-quarto-table-cell-role="th">issue_date</th>
 <th data-quarto-table-cell-role="th">term_date</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>cat</th>
+<th>date</th>
+<th>date</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
 <td>2</td>
-<td>Death</td>
+<td>"Death"</td>
 <td>2011-05-27</td>
 <td>2020-09-14</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
 <td>3</td>
-<td>Surrender</td>
+<td>"Surrender"</td>
 <td>2009-11-10</td>
 <td>2022-02-25</td>
 </tr>
 </tbody>
 </table>
-
 </div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>toy_census</code> is a Polars data frame. Actxps functions accept both Polars and Pandas data frames. For speed and efficiency reasons, Polars is used internally for all data wrangling, so if a Pandas data frame is passed to an actxps function it will be converted to Polars. To convert a Polars data frame to Pandas the method <code>DataFrame.to_pandas()</code> is available.</p>
 </div>
 </div>
 </section>
@@ -325,15 +345,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Policy 1</strong>: As expected, there are 13 rows for this policy. New columns were added for the policy year (<code>pol_yr</code>), date ranges (<code>pol_date_yr</code>, <code>pol_date_yr_end</code>), and exposure. All exposures are 100% since this policy was active for all 13 years.</p>
 <p>When the data is printed, additional attributes from the <code>ExposedDF</code> class are displayed.</p>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.query(<span class="st">'pol_num == 1'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.<span class="bu">filter</span>(pl.col(<span class="st">'pol_num'</span>) <span class="op">==</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="expose-pol-1" class="cell-output cell-output-display" data-execution_count="4">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (13, 8)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">status</th>
 <th data-quarto-table-cell-role="th">issue_date</th>
@@ -343,124 +367,123 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">pol_date_yr_end</th>
 <th data-quarto-table-cell-role="th">exposure</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>enum</th>
+<th>date</th>
+<th>date</th>
+<th>u32</th>
+<th>date</th>
+<th>date</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>1</td>
 <td>2010-01-01</td>
 <td>2010-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>2</td>
 <td>2011-01-01</td>
 <td>2011-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>3</td>
 <td>2012-01-01</td>
 <td>2012-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>4</td>
 <td>2013-01-01</td>
 <td>2013-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>5</td>
 <td>2014-01-01</td>
 <td>2014-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">8</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>9</td>
 <td>2018-01-01</td>
 <td>2018-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">9</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>10</td>
 <td>2019-01-01</td>
 <td>2019-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">10</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>11</td>
 <td>2020-01-01</td>
 <td>2020-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">11</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>12</td>
 <td>2021-01-01</td>
 <td>2021-12-31</td>
 <td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">12</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>13</td>
 <td>2022-01-01</td>
 <td>2022-12-31</td>
@@ -468,22 +491,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-
-<p>13 rows × 8 columns</p>
 </div>
 </div>
 </div>
 <p><strong>Policy 2</strong>: There are 10 rows for this policy. The first 9 periods show the policy in an active <code>status</code> and the termination date (<code>term_date</code>) is set to <code>NA</code>. The last period includes the final status of “Death” and the actual termination date. The last exposure is less than one because roughly a third of a year elapsed between the last anniversary date on 2020-05-27 and the termination date on 2020-09-14.</p>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.query(<span class="st">'pol_num == 2'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.<span class="bu">filter</span>(pl.col(<span class="st">'pol_num'</span>) <span class="op">==</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="expose-pol-2" class="cell-output cell-output-display" data-execution_count="5">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (10, 8)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">status</th>
 <th data-quarto-table-cell-role="th">issue_date</th>
@@ -493,111 +518,111 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">pol_date_yr_end</th>
 <th data-quarto-table-cell-role="th">exposure</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>enum</th>
+<th>date</th>
+<th>date</th>
+<th>u32</th>
+<th>date</th>
+<th>date</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">13</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>1</td>
 <td>2011-05-27</td>
 <td>2012-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">14</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2</td>
 <td>2012-05-27</td>
 <td>2013-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">15</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>3</td>
 <td>2013-05-27</td>
 <td>2014-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">16</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>4</td>
 <td>2014-05-27</td>
 <td>2015-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">17</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>5</td>
 <td>2015-05-27</td>
 <td>2016-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">18</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>6</td>
 <td>2016-05-27</td>
 <td>2017-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">19</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>7</td>
 <td>2017-05-27</td>
 <td>2018-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">20</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>8</td>
 <td>2018-05-27</td>
 <td>2019-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">21</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>9</td>
 <td>2019-05-27</td>
 <td>2020-05-26</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">22</td>
 <td>2</td>
-<td>Death</td>
+<td>"Death"</td>
 <td>2011-05-27</td>
 <td>2020-09-14</td>
 <td>10</td>
@@ -607,21 +632,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-
 </div>
 </div>
 </div>
 <p><strong>Policy 3</strong>: There are 13 rows for this policy. The first 12 periods show the policy in an active <code>status</code> and the termination date (<code>term_date</code>) is set to <code>NA</code>. The last period includes the final status of “Surrender” and the actual termination date. The last exposure is less than one because the roughly a third of a year elapsed between the last anniversary date on 2021-11-10 and the termination date on 2022-02-25.</p>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.query(<span class="st">'pol_num == 3'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>exposed_data.data.<span class="bu">filter</span>(pl.col(<span class="st">'pol_num'</span>) <span class="op">==</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="expose-pol-3" class="cell-output cell-output-display" data-execution_count="6">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (13, 8)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">status</th>
 <th data-quarto-table-cell-role="th">issue_date</th>
@@ -631,122 +659,121 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">pol_date_yr_end</th>
 <th data-quarto-table-cell-role="th">exposure</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>enum</th>
+<th>date</th>
+<th>date</th>
+<th>u32</th>
+<th>date</th>
+<th>date</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">23</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>1</td>
 <td>2009-11-10</td>
 <td>2010-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">24</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>2</td>
 <td>2010-11-10</td>
 <td>2011-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">25</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>3</td>
 <td>2011-11-10</td>
 <td>2012-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">26</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>4</td>
 <td>2012-11-10</td>
 <td>2013-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">27</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>5</td>
 <td>2013-11-10</td>
 <td>2014-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">31</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>9</td>
 <td>2017-11-10</td>
 <td>2018-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">32</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>10</td>
 <td>2018-11-10</td>
 <td>2019-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">33</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>11</td>
 <td>2019-11-10</td>
 <td>2020-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">34</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-11-10</td>
-<td>NaT</td>
+<td>null</td>
 <td>12</td>
 <td>2020-11-10</td>
 <td>2021-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">35</td>
 <td>3</td>
-<td>Surrender</td>
+<td>"Surrender"</td>
 <td>2009-11-10</td>
 <td>2022-02-25</td>
 <td>13</td>
@@ -756,8 +783,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-
-<p>13 rows × 8 columns</p>
 </div>
 </div>
 </div>
@@ -773,22 +798,20 @@ Exposure type: policy_year
 Target status: None
 Study range: 2019-12-31 to 2022-12-31
 
-A DataFrame: 6 x 8
-    pol_num     status issue_date  term_date  pol_yr pol_date_yr  \
-10        1     Active 2010-01-01        NaT      11  2020-01-01   
-11        1     Active 2010-01-01        NaT      12  2021-01-01   
-12        1     Active 2010-01-01        NaT      13  2022-01-01   
-22        2      Death 2011-05-27 2020-09-14      10  2020-05-27   
-34        3     Active 2009-11-10        NaT      12  2020-11-10   
-35        3  Surrender 2009-11-10 2022-02-25      13  2021-11-10   
-
-   pol_date_yr_end  exposure  
-10      2020-12-31   1.00000  
-11      2021-12-31   1.00000  
-12      2022-12-31   1.00000  
-22      2021-05-26   0.30411  
-34      2021-11-09   1.00000  
-35      2022-11-09   0.29589  </code></pre>
+shape: (6, 8)
+┌─────────┬───────────┬────────────┬────────────┬────────┬─────────────┬────────────────┬──────────┐
+│ pol_num ┆ status    ┆ issue_date ┆ term_date  ┆ pol_yr ┆ pol_date_yr ┆ pol_date_yr_en ┆ exposure │
+│ ---     ┆ ---       ┆ ---        ┆ ---        ┆ ---    ┆ ---         ┆ d              ┆ ---      │
+│ i64     ┆ enum      ┆ date       ┆ date       ┆ u32    ┆ date        ┆ ---            ┆ f64      │
+│         ┆           ┆            ┆            ┆        ┆             ┆ date           ┆          │
+╞═════════╪═══════════╪════════════╪════════════╪════════╪═════════════╪════════════════╪══════════╡
+│ 1       ┆ Active    ┆ 2010-01-01 ┆ null       ┆ 11     ┆ 2020-01-01  ┆ 2020-12-31     ┆ 1.0      │
+│ 1       ┆ Active    ┆ 2010-01-01 ┆ null       ┆ 12     ┆ 2021-01-01  ┆ 2021-12-31     ┆ 1.0      │
+│ 1       ┆ Active    ┆ 2010-01-01 ┆ null       ┆ 13     ┆ 2022-01-01  ┆ 2022-12-31     ┆ 1.0      │
+│ 2       ┆ Death     ┆ 2011-05-27 ┆ 2020-09-14 ┆ 10     ┆ 2020-05-27  ┆ 2021-05-26     ┆ 0.30411  │
+│ 3       ┆ Active    ┆ 2009-11-10 ┆ null       ┆ 12     ┆ 2020-11-10  ┆ 2021-11-09     ┆ 1.0      │
+│ 3       ┆ Surrender ┆ 2009-11-10 ┆ 2022-02-25 ┆ 13     ┆ 2021-11-10  ┆ 2022-11-09     ┆ 0.29589  │
+└─────────┴───────────┴────────────┴────────────┴────────┴─────────────┴────────────────┴──────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -812,15 +835,19 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 </div>
 <p>Now let’s verify that the exposure on the surrendered policy increased to 100% in the last exposure period.</p>
 <div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>exposed_data2.data.groupby(<span class="st">'pol_num'</span>).tail(<span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>exposed_data2.data.group_by(<span class="st">'pol_num'</span>).tail(<span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="expose-targ-check" class="cell-output cell-output-display" data-execution_count="9">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (3, 8)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">status</th>
 <th data-quarto-table-cell-role="th">issue_date</th>
@@ -830,23 +857,31 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <th data-quarto-table-cell-role="th">pol_date_yr_end</th>
 <th data-quarto-table-cell-role="th">exposure</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>enum</th>
+<th>date</th>
+<th>date</th>
+<th>u32</th>
+<th>date</th>
+<th>date</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">12</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2010-01-01</td>
-<td>NaT</td>
+<td>null</td>
 <td>13</td>
 <td>2022-01-01</td>
 <td>2022-12-31</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">22</td>
 <td>2</td>
-<td>Death</td>
+<td>"Death"</td>
 <td>2011-05-27</td>
 <td>2020-09-14</td>
 <td>10</td>
@@ -855,19 +890,17 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <td>0.30411</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">35</td>
 <td>3</td>
-<td>Surrender</td>
+<td>"Surrender"</td>
 <td>2009-11-10</td>
 <td>2022-02-25</td>
 <td>13</td>
 <td>2021-11-10</td>
 <td>2022-11-09</td>
-<td>1.00000</td>
+<td>1.0</td>
 </tr>
 </tbody>
 </table>
-
 </div>
 </div>
 </div>
@@ -884,15 +917,19 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>exposed_cal <span class="op">=</span> xp.ExposedDF(toy_census, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>,</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                           cal_expo<span class="op">=</span><span class="va">True</span>, target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>exposed_cal.data.query(<span class="st">'pol_num == 2'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>exposed_cal.data.<span class="bu">filter</span>(pl.col(<span class="st">'pol_num'</span>) <span class="op">==</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="expo-cal" class="cell-output cell-output-display" data-execution_count="10">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (10, 7)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">status</th>
 <th data-quarto-table-cell-role="th">issue_date</th>
@@ -901,102 +938,101 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <th data-quarto-table-cell-role="th">cal_yr_end</th>
 <th data-quarto-table-cell-role="th">exposure</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>enum</th>
+<th>date</th>
+<th>date</th>
+<th>date</th>
+<th>date</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">13</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2011-01-01</td>
 <td>2011-12-31</td>
-<td>0.600000</td>
+<td>0.6</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">14</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2012-01-01</td>
 <td>2012-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">15</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2013-01-01</td>
 <td>2013-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">16</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2014-01-01</td>
 <td>2014-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">17</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2015-01-01</td>
 <td>2015-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">18</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2016-01-01</td>
 <td>2016-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">19</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2017-01-01</td>
 <td>2017-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">20</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2018-01-01</td>
 <td>2018-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">21</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2019-01-01</td>
 <td>2019-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">22</td>
 <td>2</td>
-<td>Death</td>
+<td>"Death"</td>
 <td>2011-05-27</td>
 <td>2020-09-14</td>
 <td>2020-01-01</td>
@@ -1005,7 +1041,6 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 </tr>
 </tbody>
 </table>
-
 </div>
 </div>
 </div>
@@ -1016,15 +1051,19 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <div class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>(xp.ExposedDF(toy_census, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>, cal_expo<span class="op">=</span><span class="va">True</span>,</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>              expo_length<span class="op">=</span><span class="st">"quarter"</span>, target_status<span class="op">=</span><span class="st">"Surrender"</span>).</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>              data.query(<span class="st">'pol_num == 2'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>              data.<span class="bu">filter</span>(pl.col(<span class="st">'pol_num'</span>) <span class="op">==</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="expo-mth" class="cell-output cell-output-display" data-execution_count="11">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (38, 7)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">status</th>
 <th data-quarto-table-cell-role="th">issue_date</th>
@@ -1033,112 +1072,110 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <th data-quarto-table-cell-role="th">cal_qtr_end</th>
 <th data-quarto-table-cell-role="th">exposure</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>enum</th>
+<th>date</th>
+<th>date</th>
+<th>date</th>
+<th>date</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">52</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2011-04-01</td>
 <td>2011-06-30</td>
 <td>0.384615</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">53</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2011-07-01</td>
 <td>2011-09-30</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">54</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2011-10-01</td>
 <td>2011-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">55</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2012-01-01</td>
 <td>2012-03-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">56</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2012-04-01</td>
 <td>2012-06-30</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">85</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2019-07-01</td>
 <td>2019-09-30</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">86</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2019-10-01</td>
 <td>2019-12-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">87</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2020-01-01</td>
 <td>2020-03-31</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">88</td>
 <td>2</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2011-05-27</td>
-<td>NaT</td>
+<td>null</td>
 <td>2020-04-01</td>
 <td>2020-06-30</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">89</td>
 <td>2</td>
-<td>Death</td>
+<td>"Death"</td>
 <td>2011-05-27</td>
 <td>2020-09-14</td>
 <td>2020-07-01</td>
@@ -1147,8 +1184,6 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 </tr>
 </tbody>
 </table>
-
-<p>38 rows × 7 columns</p>
 </div>
 </div>
 </div>
@@ -1175,34 +1210,44 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <div class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>split <span class="op">=</span> exposed_cal.expose_split()</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>split.data.query(<span class="st">'pol_num == 2'</span>)[</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'cal_yr'</span>, <span class="st">'cal_yr_end'</span>, <span class="st">'pol_yr'</span>, <span class="st">'exposure_pol'</span>, <span class="st">'exposure_cal'</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>(split.data.</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a> <span class="bu">filter</span>(pl.col(<span class="st">'pol_num'</span>) <span class="op">==</span> <span class="dv">2</span>).</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a> select(<span class="st">'cal_yr'</span>, <span class="st">'cal_yr_end'</span>, <span class="st">'pol_yr'</span>, <span class="st">'exposure_pol'</span>, <span class="st">'exposure_cal'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="expo-split" class="cell-output cell-output-display" data-execution_count="12">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (19, 5)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">cal_yr</th>
 <th data-quarto-table-cell-role="th">cal_yr_end</th>
 <th data-quarto-table-cell-role="th">pol_yr</th>
 <th data-quarto-table-cell-role="th">exposure_pol</th>
 <th data-quarto-table-cell-role="th">exposure_cal</th>
 </tr>
+<tr class="odd">
+<th>date</th>
+<th>date</th>
+<th>i32</th>
+<th>f64</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">13</td>
 <td>2011-05-27</td>
 <td>2011-12-31</td>
 <td>1</td>
 <td>0.598361</td>
-<td>0.600000</td>
+<td>0.6</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">14</td>
 <td>2012-01-01</td>
 <td>2012-05-26</td>
 <td>1</td>
@@ -1210,63 +1255,55 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <td>0.401639</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">14</td>
 <td>2012-05-27</td>
 <td>2012-12-31</td>
 <td>2</td>
-<td>0.600000</td>
+<td>0.6</td>
 <td>0.598361</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">15</td>
 <td>2013-01-01</td>
 <td>2013-05-26</td>
 <td>2</td>
-<td>0.400000</td>
-<td>0.400000</td>
+<td>0.4</td>
+<td>0.4</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">15</td>
 <td>2013-05-27</td>
 <td>2013-12-31</td>
 <td>3</td>
-<td>0.600000</td>
-<td>0.600000</td>
+<td>0.6</td>
+<td>0.6</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">20</td>
 <td>2018-05-27</td>
 <td>2018-12-31</td>
 <td>8</td>
-<td>0.600000</td>
-<td>0.600000</td>
+<td>0.6</td>
+<td>0.6</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">21</td>
 <td>2019-01-01</td>
 <td>2019-05-26</td>
 <td>8</td>
-<td>0.400000</td>
-<td>0.400000</td>
+<td>0.4</td>
+<td>0.4</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">21</td>
 <td>2019-05-27</td>
 <td>2019-12-31</td>
 <td>9</td>
 <td>0.598361</td>
-<td>0.600000</td>
+<td>0.6</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">22</td>
 <td>2020-01-01</td>
 <td>2020-05-26</td>
 <td>9</td>
@@ -1274,17 +1311,14 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 <td>0.401639</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">22</td>
 <td>2020-05-27</td>
 <td>2020-12-31</td>
 <td>10</td>
-<td>0.304110</td>
+<td>0.30411</td>
 <td>0.303279</td>
 </tr>
 </tbody>
 </table>
-
-<p>19 rows × 5 columns</p>
 </div>
 </div>
 </div>
@@ -1315,10 +1349,14 @@ q^{surr} = \frac{claims}{exposures} = \frac{1}{1} = 100\%
 Target status: Surrender
 Study range: 1900-01-01 to 2022-12-31
 
-
-A DataFrame: 1 x 4
-   n_claims  claims  exposure     q_obs
-0         1       1  35.30411  0.028325</code></pre>
+shape: (1, 4)
+┌──────────┬────────┬──────────┬──────────┐
+│ n_claims ┆ claims ┆ exposure ┆ q_obs    │
+│ ---      ┆ ---    ┆ ---      ┆ ---      │
+│ u32      ┆ u32    ┆ f64      ┆ f64      │
+╞══════════╪════════╪══════════╪══════════╡
+│ 1        ┆ 1      ┆ 35.30411 ┆ 0.028325 │
+└──────────┴────────┴──────────┴──────────┘</code></pre>
 </div>
 </div>
 <p><code>expose_split()</code> doesn’t just work with calendar year exposures. Calendar quarters, months, or weeks can also be split. For periods shorter than a year, a record is only split into pre- and post-anniversary segments if a policy anniversary appears in the middle of the period.</p>
@@ -1326,26 +1364,36 @@ A DataFrame: 1 x 4
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>(xp.ExposedDF.expose_cq(toy_census, <span class="st">"2022-12-31"</span>,</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                        target_status<span class="op">=</span><span class="st">"Surrender"</span>).</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    expose_split().</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    data.query(<span class="st">'pol_num == 2'</span>)[</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'cal_qtr'</span>, <span class="st">'cal_qtr_end'</span>, <span class="st">'pol_yr'</span>, <span class="st">'exposure_pol'</span>, <span class="st">'exposure_cal'</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    data.<span class="bu">filter</span>(pl.col(<span class="st">'pol_num'</span>) <span class="op">==</span> <span class="dv">2</span>).</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    select(<span class="st">'cal_qtr'</span>, <span class="st">'cal_qtr_end'</span>, <span class="st">'pol_yr'</span>, <span class="st">'exposure_pol'</span>, <span class="st">'exposure_cal'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="split-qtr" class="cell-output cell-output-display" data-execution_count="15">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (47, 5)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">cal_qtr</th>
 <th data-quarto-table-cell-role="th">cal_qtr_end</th>
 <th data-quarto-table-cell-role="th">pol_yr</th>
 <th data-quarto-table-cell-role="th">exposure_pol</th>
 <th data-quarto-table-cell-role="th">exposure_cal</th>
 </tr>
+<tr class="odd">
+<th>date</th>
+<th>date</th>
+<th>i32</th>
+<th>f64</th>
+<th>f64</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">52</td>
 <td>2011-05-27</td>
 <td>2011-06-30</td>
 <td>1</td>
@@ -1353,31 +1401,27 @@ A DataFrame: 1 x 4
 <td>0.384615</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">53</td>
 <td>2011-07-01</td>
 <td>2011-09-30</td>
 <td>1</td>
 <td>0.251366</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">54</td>
 <td>2011-10-01</td>
 <td>2011-12-31</td>
 <td>1</td>
 <td>0.251366</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">55</td>
 <td>2012-01-01</td>
 <td>2012-03-31</td>
 <td>1</td>
 <td>0.248634</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">56</td>
 <td>2012-04-01</td>
 <td>2012-05-26</td>
 <td>1</td>
@@ -1385,31 +1429,27 @@ A DataFrame: 1 x 4
 <td>0.615385</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">86</td>
 <td>2019-10-01</td>
 <td>2019-12-31</td>
 <td>9</td>
 <td>0.251366</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">87</td>
 <td>2020-01-01</td>
 <td>2020-03-31</td>
 <td>9</td>
 <td>0.248634</td>
-<td>1.000000</td>
+<td>1.0</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">88</td>
 <td>2020-04-01</td>
 <td>2020-05-26</td>
 <td>9</td>
@@ -1417,25 +1457,21 @@ A DataFrame: 1 x 4
 <td>0.615385</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">88</td>
 <td>2020-05-27</td>
 <td>2020-06-30</td>
 <td>10</td>
-<td>0.095890</td>
+<td>0.09589</td>
 <td>0.384615</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">89</td>
 <td>2020-07-01</td>
 <td>2020-09-30</td>
 <td>10</td>
-<td>0.304110</td>
+<td>0.30411</td>
 <td>1.206522</td>
 </tr>
 </tbody>
 </table>
-
-<p>47 rows × 5 columns</p>
 </div>
 </div>
 </div>
@@ -1463,49 +1499,141 @@ A DataFrame: 1 x 4
 <h3 class="anchored" data-anchor-id="treatment-of-additional-columns-in-the-census-data">Treatment of additional columns in the census data</h3>
 <p>If the census-level data contains other policy attributes like plan type or policy values, they will be broadcast across all exposure periods. Depending on the nature of the data, this may or may not be desirable. Constant policy attributes like plan type make sense to broadcast, but numeric values may or may not depending on the circumstances.</p>
 <div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>toy_census2 <span class="op">=</span> toy_census.copy()</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>toy_census2[<span class="st">'plan_type'</span>] <span class="op">=</span> [<span class="st">"X"</span>, <span class="st">"Y"</span>, <span class="st">"Z"</span>]</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>toy_census2[<span class="st">'policy_value'</span>] <span class="op">=</span> [<span class="dv">100</span>, <span class="dv">125</span>, <span class="dv">90</span>]</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>xp.ExposedDF(toy_census2, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>, target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>toy_census2 <span class="op">=</span> toy_census.clone().with_columns(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    plan_type<span class="op">=</span>pl.Series([<span class="st">"X"</span>, <span class="st">"Y"</span>, <span class="st">"Z"</span>]),</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    policy_value<span class="op">=</span>pl.Series([<span class="dv">100</span>, <span class="dv">125</span>, <span class="dv">90</span>])</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>(xp.ExposedDF(toy_census2, end_date<span class="op">=</span><span class="st">"2022-12-31"</span>, target_status<span class="op">=</span><span class="st">"Surrender"</span>).</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>     data.select(<span class="st">'pol_num'</span>, <span class="st">'status'</span>, <span class="st">'pol_yr'</span>, <span class="st">'exposure'</span>,</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>                 <span class="st">'plan_type'</span>, <span class="st">'policy_value'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="broadcast" class="cell-output cell-output-display" data-execution_count="16">
-<pre><code>Exposure data
-
-Exposure type: policy_year
-Target status: Surrender
-Study range: 1900-01-01 to 2022-12-31
-
-A DataFrame: 36 x 10
-   pol_num  status issue_date term_date plan_type  policy_value  pol_yr  \
-0        1  Active 2010-01-01       NaT         X           100       1   
-1        1  Active 2010-01-01       NaT         X           100       2   
-2        1  Active 2010-01-01       NaT         X           100       3   
-3        1  Active 2010-01-01       NaT         X           100       4   
-4        1  Active 2010-01-01       NaT         X           100       5   
-5        1  Active 2010-01-01       NaT         X           100       6   
-6        1  Active 2010-01-01       NaT         X           100       7   
-7        1  Active 2010-01-01       NaT         X           100       8   
-8        1  Active 2010-01-01       NaT         X           100       9   
-9        1  Active 2010-01-01       NaT         X           100      10   
-
-  pol_date_yr pol_date_yr_end  exposure  
-0  2010-01-01      2010-12-31       1.0  
-1  2011-01-01      2011-12-31       1.0  
-2  2012-01-01      2012-12-31       1.0  
-3  2013-01-01      2013-12-31       1.0  
-4  2014-01-01      2014-12-31       1.0  
-5  2015-01-01      2015-12-31       1.0  
-6  2016-01-01      2016-12-31       1.0  
-7  2017-01-01      2017-12-31       1.0  
-8  2018-01-01      2018-12-31       1.0  
-9  2019-01-01      2019-12-31       1.0  </code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (36, 6)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">pol_num</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">pol_yr</th>
+<th data-quarto-table-cell-role="th">exposure</th>
+<th data-quarto-table-cell-role="th">plan_type</th>
+<th data-quarto-table-cell-role="th">policy_value</th>
+</tr>
+<tr class="odd">
+<th>i64</th>
+<th>enum</th>
+<th>u32</th>
+<th>f64</th>
+<th>str</th>
+<th>i64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>"Active"</td>
+<td>1</td>
+<td>1.0</td>
+<td>"X"</td>
+<td>100</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>"Active"</td>
+<td>2</td>
+<td>1.0</td>
+<td>"X"</td>
+<td>100</td>
+</tr>
+<tr class="odd">
+<td>1</td>
+<td>"Active"</td>
+<td>3</td>
+<td>1.0</td>
+<td>"X"</td>
+<td>100</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>"Active"</td>
+<td>4</td>
+<td>1.0</td>
+<td>"X"</td>
+<td>100</td>
+</tr>
+<tr class="odd">
+<td>1</td>
+<td>"Active"</td>
+<td>5</td>
+<td>1.0</td>
+<td>"X"</td>
+<td>100</td>
+</tr>
+<tr class="even">
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>"Active"</td>
+<td>9</td>
+<td>1.0</td>
+<td>"Z"</td>
+<td>90</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>"Active"</td>
+<td>10</td>
+<td>1.0</td>
+<td>"Z"</td>
+<td>90</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>"Active"</td>
+<td>11</td>
+<td>1.0</td>
+<td>"Z"</td>
+<td>90</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>"Active"</td>
+<td>12</td>
+<td>1.0</td>
+<td>"Z"</td>
+<td>90</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>"Surrender"</td>
+<td>13</td>
+<td>1.0</td>
+<td>"Z"</td>
+<td>90</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <p>If your experience study requires a numeric feature that varies over time (ex: policy values, crediting rates, etc.), you can always attach it to an <code>ExposedDF</code> object’s <code>data</code> using a join function.</p>
 <div id="join-ex" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Illustrative example - assume `values` is a data frame containing the columns pol_num and pol_yr.</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>exposed_data.data.merge(values, on<span class="op">=</span>[<span class="st">'pol_num'</span>, <span class="st">'pol_yr'</span>], how<span class="op">=</span><span class="st">'left'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Illustrative example - assume `values` is a data frame containing the columns pol_num and pol_yr.</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>exposed_data.data.join(values, on<span class="op">=</span>[<span class="st">'pol_num'</span>, <span class="st">'pol_yr'</span>], how<span class="op">=</span><span class="st">'left'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="limitations" class="level3">

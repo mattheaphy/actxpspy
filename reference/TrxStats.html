@@ -408,23 +408,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
-          <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
- <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">add_interval</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
       </ul>
   </li>
     </ul>
@@ -562,7 +545,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>data</td>
-<td>pandas.pandas.DataFrame</td>
+<td>polars.polars.DataFrame</td>
 <td>A data framethat includes columns for any grouping variables and transaction types, plus the following: <code>trx_n</code> (the number of unique transactions), <code>trx_amt</code> (total transaction amount), <code>trx_flag</code> (the number of observation periods with non-zero transaction amounts), <code>exposure</code> (total exposures), <code>avg_trx</code> (mean transaction amount {<code>trx_amt / trx_flag</code>}), <code>avg_all</code> (mean transaction amount over all records {<code>trx_amt / exposure</code>}), <code>trx_freq</code> (transaction frequency when a transaction occurs {<code>trx_n / trx_flag</code>}), <code>trx_utilization</code> (transaction utilization per observation period {<code>trx_flag / exposure</code>}). If <code>percent_of</code> is provided, the results will also include the sum of any columns passed to <code>percent_of</code> with non-zero transactions (these columns include the suffix <code>_w_trx</code>. - The sum of any columns passed to <code>percent_of</code>), <code>pct_of_{*}_w_trx</code> (total transactions as a percentage of column <code>{*}_w_trx</code>), <code>pct_of_{*}_all</code> (total transactions as a percentage of column <code>{*}</code>).</td>
 </tr>
 </tbody>
@@ -570,7 +553,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="notes" class="level2">
 <h2 class="anchored" data-anchor-id="notes">Notes</h2>
-<p>If the <code>ExposedDF</code> object is grouped (see the <code>groupby()</code> method), the returned <code>TrxStats</code> object’s data will contain one row per group.</p>
+<p>If the <code>ExposedDF</code> object is grouped (see the <code>group_by()</code> method), the returned <code>TrxStats</code> object’s data will contain one row per group.</p>
 <p>Any number of transaction types can be passed to the <code>trx_types</code> argument, however each transaction type <strong>must</strong> appear in the <code>trx_types</code> property of the <code>ExposedDF</code> object. In addition, <code>trx_stats()</code> expects to see columns named <code>trx_n_{*}</code> (for transaction counts) and <code>trx_amt_{*}</code> for (transaction amounts) for each transaction type. To ensure <code>.data</code> is in the appropriate format, use the class method <code>ExposedDF.from_DataFrame()</code> to convert an existing data frame with transactions or use <code>add_transactions()</code> to attach transactions to an existing <code>ExposedDF</code> object.</p>
 <p><strong>“Percentage of” calculations</strong></p>
 <p>The <code>percent_of</code> argument is optional. If provided, this argument must be list with values corresponding to columns in the <code>data</code> property of <code>expo</code> containing values to use as denominators in the calculation of utilization rates or actual-to-expected ratios. Example usage:</p>
@@ -626,17 +609,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <section id="actxps.trx_stats.TrxStats.from_DataFrame" class="level3">
 <h3 class="anchored" data-anchor-id="actxps.trx_stats.TrxStats.from_DataFrame">from_DataFrame</h3>
-<p><code>trx_stats.TrxStats.from_DataFrame(data, conf_int=False, conf_level=0.95, col_trx_amt='trx_amt', col_trx_n='trx_n', col_trx_flag='trx_flag', col_exposure='exposure', col_percent_of=None, col_percent_of_w_trx=None, col_trx_amt_sq='trx_amt_sq', start_date=datetime(1900, 1, 1), end_date=None)</code></p>
+<p><code>trx_stats.TrxStats.from_DataFrame(data, conf_int=False, conf_level=0.95, col_trx_amt='trx_amt', col_trx_n='trx_n', col_trx_flag='trx_flag', col_exposure='exposure', col_percent_of=None, col_percent_of_w_trx=None, col_trx_amt_sq='trx_amt_sq', start_date=date(1900, 1, 1), end_date=None)</code></p>
 <p>Convert a data frame containing aggregate transaction experience study results to the <code>TrxStats</code> class.</p>
 <p><code>from_DataFrame()</code> is most useful for working with aggregate summaries of experience that were not created by actxps where individual policy information is not available. After converting the data to the <code>TrxStats</code> class, <code>summary()</code> can be used to summarize data by any grouping variables, and <code>plot()</code> and <code>table()</code> are available for reporting.</p>
 <section id="parameters-1" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-1">Parameters</h4>
 <table class="table">
 <colgroup>
-<col style="width: 10%">
-<col style="width: 14%">
-<col style="width: 64%">
-<col style="width: 10%">
+<col style="width: 9%">
+<col style="width: 21%">
+<col style="width: 60%">
+<col style="width: 8%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -649,7 +632,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td><code>data</code></td>
-<td>pandas.pandas.DataFrame</td>
+<td>polars.polars.DataFrame | pandas.pandas.DataFrame</td>
 <td>A DataFrame containing aggregate transaction study results. See the Notes section for required columns that must be present.</td>
 <td><em>required</em></td>
 </tr>
@@ -709,13 +692,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td><code>start_date</code></td>
-<td>datetime.datetime | int | str</td>
+<td>datetime.date | str</td>
 <td>Transaction study start date</td>
-<td><code>datetime(1900, 1, 1)</code></td>
+<td><code>date(1900, 1, 1)</code></td>
 </tr>
 <tr class="even">
 <td><code>end_date</code></td>
-<td>datetime.datetime | int | str</td>
+<td>datetime.date | str</td>
 <td>Transaction study end date</td>
 <td><code>None</code></td>
 </tr>
@@ -763,23 +746,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># convert pre-aggregated experience into a TrxStats object</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>agg_sim_dat <span class="op">=</span> xp.load_agg_sim_dat()</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>dat <span class="op">=</span> xp.TrxStats.from_DataFrame(</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    agg_sim_dat,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    col_exposure<span class="op">=</span><span class="st">"n"</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    col_trx_amt<span class="op">=</span><span class="st">"wd"</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    col_trx_n<span class="op">=</span><span class="st">"wd_n"</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    col_trx_flag<span class="op">=</span><span class="st">"wd_flag"</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    col_percent_of<span class="op">=</span><span class="st">"av"</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    col_percent_of_w_trx<span class="op">=</span><span class="st">"av_w_wd"</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    col_trx_amt_sq<span class="op">=</span><span class="st">"wd_sq"</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    start_date<span class="op">=</span><span class="dv">2005</span>, end_date<span class="op">=</span><span class="dv">2019</span>,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    conf_int<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>dat</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># summary by policy year</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>dat.summary(<span class="st">'pol_yr'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>agg_sim_dat <span class="op">=</span> xp.load_agg_sim_dat()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>dat <span class="op">=</span> xp.TrxStats.from_DataFrame(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    agg_sim_dat.with_columns(pl.col(<span class="st">'n'</span>).cast(<span class="bu">float</span>)),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    col_exposure<span class="op">=</span><span class="st">"n"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    col_trx_amt<span class="op">=</span><span class="st">"wd"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    col_trx_n<span class="op">=</span><span class="st">"wd_n"</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    col_trx_flag<span class="op">=</span><span class="st">"wd_flag"</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    col_percent_of<span class="op">=</span><span class="st">"av"</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    col_percent_of_w_trx<span class="op">=</span><span class="st">"av_w_wd"</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    col_trx_amt_sq<span class="op">=</span><span class="st">"wd_sq"</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    start_date<span class="op">=</span><span class="dv">2005</span>, end_date<span class="op">=</span><span class="dv">2019</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    conf_int<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>dat</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># summary by policy year</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>dat.summary(<span class="st">'pol_yr'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>Transaction study results
 
@@ -788,57 +772,25 @@ Study range: 2005 to 2019
 Transaction types: wd
 Transactions as % of: av
 
-
-A DataFrame: 15 x 21
-   pol_yr trx_type  trx_n  trx_flag   trx_amt  exposure    avg_trx    avg_all  \
-0       1       wd  16942      7921  419763.0     19995  52.993688  20.993398   
-1       2       wd  16900      7923  440919.0     18434  55.650511  23.918791   
-2       3       wd  16679      7796  449349.0     16806  57.638404  26.737415   
-3       4       wd  16193      7575  440510.0     15266  58.153135  28.855627   
-4       5       wd  15353      7153  420462.0     13618  58.781211  30.875459   
-5       6       wd  14382      6708  411073.0     12067  61.281008  34.065882   
-6       7       wd  13248      6183  396732.0     10541  64.164968  37.637036   
-7       8       wd  12034      5603  369098.0      9130  65.875067  40.426944   
-8       9       wd  10461      4868  330507.0      7591  67.893796  43.539323   
-9      10       wd   8978      4155  290363.0      6185  69.882792  46.946322   
-
-   trx_freq  trx_util  ...    av_w_trx  pct_of_av_all  pct_of_av_w_trx  \
-0  2.138871  0.396149  ...  10578610.0       0.015960         0.039680   
-1  2.133030  0.429804  ...  10632252.0       0.017660         0.041470   
-2  2.139430  0.463882  ...  10561119.0       0.019168         0.042547   
-3  2.137690  0.496201  ...  10343861.0       0.020150         0.042587   
-4  2.146372  0.525261  ...   9953286.0       0.020914         0.042244   
-5  2.144007  0.555896  ...   9516448.0       0.022355         0.043196   
-6  2.142649  0.586567  ...   8889312.0       0.024132         0.044630   
-7  2.147778  0.613691  ...   8189855.0       0.025198         0.045068   
-8  2.148932  0.641286  ...   7296740.0       0.026223         0.045295   
-9  2.160770  0.671787  ...   6325646.0       0.027570         0.045903   
-
-   trx_util_lower  trx_util_upper   trx_amt_sq  pct_of_av_w_trx_lower  \
-0        0.389397        0.402951   79706383.0               0.038276   
-1        0.422643        0.436964   96920305.0               0.039902   
-2        0.456325        0.471439   92757953.0               0.041030   
-3        0.488275        0.504127   96528006.0               0.040991   
-4        0.516889        0.533632   96744946.0               0.040572   
-5        0.547029        0.564763   92206797.0               0.041510   
-6        0.577175        0.595959  100055006.0               0.042726   
-7        0.603724        0.623658   92940464.0               0.043085   
-8        0.630483        0.652088   80290185.0               0.043252   
-9        0.659984        0.683428   75062381.0               0.043609   
-
-   pct_of_av_w_trx_upper  pct_of_av_all_lower  pct_of_av_all_upper  
-0               0.041085             0.015332             0.016587  
-1               0.043038             0.016931             0.018390  
-2               0.044065             0.018417             0.019919  
-3               0.044182             0.019329             0.020971  
-4               0.043915             0.020021             0.021806  
-5               0.044882             0.021412             0.023297  
-6               0.046535             0.023032             0.025232  
-7               0.047050             0.024016             0.026380  
-8               0.047338             0.024961             0.027486  
-9               0.048196             0.026112             0.029029  
-
-[10 rows x 21 columns]</code></pre>
+shape: (15, 21)
+┌────────┬──────────┬───────┬──────────┬───┬─────────────┬─────────────┬─────────────┬─────────────┐
+│ pol_yr ┆ trx_type ┆ trx_n ┆ trx_flag ┆ … ┆ pct_of_av_w ┆ pct_of_av_w ┆ pct_of_av_a ┆ pct_of_av_a │
+│ ---    ┆ ---      ┆ ---   ┆ ---      ┆   ┆ _trx_lower  ┆ _trx_upper  ┆ ll_lower    ┆ ll_upper    │
+│ i64    ┆ str      ┆ i64   ┆ i64      ┆   ┆ ---         ┆ ---         ┆ ---         ┆ ---         │
+│        ┆          ┆       ┆          ┆   ┆ f64         ┆ f64         ┆ f64         ┆ f64         │
+╞════════╪══════════╪═══════╪══════════╪═══╪═════════════╪═════════════╪═════════════╪═════════════╡
+│ 1      ┆ wd       ┆ 16942 ┆ 7921     ┆ … ┆ 0.038276    ┆ 0.041085    ┆ 0.015332    ┆ 0.016587    │
+│ 2      ┆ wd       ┆ 16900 ┆ 7923     ┆ … ┆ 0.039902    ┆ 0.043038    ┆ 0.016931    ┆ 0.01839     │
+│ 3      ┆ wd       ┆ 16679 ┆ 7796     ┆ … ┆ 0.04103     ┆ 0.044065    ┆ 0.018417    ┆ 0.019919    │
+│ 4      ┆ wd       ┆ 16193 ┆ 7575     ┆ … ┆ 0.040991    ┆ 0.044182    ┆ 0.019329    ┆ 0.020971    │
+│ 5      ┆ wd       ┆ 15353 ┆ 7153     ┆ … ┆ 0.040572    ┆ 0.043915    ┆ 0.020021    ┆ 0.021806    │
+│ …      ┆ …        ┆ …     ┆ …        ┆ … ┆ …           ┆ …           ┆ …           ┆ …           │
+│ 11     ┆ wd       ┆ 7470  ┆ 3448     ┆ … ┆ 0.043407    ┆ 0.048177    ┆ 0.027074    ┆ 0.030235    │
+│ 12     ┆ wd       ┆ 5079  ┆ 2314     ┆ … ┆ 0.043491    ┆ 0.049206    ┆ 0.028866    ┆ 0.032877    │
+│ 13     ┆ wd       ┆ 3310  ┆ 1495     ┆ … ┆ 0.043142    ┆ 0.051286    ┆ 0.029488    ┆ 0.035291    │
+│ 14     ┆ wd       ┆ 2119  ┆ 946      ┆ … ┆ 0.044544    ┆ 0.056832    ┆ 0.031782    ┆ 0.040822    │
+│ 15     ┆ wd       ┆ 982   ┆ 430      ┆ … ┆ 0.043576    ┆ 0.059197    ┆ 0.033368    ┆ 0.045754    │
+└────────┴──────────┴───────┴──────────┴───┴─────────────┴─────────────┴─────────────┴─────────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -947,7 +899,7 @@ A DataFrame: 15 x 21
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.group_by(<span class="st">'pol_yr'</span>).</span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">'premium'</span>))</span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>trx_res.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1002,10 +954,10 @@ A DataFrame: 15 x 21
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>expo <span class="op">=</span> xp.ExposedDF.expose_py(census, <span class="st">"2019-12-31"</span>,</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>expo.data <span class="op">=</span> expo.data.merge(account_vals, how<span class="op">=</span><span class="st">'left'</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                            on<span class="op">=</span>[<span class="st">"pol_num"</span>, <span class="st">"pol_date_yr"</span>])        </span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>expo.data <span class="op">=</span> expo.data.join(account_vals, how<span class="op">=</span><span class="st">'left'</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                           on<span class="op">=</span>[<span class="st">"pol_num"</span>, <span class="st">"pol_date_yr"</span>])        </span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.group_by(<span class="st">'pol_yr'</span>).</span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">'av_anniv'</span>, combine_trx<span class="op">=</span><span class="va">True</span>))</span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>trx_res.plot_utilization_rates()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1081,7 +1033,7 @@ A DataFrame: 15 x 21
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'inc_guar'</span>, <span class="st">'pol_yr'</span>).</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.group_by(<span class="st">'inc_guar'</span>, <span class="st">'pol_yr'</span>).</span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">'premium'</span>))</span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>trx_res.summary(<span class="st">'inc_guar'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
@@ -1092,25 +1044,18 @@ Study range: 1900-01-01 to 2019-12-31
 Transaction types: Base, Rider
 Transactions as % of: premium
 
-
-A DataFrame: 4 x 14
-   inc_guar trx_type    trx_n  trx_flag    trx_amt  exposure    avg_trx  \
-0     False     Base  52939.0     24703   952629.0   48938.0  38.563292   
-1     False    Rider      0.0         0        0.0   48938.0        NaN   
-2      True     Base   7561.0      3521   141270.0   75235.0  40.122124   
-3      True    Rider  77321.0     35941  2842729.0   75235.0  79.094321   
-
-     avg_all  trx_freq  trx_util      premium  premium_w_trx  \
-0  19.466039  2.143019  0.504782   65442415.0     33915201.0   
-1   0.000000       NaN  0.000000   65442415.0            0.0   
-2   1.877716  2.147401  0.046800  100927712.0      4940490.0   
-3  37.784661  2.151331  0.477716  100927712.0     47887716.0   
-
-   pct_of_premium_all  pct_of_premium_w_trx  
-0            0.014557              0.028089  
-1            0.000000                   NaN  
-2            0.001400              0.028594  
-3            0.028166              0.059362  </code></pre>
+shape: (4, 14)
+┌──────────┬──────────┬─────────┬──────────┬───┬──────────┬──────────┬──────────────┬──────────────┐
+│ inc_guar ┆ trx_type ┆ trx_n   ┆ trx_flag ┆ … ┆ trx_freq ┆ trx_util ┆ pct_of_premi ┆ pct_of_premi │
+│ ---      ┆ ---      ┆ ---     ┆ ---      ┆   ┆ ---      ┆ ---      ┆ um_all       ┆ um_w_trx     │
+│ bool     ┆ str      ┆ f64     ┆ u32      ┆   ┆ f64      ┆ f64      ┆ ---          ┆ ---          │
+│          ┆          ┆         ┆          ┆   ┆          ┆          ┆ f64          ┆ f64          │
+╞══════════╪══════════╪═════════╪══════════╪═══╪══════════╪══════════╪══════════════╪══════════════╡
+│ false    ┆ Base     ┆ 52939.0 ┆ 24703    ┆ … ┆ 2.143019 ┆ 0.504782 ┆ 0.014557     ┆ 0.028089     │
+│ false    ┆ Rider    ┆ 0.0     ┆ 0        ┆ … ┆ NaN      ┆ 0.0      ┆ 0.0          ┆ NaN          │
+│ true     ┆ Base     ┆ 7561.0  ┆ 3521     ┆ … ┆ 2.147401 ┆ 0.0468   ┆ 0.0014       ┆ 0.028594     │
+│ true     ┆ Rider    ┆ 77321.0 ┆ 35941    ┆ … ┆ 2.151331 ┆ 0.477716 ┆ 0.028166     ┆ 0.059362     │
+└──────────┴──────────┴─────────┴──────────┴───┴──────────┴──────────┴──────────────┴──────────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -1230,56 +1175,56 @@ A DataFrame: 4 x 14
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                              target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>expo.add_transactions(withdrawals)</span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.groupby(<span class="st">'pol_yr'</span>).</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>trx_res <span class="op">=</span> (expo.group_by(<span class="st">'pol_yr'</span>).</span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>           trx_stats(percent_of<span class="op">=</span><span class="st">'premium'</span>))</span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>trx_res.table()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 
-<div id="rraeydjmez" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="jdyawhjkrb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>
-#rraeydjmez table {
+#jdyawhjkrb table {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
         }
 
-#rraeydjmez thead, tbody, tfoot, tr, td, th { border-style: none; }
-#rraeydjmez p { margin: 0; padding: 0; }
- #rraeydjmez .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 100%; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: auto; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
- #rraeydjmez .gt_caption { padding-top: 4px; padding-bottom: 4px; }
- #rraeydjmez .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
- #rraeydjmez .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
- #rraeydjmez .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
- #rraeydjmez .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
- #rraeydjmez .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
- #rraeydjmez .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: bold; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
- #rraeydjmez .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: bold; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
- #rraeydjmez .gt_column_spanner_outer:first-child { padding-left: 0; }
- #rraeydjmez .gt_column_spanner_outer:last-child { padding-right: 0; }
- #rraeydjmez .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
- #rraeydjmez .gt_spanner_row { border-bottom-style: hidden; }
- #rraeydjmez .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
- #rraeydjmez .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
- #rraeydjmez .gt_from_md> :first-child { margin-top: 0; }
- #rraeydjmez .gt_from_md> :last-child { margin-bottom: 0; }
- #rraeydjmez .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
- #rraeydjmez .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
- #rraeydjmez .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
- #rraeydjmez .gt_row_group_first td { border-top-width: 2px; }
- #rraeydjmez .gt_row_group_first th { border-top-width: 2px; }
- #rraeydjmez .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
- #rraeydjmez .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
- #rraeydjmez .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; }
- #rraeydjmez .gt_left { text-align: left; }
- #rraeydjmez .gt_center { text-align: center; }
- #rraeydjmez .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
- #rraeydjmez .gt_font_normal { font-weight: normal; }
- #rraeydjmez .gt_font_bold { font-weight: bold; }
- #rraeydjmez .gt_font_italic { font-style: italic; }
- #rraeydjmez .gt_super { font-size: 65%; }
- #rraeydjmez .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
- #rraeydjmez .gt_asterisk { font-size: 100%; vertical-align: 0; }
+#jdyawhjkrb thead, tbody, tfoot, tr, td, th { border-style: none; }
+#jdyawhjkrb p { margin: 0; padding: 0; }
+ #jdyawhjkrb .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 100%; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: auto; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #jdyawhjkrb .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #jdyawhjkrb .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #jdyawhjkrb .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #jdyawhjkrb .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #jdyawhjkrb .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #jdyawhjkrb .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #jdyawhjkrb .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: bold; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #jdyawhjkrb .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: bold; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #jdyawhjkrb .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #jdyawhjkrb .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #jdyawhjkrb .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #jdyawhjkrb .gt_spanner_row { border-bottom-style: hidden; }
+ #jdyawhjkrb .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #jdyawhjkrb .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #jdyawhjkrb .gt_from_md> :first-child { margin-top: 0; }
+ #jdyawhjkrb .gt_from_md> :last-child { margin-bottom: 0; }
+ #jdyawhjkrb .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #jdyawhjkrb .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #jdyawhjkrb .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #jdyawhjkrb .gt_row_group_first td { border-top-width: 2px; }
+ #jdyawhjkrb .gt_row_group_first th { border-top-width: 2px; }
+ #jdyawhjkrb .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #jdyawhjkrb .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #jdyawhjkrb .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; }
+ #jdyawhjkrb .gt_left { text-align: left; }
+ #jdyawhjkrb .gt_center { text-align: center; }
+ #jdyawhjkrb .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #jdyawhjkrb .gt_font_normal { font-weight: normal; }
+ #jdyawhjkrb .gt_font_bold { font-weight: bold; }
+ #jdyawhjkrb .gt_font_italic { font-style: italic; }
+ #jdyawhjkrb .gt_super { font-size: 65%; }
+ #jdyawhjkrb .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #jdyawhjkrb .gt_asterisk { font-size: 100%; vertical-align: 0; }
  
 </style>
 <table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
@@ -1306,7 +1251,7 @@ A DataFrame: 4 x 14
 </tr>
 <tr class="gt_col_headings">
   <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total">Total</th>
-  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Periods">Periods</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="Periods">Periods</th>
   <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>w/ trx</em>"><em>w/ trx</em></th>
   <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>all</em>"><em>all</em></th>
   <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<em>w/ trx</em>"><em>w/ trx</em></th>
@@ -1317,7 +1262,7 @@ A DataFrame: 4 x 14
 </tr><tr class="gt_group_heading_row">  <th class="gt_group_heading" colspan="10">Base</th></tr>
   <tr><th class="gt_row gt_left gt_stub">1</th>
   <td class="gt_row gt_right">7,447</td>
-  <td class="gt_row gt_right">3,514</td>
+  <td class="gt_row gt_center">3,514</td>
   <td class="gt_row gt_right">119,877</td>
   <td class="gt_row gt_right">34</td>
   <td class="gt_row gt_right">6</td>
@@ -1329,7 +1274,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">2</th>
   <td class="gt_row gt_right">7,274</td>
-  <td class="gt_row gt_right">3,422</td>
+  <td class="gt_row gt_center">3,422</td>
   <td class="gt_row gt_right">116,967</td>
   <td class="gt_row gt_right">34</td>
   <td class="gt_row gt_right">7</td>
@@ -1341,7 +1286,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">3</th>
   <td class="gt_row gt_right">7,061</td>
-  <td class="gt_row gt_right">3,309</td>
+  <td class="gt_row gt_center">3,309</td>
   <td class="gt_row gt_right">116,357</td>
   <td class="gt_row gt_right">35</td>
   <td class="gt_row gt_right">8</td>
@@ -1353,7 +1298,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">4</th>
   <td class="gt_row gt_right">6,596</td>
-  <td class="gt_row gt_right">3,080</td>
+  <td class="gt_row gt_center">3,080</td>
   <td class="gt_row gt_right">114,987</td>
   <td class="gt_row gt_right">37</td>
   <td class="gt_row gt_right">8</td>
@@ -1365,7 +1310,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">5</th>
   <td class="gt_row gt_right">6,093</td>
-  <td class="gt_row gt_right">2,847</td>
+  <td class="gt_row gt_center">2,847</td>
   <td class="gt_row gt_right">109,918</td>
   <td class="gt_row gt_right">39</td>
   <td class="gt_row gt_right">9</td>
@@ -1377,7 +1322,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">6</th>
   <td class="gt_row gt_right">5,543</td>
-  <td class="gt_row gt_right">2,572</td>
+  <td class="gt_row gt_center">2,572</td>
   <td class="gt_row gt_right">97,455</td>
   <td class="gt_row gt_right">38</td>
   <td class="gt_row gt_right">9</td>
@@ -1389,7 +1334,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">7</th>
   <td class="gt_row gt_right">4,921</td>
-  <td class="gt_row gt_right">2,297</td>
+  <td class="gt_row gt_center">2,297</td>
   <td class="gt_row gt_right">92,797</td>
   <td class="gt_row gt_right">40</td>
   <td class="gt_row gt_right">10</td>
@@ -1401,7 +1346,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">8</th>
   <td class="gt_row gt_right">4,200</td>
-  <td class="gt_row gt_right">1,964</td>
+  <td class="gt_row gt_center">1,964</td>
   <td class="gt_row gt_right">85,740</td>
   <td class="gt_row gt_right">44</td>
   <td class="gt_row gt_right">11</td>
@@ -1413,7 +1358,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">9</th>
   <td class="gt_row gt_right">3,579</td>
-  <td class="gt_row gt_right">1,655</td>
+  <td class="gt_row gt_center">1,655</td>
   <td class="gt_row gt_right">70,715</td>
   <td class="gt_row gt_right">43</td>
   <td class="gt_row gt_right">11</td>
@@ -1425,7 +1370,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">10</th>
   <td class="gt_row gt_right">3,004</td>
-  <td class="gt_row gt_right">1,376</td>
+  <td class="gt_row gt_center">1,376</td>
   <td class="gt_row gt_right">57,935</td>
   <td class="gt_row gt_right">42</td>
   <td class="gt_row gt_right">11</td>
@@ -1437,7 +1382,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">11</th>
   <td class="gt_row gt_right">2,428</td>
-  <td class="gt_row gt_right">1,115</td>
+  <td class="gt_row gt_center">1,115</td>
   <td class="gt_row gt_right">53,809</td>
   <td class="gt_row gt_right">48</td>
   <td class="gt_row gt_right">14</td>
@@ -1449,7 +1394,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">12</th>
   <td class="gt_row gt_right">1,320</td>
-  <td class="gt_row gt_right">605</td>
+  <td class="gt_row gt_center">605</td>
   <td class="gt_row gt_right">30,425</td>
   <td class="gt_row gt_right">50</td>
   <td class="gt_row gt_right">13</td>
@@ -1461,7 +1406,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">13</th>
   <td class="gt_row gt_right">700</td>
-  <td class="gt_row gt_right">319</td>
+  <td class="gt_row gt_center">319</td>
   <td class="gt_row gt_right">17,809</td>
   <td class="gt_row gt_right">56</td>
   <td class="gt_row gt_right">14</td>
@@ -1473,7 +1418,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">14</th>
   <td class="gt_row gt_right">315</td>
-  <td class="gt_row gt_right">141</td>
+  <td class="gt_row gt_center">141</td>
   <td class="gt_row gt_right">8,883</td>
   <td class="gt_row gt_right">63</td>
   <td class="gt_row gt_right">15</td>
@@ -1485,7 +1430,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">15</th>
   <td class="gt_row gt_right">19</td>
-  <td class="gt_row gt_right">8</td>
+  <td class="gt_row gt_center">8</td>
   <td class="gt_row gt_right">225</td>
   <td class="gt_row gt_right">28</td>
   <td class="gt_row gt_right">11</td>
@@ -1498,7 +1443,7 @@ A DataFrame: 4 x 14
 </tr><tr class="gt_group_heading_row">  <th class="gt_group_heading" colspan="10">Rider</th></tr>
   <tr><th class="gt_row gt_left gt_stub">1</th>
   <td class="gt_row gt_right">8,077</td>
-  <td class="gt_row gt_right">3,778</td>
+  <td class="gt_row gt_center">3,778</td>
   <td class="gt_row gt_right">265,312</td>
   <td class="gt_row gt_right">70</td>
   <td class="gt_row gt_right">14</td>
@@ -1510,7 +1455,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">2</th>
   <td class="gt_row gt_right">8,232</td>
-  <td class="gt_row gt_right">3,834</td>
+  <td class="gt_row gt_center">3,834</td>
   <td class="gt_row gt_right">288,114</td>
   <td class="gt_row gt_right">75</td>
   <td class="gt_row gt_right">17</td>
@@ -1522,7 +1467,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">3</th>
   <td class="gt_row gt_right">8,204</td>
-  <td class="gt_row gt_right">3,817</td>
+  <td class="gt_row gt_center">3,817</td>
   <td class="gt_row gt_right">294,795</td>
   <td class="gt_row gt_right">77</td>
   <td class="gt_row gt_right">19</td>
@@ -1534,7 +1479,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">4</th>
   <td class="gt_row gt_right">7,960</td>
-  <td class="gt_row gt_right">3,715</td>
+  <td class="gt_row gt_center">3,715</td>
   <td class="gt_row gt_right">283,763</td>
   <td class="gt_row gt_right">76</td>
   <td class="gt_row gt_right">21</td>
@@ -1546,7 +1491,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">5</th>
   <td class="gt_row gt_right">7,536</td>
-  <td class="gt_row gt_right">3,521</td>
+  <td class="gt_row gt_center">3,521</td>
   <td class="gt_row gt_right">264,939</td>
   <td class="gt_row gt_right">75</td>
   <td class="gt_row gt_right">22</td>
@@ -1558,7 +1503,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">6</th>
   <td class="gt_row gt_right">7,118</td>
-  <td class="gt_row gt_right">3,342</td>
+  <td class="gt_row gt_center">3,342</td>
   <td class="gt_row gt_right">264,516</td>
   <td class="gt_row gt_right">79</td>
   <td class="gt_row gt_right">25</td>
@@ -1570,7 +1515,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">7</th>
   <td class="gt_row gt_right">6,631</td>
-  <td class="gt_row gt_right">3,097</td>
+  <td class="gt_row gt_center">3,097</td>
   <td class="gt_row gt_right">251,502</td>
   <td class="gt_row gt_right">81</td>
   <td class="gt_row gt_right">27</td>
@@ -1582,7 +1527,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">8</th>
   <td class="gt_row gt_right">5,952</td>
-  <td class="gt_row gt_right">2,773</td>
+  <td class="gt_row gt_center">2,773</td>
   <td class="gt_row gt_right">226,770</td>
   <td class="gt_row gt_right">82</td>
   <td class="gt_row gt_right">29</td>
@@ -1594,7 +1539,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">9</th>
   <td class="gt_row gt_right">5,173</td>
-  <td class="gt_row gt_right">2,406</td>
+  <td class="gt_row gt_center">2,406</td>
   <td class="gt_row gt_right">204,000</td>
   <td class="gt_row gt_right">85</td>
   <td class="gt_row gt_right">32</td>
@@ -1606,7 +1551,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">10</th>
   <td class="gt_row gt_right">4,331</td>
-  <td class="gt_row gt_right">1,998</td>
+  <td class="gt_row gt_center">1,998</td>
   <td class="gt_row gt_right">174,457</td>
   <td class="gt_row gt_right">87</td>
   <td class="gt_row gt_right">35</td>
@@ -1618,7 +1563,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">11</th>
   <td class="gt_row gt_right">3,468</td>
-  <td class="gt_row gt_right">1,597</td>
+  <td class="gt_row gt_center">1,597</td>
   <td class="gt_row gt_right">139,620</td>
   <td class="gt_row gt_right">87</td>
   <td class="gt_row gt_right">36</td>
@@ -1630,7 +1575,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">12</th>
   <td class="gt_row gt_right">2,398</td>
-  <td class="gt_row gt_right">1,076</td>
+  <td class="gt_row gt_center">1,076</td>
   <td class="gt_row gt_right">90,469</td>
   <td class="gt_row gt_right">84</td>
   <td class="gt_row gt_right">40</td>
@@ -1642,7 +1587,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">13</th>
   <td class="gt_row gt_right">1,486</td>
-  <td class="gt_row gt_right">662</td>
+  <td class="gt_row gt_center">662</td>
   <td class="gt_row gt_right">62,880</td>
   <td class="gt_row gt_right">95</td>
   <td class="gt_row gt_right">49</td>
@@ -1654,7 +1599,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">14</th>
   <td class="gt_row gt_right">736</td>
-  <td class="gt_row gt_right">316</td>
+  <td class="gt_row gt_center">316</td>
   <td class="gt_row gt_right">30,648</td>
   <td class="gt_row gt_right">97</td>
   <td class="gt_row gt_right">53</td>
@@ -1666,7 +1611,7 @@ A DataFrame: 4 x 14
 <tr>
   <th class="gt_row gt_left gt_stub">15</th>
   <td class="gt_row gt_right">19</td>
-  <td class="gt_row gt_right">9</td>
+  <td class="gt_row gt_center">9</td>
   <td class="gt_row gt_right">944</td>
   <td class="gt_row gt_right">105</td>
   <td class="gt_row gt_right">45</td>

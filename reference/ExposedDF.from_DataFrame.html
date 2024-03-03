@@ -371,23 +371,6 @@ ul.task-list li input[type="checkbox"] {
 </li>
       </ul>
   </li>
-          <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
- <span class="menu-text">Add durations to a vector of dates</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/add_durations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">add_interval</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
       </ul>
   </li>
     </ul>
@@ -415,17 +398,17 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="actxps.expose.ExposedDF.from_DataFrame" class="level1">
 <h1>ExposedDF.from_DataFrame</h1>
-<p><code>expose.ExposedDF.from_DataFrame(data, end_date, start_date=datetime(1900, 1, 1), target_status=None, cal_expo=False, expo_length='year', trx_types=None, col_pol_num='pol_num', col_status='status', col_exposure='exposure', col_pol_per=None, cols_dates=None, col_trx_n_='trx_n_', col_trx_amt_='trx_amt_', default_status=None)</code></p>
+<p><code>expose.ExposedDF.from_DataFrame(data, end_date, start_date=date(1900, 1, 1), target_status=None, cal_expo=False, expo_length='year', trx_types=None, col_pol_num='pol_num', col_status='status', col_exposure='exposure', col_pol_per=None, cols_dates=None, col_trx_n_='trx_n_', col_trx_amt_='trx_amt_', default_status=None)</code></p>
 <p>Coerce a data frame to an <code>ExposedDF</code> object</p>
 <p>The input data frame must have columns for policy numbers, statuses, exposures, policy periods (for policy exposures only), and exposure start / end dates. Optionally, if <code>data</code> has transaction counts and amounts by type, these can be specified without calling <code>add_transactions()</code>.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="table">
 <colgroup>
-<col style="width: 4%">
-<col style="width: 8%">
-<col style="width: 83%">
 <col style="width: 3%">
+<col style="width: 11%">
+<col style="width: 80%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -438,21 +421,21 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td><code>data</code></td>
-<td>pandas.pandas.DataFrame</td>
+<td>polars.polars.DataFrame | pandas.pandas.DataFrame</td>
 <td>A data frame with exposure-level records</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td><code>end_date</code></td>
-<td>datetime.datetime</td>
+<td>datetime.date | str</td>
 <td>Experience study end date</td>
 <td><em>required</em></td>
 </tr>
 <tr class="odd">
 <td><code>start_date</code></td>
-<td>datetime.datetime</td>
+<td>datetime.date | str</td>
 <td>Experience study start date</td>
-<td><code>'1900-01-01'</code></td>
+<td><code>date(1900, 1, 1)</code></td>
 </tr>
 <tr class="even">
 <td><code>target_status</code></td>

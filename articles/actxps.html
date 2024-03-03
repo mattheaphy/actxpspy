@@ -233,21 +233,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>This article is based on creating a termination study using sample data that comes with the actxps package. For information on transaction studies, see <a href="../articles/transactions.html">Transactions</a>.</p>
 <section id="simulated-data-set" class="level2">
 <h2 class="anchored" data-anchor-id="simulated-data-set">Simulated data set</h2>
-<p>The actxps package includes a data frame containing simulated census data for a theoretical deferred annuity product with an optional guaranteed income rider. The grain of this data is one row per policy.</p>
+<p>The actxps package includes a Polars data frame containing simulated census data for a theoretical deferred annuity product with an optional guaranteed income rider. The grain of this data is one row per policy.</p>
 <div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>census_dat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>census_dat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="packages" class="cell-output cell-output-display" data-execution_count="2">
-<div>
-
-
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (20_000, 11)</small>
 <table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">pol_num</th>
 <th data-quarto-table-cell-role="th">status</th>
 <th data-quarto-table-cell-role="th">issue_date</th>
@@ -260,191 +265,264 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">premium</th>
 <th data-quarto-table-cell-role="th">term_date</th>
 </tr>
+<tr class="odd">
+<th>i64</th>
+<th>cat</th>
+<th>date</th>
+<th>bool</th>
+<th>bool</th>
+<th>i64</th>
+<th>cat</th>
+<th>cat</th>
+<th>i64</th>
+<th>f64</th>
+<th>date</th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
 <td>1</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2014-12-17</td>
-<td>True</td>
-<td>False</td>
+<td>true</td>
+<td>false</td>
 <td>56</td>
-<td>b</td>
-<td>F</td>
+<td>"b"</td>
+<td>"F"</td>
 <td>77</td>
 <td>370.0</td>
-<td>NaT</td>
+<td>null</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
 <td>2</td>
-<td>Surrender</td>
+<td>"Surrender"</td>
 <td>2007-09-24</td>
-<td>False</td>
-<td>False</td>
+<td>false</td>
+<td>false</td>
 <td>71</td>
-<td>a</td>
-<td>F</td>
+<td>"a"</td>
+<td>"F"</td>
 <td>71</td>
 <td>708.0</td>
 <td>2019-03-08</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
 <td>3</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2012-10-06</td>
-<td>False</td>
-<td>True</td>
+<td>false</td>
+<td>true</td>
 <td>62</td>
-<td>b</td>
-<td>F</td>
+<td>"b"</td>
+<td>"F"</td>
 <td>63</td>
 <td>466.0</td>
-<td>NaT</td>
+<td>null</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
 <td>4</td>
-<td>Surrender</td>
+<td>"Surrender"</td>
 <td>2005-06-27</td>
-<td>True</td>
-<td>True</td>
+<td>true</td>
+<td>true</td>
 <td>62</td>
-<td>c</td>
-<td>M</td>
+<td>"c"</td>
+<td>"M"</td>
 <td>62</td>
 <td>485.0</td>
 <td>2018-11-29</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
 <td>5</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2019-11-22</td>
-<td>False</td>
-<td>False</td>
+<td>false</td>
+<td>false</td>
 <td>62</td>
-<td>c</td>
-<td>F</td>
+<td>"c"</td>
+<td>"F"</td>
 <td>67</td>
 <td>978.0</td>
-<td>NaT</td>
+<td>null</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">19995</td>
 <td>19996</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2014-08-11</td>
-<td>True</td>
-<td>True</td>
+<td>true</td>
+<td>true</td>
 <td>55</td>
-<td>b</td>
-<td>F</td>
+<td>"b"</td>
+<td>"F"</td>
 <td>75</td>
 <td>3551.0</td>
-<td>NaT</td>
+<td>null</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">19996</td>
 <td>19997</td>
-<td>Surrender</td>
+<td>"Surrender"</td>
 <td>2006-11-20</td>
-<td>False</td>
-<td>False</td>
+<td>false</td>
+<td>false</td>
 <td>68</td>
-<td>c</td>
-<td>F</td>
+<td>"c"</td>
+<td>"F"</td>
 <td>77</td>
 <td>336.0</td>
 <td>2017-07-09</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">19997</td>
 <td>19998</td>
-<td>Surrender</td>
+<td>"Surrender"</td>
 <td>2017-02-20</td>
-<td>True</td>
-<td>False</td>
+<td>true</td>
+<td>false</td>
 <td>68</td>
-<td>c</td>
-<td>F</td>
+<td>"c"</td>
+<td>"F"</td>
 <td>68</td>
 <td>1222.0</td>
 <td>2018-08-03</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">19998</td>
 <td>19999</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2015-04-11</td>
-<td>False</td>
-<td>True</td>
+<td>false</td>
+<td>true</td>
 <td>67</td>
-<td>a</td>
-<td>M</td>
+<td>"a"</td>
+<td>"M"</td>
 <td>78</td>
 <td>2138.0</td>
-<td>NaT</td>
+<td>null</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">19999</td>
 <td>20000</td>
-<td>Active</td>
+<td>"Active"</td>
 <td>2009-04-29</td>
-<td>True</td>
-<td>True</td>
+<td>true</td>
+<td>true</td>
 <td>72</td>
-<td>c</td>
-<td>M</td>
+<td>"c"</td>
+<td>"M"</td>
 <td>72</td>
 <td>5751.0</td>
-<td>NaT</td>
+<td>null</td>
 </tr>
 </tbody>
 </table>
-
-<p>20000 rows × 11 columns</p>
 </div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>census_dat</code> is a Polars data frame. Actxps functions accept both Polars and Pandas data frames. For speed and efficiency reasons, Polars is used internally for all data wrangling, so if a Pandas data frame is passed to an actxps function it will be converted to Polars. To convert a Polars data frame to Pandas the method <code>DataFrame.to_pandas()</code> is available.</p>
 </div>
 </div>
 <p>The data includes 3 policy statuses: Active, Death, and Surrender.</p>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>status_counts <span class="op">=</span> census_dat.value_counts(<span class="st">'status'</span>)</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>status_counts <span class="op">=</span> census_dat[<span class="st">'status'</span>].value_counts()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>status_counts</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="status-count" class="cell-output cell-output-display" data-execution_count="3">
-<pre><code>status
-Active       15212
-Surrender     2972
-Death         1816
-Name: count, dtype: int64</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (3, 2)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">count</th>
+</tr>
+<tr class="odd">
+<th>cat</th>
+<th>u32</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>"Death"</td>
+<td>1816</td>
+</tr>
+<tr class="even">
+<td>"Active"</td>
+<td>15212</td>
+</tr>
+<tr class="odd">
+<td>"Surrender"</td>
+<td>2972</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <p>Let’s assume we’re interested in calculating the probability of surrender over one policy year. We cannot simply calculate the proportion of policies in a surrendered status as this does not represent an annualized surrender rate.</p>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># incorrect</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>status_counts <span class="op">/</span> <span class="bu">sum</span>(status_counts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># incorrect</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>status_counts.with_columns(pl.col(<span class="st">'count'</span>) <span class="op">/</span> pl.col(<span class="st">'count'</span>).<span class="bu">sum</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="naive" class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>status
-Active       0.7606
-Surrender    0.1486
-Death        0.0908
-Name: count, dtype: float64</code></pre>
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (3, 2)</small>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">count</th>
+</tr>
+<tr class="odd">
+<th>cat</th>
+<th>f64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>"Death"</td>
+<td>0.0908</td>
+</tr>
+<tr class="even">
+<td>"Active"</td>
+<td>0.7606</td>
+</tr>
+<tr class="odd">
+<td>"Surrender"</td>
+<td>0.1486</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </section>
@@ -453,10 +531,10 @@ Name: count, dtype: float64</code></pre>
 <p>In order to calculate annual surrender rates, we need to break each policy into multiple records. There should be one row per policy per year.</p>
 <p>The <code>ExposedDF()</code> class is used to perform this transformation.</p>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(census_dat, end_date<span class="op">=</span><span class="st">"2019-12-31"</span>,</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                            target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>exposed_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(census_dat, end_date<span class="op">=</span><span class="st">"2019-12-31"</span>,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                            target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>exposed_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="example" class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>Exposure data
 
@@ -464,39 +542,33 @@ Exposure type: policy_year
 Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 
-A DataFrame: 141,252 x 15
-   pol_num  status issue_date  inc_guar   qual  age product gender  wd_age  \
-0        1  Active 2014-12-17      True  False   56       b      F      77   
-1        1  Active 2014-12-17      True  False   56       b      F      77   
-2        1  Active 2014-12-17      True  False   56       b      F      77   
-3        1  Active 2014-12-17      True  False   56       b      F      77   
-4        1  Active 2014-12-17      True  False   56       b      F      77   
-5        1  Active 2014-12-17      True  False   56       b      F      77   
-6        2  Active 2007-09-24     False  False   71       a      F      71   
-7        2  Active 2007-09-24     False  False   71       a      F      71   
-8        2  Active 2007-09-24     False  False   71       a      F      71   
-9        2  Active 2007-09-24     False  False   71       a      F      71   
-
-   premium term_date  pol_yr pol_date_yr pol_date_yr_end  exposure  
-0    370.0       NaT       1  2014-12-17      2015-12-16  1.000000  
-1    370.0       NaT       2  2015-12-17      2016-12-16  1.000000  
-2    370.0       NaT       3  2016-12-17      2017-12-16  1.000000  
-3    370.0       NaT       4  2017-12-17      2018-12-16  1.000000  
-4    370.0       NaT       5  2018-12-17      2019-12-16  1.000000  
-5    370.0       NaT       6  2019-12-17      2020-12-16  0.040984  
-6    708.0       NaT       1  2007-09-24      2008-09-23  1.000000  
-7    708.0       NaT       2  2008-09-24      2009-09-23  1.000000  
-8    708.0       NaT       3  2009-09-24      2010-09-23  1.000000  
-9    708.0       NaT       4  2010-09-24      2011-09-23  1.000000  </code></pre>
+shape: (141_252, 15)
+┌─────────┬────────┬────────────┬──────────┬───┬────────┬─────────────┬─────────────────┬──────────┐
+│ pol_num ┆ status ┆ issue_date ┆ inc_guar ┆ … ┆ pol_yr ┆ pol_date_yr ┆ pol_date_yr_end ┆ exposure │
+│ ---     ┆ ---    ┆ ---        ┆ ---      ┆   ┆ ---    ┆ ---         ┆ ---             ┆ ---      │
+│ i64     ┆ enum   ┆ date       ┆ bool     ┆   ┆ u32    ┆ date        ┆ date            ┆ f64      │
+╞═════════╪════════╪════════════╪══════════╪═══╪════════╪═════════════╪═════════════════╪══════════╡
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 1      ┆ 2014-12-17  ┆ 2015-12-16      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 2      ┆ 2015-12-17  ┆ 2016-12-16      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 3      ┆ 2016-12-17  ┆ 2017-12-16      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 4      ┆ 2017-12-17  ┆ 2018-12-16      ┆ 1.0      │
+│ 1       ┆ Active ┆ 2014-12-17 ┆ true     ┆ … ┆ 5      ┆ 2018-12-17  ┆ 2019-12-16      ┆ 1.0      │
+│ …       ┆ …      ┆ …          ┆ …        ┆ … ┆ …      ┆ …           ┆ …               ┆ …        │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 7      ┆ 2015-04-29  ┆ 2016-04-28      ┆ 1.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 8      ┆ 2016-04-29  ┆ 2017-04-28      ┆ 1.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 9      ┆ 2017-04-29  ┆ 2018-04-28      ┆ 1.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 10     ┆ 2018-04-29  ┆ 2019-04-28      ┆ 1.0      │
+│ 20000   ┆ Active ┆ 2009-04-29 ┆ true     ┆ … ┆ 11     ┆ 2019-04-29  ┆ 2020-04-28      ┆ 0.674863 │
+└─────────┴────────┴────────────┴──────────┴───┴────────┴─────────────┴─────────────────┴──────────┘</code></pre>
 </div>
 </div>
 <p><code>ExposedDF</code> objects include an exposure data frame in the <code>data</code> property and some additional attributes related to the experience study.</p>
 <p>Now that the data has been “exposed” by policy year, the observed annual surrender probability can be calculated as:</p>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>(<span class="bu">sum</span>(exposed_data.data.status <span class="op">==</span> <span class="st">"Surrender"</span>) <span class="op">/</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">sum</span>(exposed_data.data.exposure))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>(<span class="bu">sum</span>(exposed_data.data[<span class="st">'status'</span>] <span class="op">==</span> <span class="st">"Surrender"</span>) <span class="op">/</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a> <span class="bu">sum</span>(exposed_data.data[<span class="st">'exposure'</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="term-rate" class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>0.021630955063662638</code></pre>
+<pre><code>0.021630959546465652</code></pre>
 </div>
 </div>
 <p>As a default, <code>ExposedDF()</code> calculates exposures by policy year. This can also be accomplished with the class method <code>ExposedDF.expose_py()</code>. Other implementations of <code>ExposedDF()</code> include:</p>
@@ -515,29 +587,33 @@ A DataFrame: 141,252 x 15
 <h2 class="anchored" data-anchor-id="experience-study-summary-function">Experience study summary function</h2>
 <p>The <code>exp_stats()</code> method creates a summary of observed experience data. The output of this function is an <code>ExpStats</code> object.</p>
 <div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>exposed_data.exp_stats()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>exposed_data.exp_stats()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="stats-1" class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>Experience study results
 
 Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 
-
-A DataFrame: 1 x 4
-   n_claims  claims       exposure     q_obs
-0      2869    2869  132633.995658  0.021631</code></pre>
+shape: (1, 4)
+┌──────────┬────────┬───────────────┬──────────┐
+│ n_claims ┆ claims ┆ exposure      ┆ q_obs    │
+│ ---      ┆ ---    ┆ ---           ┆ ---      │
+│ u32      ┆ u32    ┆ f64           ┆ f64      │
+╞══════════╪════════╪═══════════════╪══════════╡
+│ 2869     ┆ 2869   ┆ 132633.968171 ┆ 0.021631 │
+└──────────┴────────┴───────────────┴──────────┘</code></pre>
 </div>
 </div>
 <p>See <a href="../articles/exp_summary.html">Experience Summaries</a> for further details on exposure calculations.</p>
 <section id="grouped-experience-data" class="level3">
 <h3 class="anchored" data-anchor-id="grouped-experience-data">Grouped experience data</h3>
-<p><code>ExposedDF</code> objects contain a <code>groupby()</code> method that is used to specify grouping variables for downstream methods like <code>exp_stats()</code>. Below, the data is grouped by policy year (<code>pol_yr</code>) and an indicator for the presence of a guaranteed income rider (<code>inc_guar</code>). After <code>exp_stats()</code> is called, the resulting output contains one record for each unique group.</p>
+<p><code>ExposedDF</code> objects contain a <code>group_by()</code> method that is used to specify grouping variables for downstream methods like <code>exp_stats()</code>. Below, the data is grouped by policy year (<code>pol_yr</code>) and an indicator for the presence of a guaranteed income rider (<code>inc_guar</code>). After <code>exp_stats()</code> is called, the resulting output contains one record for each unique group.</p>
 <div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    groupby(<span class="st">"pol_yr"</span>, <span class="st">"inc_guar"</span>).</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    exp_stats())</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>exp_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    group_by(<span class="st">"pol_yr"</span>, <span class="st">"inc_guar"</span>).</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    exp_stats())</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>exp_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="stats-grouped" class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>Experience study results
 
@@ -545,19 +621,24 @@ Groups: pol_yr, inc_guar
 Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 
-
-A DataFrame: 30 x 6
-   pol_yr  inc_guar  n_claims  claims      exposure     q_obs
-0       1     False        56      56   7719.807740  0.007254
-1       1      True        46      46  11532.404626  0.003989
-2       2     False        92      92   7102.813160  0.012953
-3       2      True        68      68  10611.967258  0.006408
-4       3     False        67      67   6446.916146  0.010393
-5       3      True        57      57   9650.221229  0.005907
-6       4     False       123     123   5798.909986  0.021211
-7       4      True        45      45   8736.954420  0.005151
-8       5     False        97      97   5105.875799  0.018998
-9       5      True        67      67   7809.650445  0.008579</code></pre>
+shape: (30, 6)
+┌────────┬──────────┬──────────┬────────┬──────────────┬──────────┐
+│ pol_yr ┆ inc_guar ┆ n_claims ┆ claims ┆ exposure     ┆ q_obs    │
+│ ---    ┆ ---      ┆ ---      ┆ ---    ┆ ---          ┆ ---      │
+│ u32    ┆ bool     ┆ u32      ┆ u32    ┆ f64          ┆ f64      │
+╞════════╪══════════╪══════════╪════════╪══════════════╪══════════╡
+│ 1      ┆ false    ┆ 56       ┆ 56     ┆ 7719.80774   ┆ 0.007254 │
+│ 1      ┆ true     ┆ 46       ┆ 46     ┆ 11532.404626 ┆ 0.003989 │
+│ 2      ┆ false    ┆ 92       ┆ 92     ┆ 7102.81316   ┆ 0.012953 │
+│ 2      ┆ true     ┆ 68       ┆ 68     ┆ 10611.967258 ┆ 0.006408 │
+│ 3      ┆ false    ┆ 67       ┆ 67     ┆ 6446.916146  ┆ 0.010393 │
+│ …      ┆ …        ┆ …        ┆ …      ┆ …            ┆ …        │
+│ 13     ┆ true     ┆ 49       ┆ 49     ┆ 1117.137361  ┆ 0.043862 │
+│ 14     ┆ false    ┆ 33       ┆ 33     ┆ 262.622262   ┆ 0.125656 │
+│ 14     ┆ true     ┆ 29       ┆ 29     ┆ 609.216476   ┆ 0.047602 │
+│ 15     ┆ false    ┆ 8        ┆ 8      ┆ 74.050109    ┆ 0.108035 │
+│ 15     ┆ true     ┆ 9        ┆ 9      ┆ 194.128602   ┆ 0.046361 │
+└────────┴──────────┴──────────┴────────┴──────────────┴──────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -565,20 +646,20 @@ A DataFrame: 30 x 6
 <h3 class="anchored" data-anchor-id="actual-to-expected-rates">Actual-to-expected rates</h3>
 <p>To derive actual-to-expected rates, first attach one or more columns of expected termination rates to the exposure data. Then, pass these column names to the <code>expected</code> argument of <code>exp_stats()</code>.</p>
 <div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>),</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                                 [<span class="fl">.2</span>, <span class="fl">.15</span>], np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)))</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># using 2 different expected termination rates</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>exposed_data.data[<span class="st">'expected_1'</span>] <span class="op">=</span> <span class="op">\</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    expected_table[exposed_data.data.pol_yr <span class="op">-</span> <span class="dv">1</span>]</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>exposed_data.data[<span class="st">'expected_2'</span>] <span class="op">=</span> <span class="op">\</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    np.where(exposed_data.data.inc_guar, <span class="fl">0.015</span>, <span class="fl">0.03</span>)</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>           groupby(<span class="st">"pol_yr"</span>, <span class="st">"inc_guar"</span>).</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>           exp_stats(expected<span class="op">=</span>[<span class="st">"expected_1"</span>, <span class="st">"expected_2"</span>]))</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>exp_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>),</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                                 [<span class="fl">.2</span>, <span class="fl">.15</span>], np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># using 2 different expected termination rates</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>exposed_data.data <span class="op">=</span> exposed_data.data.with_columns(</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    expected_1<span class="op">=</span>expected_table[exposed_data.data[<span class="st">'pol_yr'</span>] <span class="op">-</span> <span class="dv">1</span>],</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    expected_2<span class="op">=</span>pl.when(pl.col(<span class="st">'inc_guar'</span>)).then(<span class="fl">0.015</span>).otherwise(<span class="fl">0.03</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>           group_by(<span class="st">"pol_yr"</span>, <span class="st">"inc_guar"</span>).</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>           exp_stats(expected<span class="op">=</span>[<span class="st">"expected_1"</span>, <span class="st">"expected_2"</span>]))</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>exp_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="stats-ae" class="cell-output cell-output-display" data-execution_count="9">
 <pre><code>Experience study results
 
@@ -587,31 +668,25 @@ Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 Expected values: expected_1, expected_2
 
-
-A DataFrame: 30 x 10
-   pol_yr  inc_guar  n_claims  claims      exposure     q_obs  expected_1  \
-0       1     False        56      56   7719.807740  0.007254    0.005000   
-1       1      True        46      46  11532.404626  0.003989    0.005000   
-2       2     False        92      92   7102.813160  0.012953    0.007778   
-3       2      True        68      68  10611.967258  0.006408    0.007778   
-4       3     False        67      67   6446.916146  0.010393    0.010556   
-5       3      True        57      57   9650.221229  0.005907    0.010556   
-6       4     False       123     123   5798.909986  0.021211    0.013333   
-7       4      True        45      45   8736.954420  0.005151    0.013333   
-8       5     False        97      97   5105.875799  0.018998    0.016111   
-9       5      True        67      67   7809.650445  0.008579    0.016111   
-
-   expected_2  ae_expected_1  ae_expected_2  
-0       0.030       1.450813       0.241802  
-1       0.015       0.797752       0.265917  
-2       0.030       1.665336       0.431754  
-3       0.015       0.823868       0.427191  
-4       0.030       0.984559       0.346419  
-5       0.015       0.559573       0.393773  
-6       0.030       1.590816       0.707029  
-7       0.015       0.386290       0.343369  
-8       0.030       1.179169       0.633257  
-9       0.015       0.532498       0.571942  </code></pre>
+shape: (30, 10)
+┌────────┬──────────┬──────────┬────────┬───┬────────────┬────────────┬──────────────┬─────────────┐
+│ pol_yr ┆ inc_guar ┆ n_claims ┆ claims ┆ … ┆ expected_1 ┆ expected_2 ┆ ae_expected_ ┆ ae_expected │
+│ ---    ┆ ---      ┆ ---      ┆ ---    ┆   ┆ ---        ┆ ---        ┆ 1            ┆ _2          │
+│ u32    ┆ bool     ┆ u32      ┆ u32    ┆   ┆ f64        ┆ f64        ┆ ---          ┆ ---         │
+│        ┆          ┆          ┆        ┆   ┆            ┆            ┆ f64          ┆ f64         │
+╞════════╪══════════╪══════════╪════════╪═══╪════════════╪════════════╪══════════════╪═════════════╡
+│ 1      ┆ false    ┆ 56       ┆ 56     ┆ … ┆ 0.005      ┆ 0.03       ┆ 1.450813     ┆ 0.241802    │
+│ 1      ┆ true     ┆ 46       ┆ 46     ┆ … ┆ 0.005      ┆ 0.015      ┆ 0.797752     ┆ 0.265917    │
+│ 2      ┆ false    ┆ 92       ┆ 92     ┆ … ┆ 0.007778   ┆ 0.03       ┆ 1.665336     ┆ 0.431754    │
+│ 2      ┆ true     ┆ 68       ┆ 68     ┆ … ┆ 0.007778   ┆ 0.015      ┆ 0.823868     ┆ 0.427191    │
+│ 3      ┆ false    ┆ 67       ┆ 67     ┆ … ┆ 0.010556   ┆ 0.03       ┆ 0.984559     ┆ 0.346419    │
+│ …      ┆ …        ┆ …        ┆ …      ┆ … ┆ …          ┆ …          ┆ …            ┆ …           │
+│ 13     ┆ true     ┆ 49       ┆ 49     ┆ … ┆ 0.05       ┆ 0.015      ┆ 0.877242     ┆ 2.924141    │
+│ 14     ┆ false    ┆ 33       ┆ 33     ┆ … ┆ 0.05       ┆ 0.03       ┆ 2.513115     ┆ 4.188525    │
+│ 14     ┆ true     ┆ 29       ┆ 29     ┆ … ┆ 0.05       ┆ 0.015      ┆ 0.952043     ┆ 3.173475    │
+│ 15     ┆ false    ┆ 8        ┆ 8      ┆ … ┆ 0.05       ┆ 0.03       ┆ 2.160699     ┆ 3.601165    │
+│ 15     ┆ true     ┆ 9        ┆ 9      ┆ … ┆ 0.05       ┆ 0.015      ┆ 0.92722      ┆ 3.090735    │
+└────────┴──────────┴──────────┴────────┴───┴────────────┴────────────┴──────────────┴─────────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -619,7 +694,7 @@ A DataFrame: 30 x 10
 <h3 class="anchored" data-anchor-id="plot-and-table-methods"><code>plot()</code> and <code>table()</code> methods</h3>
 <p><code>ExpStats</code> objects have <code>plot()</code> and <code>table()</code> methods that create visualizations and summary tables. See <a href="../articles/visualizations.html">Data visualizations</a> for full details on these functions.</p>
 <div id="plot" class="cell" data-dpi="3000" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>exp_res.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>exp_res.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="actxps_files/figure-html/plot-output-1.png" id="plot-1" class="img-fluid"></p>
 </div>
@@ -628,8 +703,8 @@ A DataFrame: 30 x 10
 </div>
 </div>
 <div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first 10 rows showed for brevity</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>exp_res.table()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first 10 rows showed for brevity</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>exp_res.table()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <center>
 <img src="../images/exp_gt.png" width="55%" height="55%">
@@ -639,7 +714,7 @@ A DataFrame: 30 x 10
 <h3 class="anchored" data-anchor-id="summary"><code>summary()</code></h3>
 <p>Calling the <code>summary()</code> method on an <code>ExpStats</code> object re-summarizes experience results. This also produces an <code>ExpStats</code> object.</p>
 <div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>exp_res.summary()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>exp_res.summary()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="summary-1" class="cell-output cell-output-display" data-execution_count="11">
 <pre><code>Experience study results
 
@@ -647,18 +722,21 @@ Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 Expected values: expected_1, expected_2
 
-
-A DataFrame: 1 x 8
-   n_claims  claims       exposure     q_obs  expected_1  expected_2  \
-0      2869    2869  132633.995658  0.021631    0.024242    0.020895   
-
-   ae_expected_1  ae_expected_2  
-0       0.892303       1.035232  </code></pre>
+shape: (1, 8)
+┌──────────┬────────┬─────────────┬──────────┬────────────┬────────────┬─────────────┬─────────────┐
+│ n_claims ┆ claims ┆ exposure    ┆ q_obs    ┆ expected_1 ┆ expected_2 ┆ ae_expected ┆ ae_expected │
+│ ---      ┆ ---    ┆ ---         ┆ ---      ┆ ---        ┆ ---        ┆ _1          ┆ _2          │
+│ u32      ┆ u32    ┆ f64         ┆ f64      ┆ f64        ┆ f64        ┆ ---         ┆ ---         │
+│          ┆        ┆             ┆          ┆            ┆            ┆ f64         ┆ f64         │
+╞══════════╪════════╪═════════════╪══════════╪════════════╪════════════╪═════════════╪═════════════╡
+│ 2869     ┆ 2869   ┆ 132633.9681 ┆ 0.021631 ┆ 0.024242   ┆ 0.020895   ┆ 0.892304    ┆ 1.035233    │
+│          ┆        ┆ 71          ┆          ┆            ┆            ┆             ┆             │
+└──────────┴────────┴─────────────┴──────────┴────────────┴────────────┴─────────────┴─────────────┘</code></pre>
 </div>
 </div>
 <p>If additional variables are passed to <code>*by</code>, these variables become groups in the re-summarized <code>ExpStats</code> object.</p>
 <div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>exp_res.summary(<span class="st">'inc_guar'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>exp_res.summary(<span class="st">'inc_guar'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="summary-2" class="cell-output cell-output-display" data-execution_count="12">
 <pre><code>Experience study results
 
@@ -667,15 +745,18 @@ Target status: Surrender
 Study range: 1900-01-01 to 2019-12-31
 Expected values: expected_1, expected_2
 
-
-A DataFrame: 2 x 9
-   inc_guar  n_claims  claims      exposure     q_obs  expected_1  expected_2  \
-0     False      1601    1601  52123.245243  0.030716    0.023481       0.030   
-1      True      1268    1268  80510.750415  0.015749    0.024734       0.015   
-
-   ae_expected_1  ae_expected_2  
-0       1.308098       1.023855  
-1       0.636751       1.049963  </code></pre>
+shape: (2, 9)
+┌──────────┬──────────┬────────┬────────────┬───┬────────────┬────────────┬────────────┬───────────┐
+│ inc_guar ┆ n_claims ┆ claims ┆ exposure   ┆ … ┆ expected_1 ┆ expected_2 ┆ ae_expecte ┆ ae_expect │
+│ ---      ┆ ---      ┆ ---    ┆ ---        ┆   ┆ ---        ┆ ---        ┆ d_1        ┆ ed_2      │
+│ bool     ┆ u32      ┆ u32    ┆ f64        ┆   ┆ f64        ┆ f64        ┆ ---        ┆ ---       │
+│          ┆          ┆        ┆            ┆   ┆            ┆            ┆ f64        ┆ f64       │
+╞══════════╪══════════╪════════╪════════════╪═══╪════════════╪════════════╪════════════╪═══════════╡
+│ false    ┆ 1601     ┆ 1601   ┆ 52123.2360 ┆ … ┆ 0.023481   ┆ 0.03       ┆ 1.308099   ┆ 1.023856  │
+│          ┆          ┆        ┆ 81         ┆   ┆            ┆            ┆            ┆           │
+│ true     ┆ 1268     ┆ 1268   ┆ 80510.7320 ┆ … ┆ 0.024734   ┆ 0.015      ┆ 0.636751   ┆ 1.049964  │
+│          ┆          ┆        ┆ 91         ┆   ┆            ┆            ┆            ┆           │
+└──────────┴──────────┴────────┴────────────┴───┴────────────┴────────────┴────────────┴───────────┘</code></pre>
 </div>
 </div>
 </section>
@@ -684,7 +765,7 @@ A DataFrame: 2 x 9
 <h2 class="anchored" data-anchor-id="shiny-app">Shiny App</h2>
 <p><code>ExposedDF</code> objects have an <code>exp_shiny()</code> method that launches a Shiny app to enable interactive exploration of experience data.</p>
 <div id="shiny" class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>exposed_data.exp_shiny()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>exposed_data.exp_shiny()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><img src="../images/exp_shiny.png" width="100%"></p>
 

@@ -194,7 +194,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#basic-usage" id="toc-basic-usage" class="nav-link active" data-scroll-target="#basic-usage">Basic usage</a></li>
+  <li><a href="#installation" id="toc-installation" class="nav-link active" data-scroll-target="#installation">Installation</a></li>
+  <li><a href="#basic-usage" id="toc-basic-usage" class="nav-link" data-scroll-target="#basic-usage">Basic usage</a></li>
   </ul>
 </nav>
     </div>
@@ -228,17 +229,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>The <code>plot()</code> and <code>table()</code> methods of <code>ExpStats</code> and <code>TrxStats</code> create plots and tables for reporting.</li>
 <li>The <code>exp_shiny()</code> method of <code>ExposedDF</code> launches a Shiny app that allows for interactive exploration of experience drivers.</li>
 </ul>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<p>The actxps package can be installed from PyPI with:</p>
+<pre><code>$ pip install actxps</code></pre>
+</section>
 <section id="basic-usage" class="level2">
 <h2 class="anchored" data-anchor-id="basic-usage">Basic usage</h2>
 <p>An expanded version of this demo is available at <a href="https://mattheaphy.github.io/actxpspy/articles/actxps.html">Getting started with actxps</a>.</p>
 <p>The actxps package includes simulated census data for a theoretical deferred annuity product with an optional guaranteed income rider. The grain of this data is one row <em>per policy</em>.</p>
 <div id="packages" class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(census_dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> actxps <span class="im">as</span> xp</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>census_dat <span class="op">=</span> xp.load_census_dat()</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(census_dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>shape: (20_000, 11)
 ┌─────────┬───────────┬────────────┬──────────┬───┬────────┬────────┬─────────┬────────────┐
@@ -262,11 +268,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Convert census records to exposure records with one row <em>per policy per year</em>.</p>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(census_dat,</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                            end_date<span class="op">=</span><span class="st">"2019-12-31"</span>,</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                            target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>exposed_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>exposed_data <span class="op">=</span> xp.ExposedDF(census_dat,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                            end_date<span class="op">=</span><span class="st">"2019-12-31"</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                            target_status<span class="op">=</span><span class="st">"Surrender"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>exposed_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="example" class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>Exposure data
 
@@ -296,11 +302,11 @@ shape: (141_252, 15)
 </div>
 <p>Create a summary grouped by policy year and the presence of a guaranteed income rider.</p>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>           group_by(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>           exp_stats())</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>exp_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>           group_by(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>           exp_stats())</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>exp_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="stats-grouped" class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>Experience study results
 
@@ -331,23 +337,23 @@ shape: (30, 6)
 <p>Calculate actual-to-expected ratios.</p>
 <p>First, attach one or more columns of expected termination rates to the exposure data. Then, pass these column names to the <code>expected</code> argument of <code>exp_stats()</code>.</p>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>), </span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    np.array([<span class="fl">0.2</span>, <span class="fl">0.15</span>]), </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    ))</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># using 2 different expected termination rates</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>exposed_data.data <span class="op">=</span> exposed_data.data.with_columns(</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    expected_1<span class="op">=</span>expected_table[exposed_data.data[<span class="st">'pol_yr'</span>] <span class="op">-</span> <span class="dv">1</span>],</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    expected_2<span class="op">=</span>pl.when(pl.col(<span class="st">'inc_guar'</span>)).then(<span class="fl">0.015</span>).otherwise(<span class="fl">0.03</span>)</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>           group_by(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>           exp_stats(expected <span class="op">=</span> [<span class="st">"expected_1"</span>, <span class="st">"expected_2"</span>]))</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>exp_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>expected_table <span class="op">=</span> np.concatenate((</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    np.linspace(<span class="fl">0.005</span>, <span class="fl">0.03</span>, <span class="dv">10</span>), </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    np.array([<span class="fl">0.2</span>, <span class="fl">0.15</span>]), </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    np.repeat(<span class="fl">0.05</span>, <span class="dv">3</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    ))</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># using 2 different expected termination rates</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>exposed_data.data <span class="op">=</span> exposed_data.data.with_columns(</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    expected_1<span class="op">=</span>expected_table[exposed_data.data[<span class="st">'pol_yr'</span>] <span class="op">-</span> <span class="dv">1</span>],</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    expected_2<span class="op">=</span>pl.when(pl.col(<span class="st">'inc_guar'</span>)).then(<span class="fl">0.015</span>).otherwise(<span class="fl">0.03</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>exp_res <span class="op">=</span> (exposed_data.</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>           group_by(<span class="st">'pol_yr'</span>, <span class="st">'inc_guar'</span>).</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>           exp_stats(expected <span class="op">=</span> [<span class="st">"expected_1"</span>, <span class="st">"expected_2"</span>]))</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>exp_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="stats-ae" class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>Experience study results
 
@@ -379,7 +385,7 @@ shape: (30, 10)
 </div>
 <p>Create visualizations using the <code>plot()</code> and <code>table()</code> methods.</p>
 <div id="plots" class="cell" data-dpi="300" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>exp_res.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>exp_res.plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/plots-output-1.png" id="plots-1" class="img-fluid"></p>
 </div>
@@ -388,15 +394,15 @@ shape: (30, 10)
 </div>
 </div>
 <div id="table1" class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first 10 rows showed for brevity</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>exp_res.table()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first 10 rows showed for brevity</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>exp_res.table()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <center>
 <img src="images/exp_gt.png" width="55%" height="55%">
 </center>
 <p>Launch a shiny app to interactively explore experience data.</p>
 <div id="shiny" class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>exposed_data.exp_shiny()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>exposed_data.exp_shiny()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><img src="images/exp_shiny.png" width="100%"></p>
 <p><br> <strong>Logo</strong></p>

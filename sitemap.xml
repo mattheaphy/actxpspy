@@ -2,90 +2,90 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/TrxStats.html</loc>
-    <lastmod>2024-03-03T03:10:54.915Z</lastmod>
+    <lastmod>2024-03-03T14:19:47.331Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/sim_data.html</loc>
-    <lastmod>2024-03-03T03:10:40.163Z</lastmod>
+    <lastmod>2024-03-03T14:19:32.078Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/pol_durations.html</loc>
-    <lastmod>2024-03-03T03:10:39.324Z</lastmod>
+    <lastmod>2024-03-03T14:19:31.253Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/index.html</loc>
-    <lastmod>2024-03-03T03:10:32.744Z</lastmod>
+    <lastmod>2024-03-03T14:19:24.784Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/exp_shiny.html</loc>
-    <lastmod>2024-03-03T03:10:26.142Z</lastmod>
+    <lastmod>2024-03-03T14:19:18.272Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/ExposedDF.html</loc>
-    <lastmod>2024-03-03T03:10:11.495Z</lastmod>
+    <lastmod>2024-03-03T14:19:03.908Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/ExposedDF.exp_stats.html</loc>
-    <lastmod>2024-03-03T03:10:03.712Z</lastmod>
+    <lastmod>2024-03-03T14:18:55.920Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/index.html</loc>
-    <lastmod>2024-03-03T03:09:51.433Z</lastmod>
+    <lastmod>2024-03-03T14:18:43.710Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/articles/visualizations.html</loc>
-    <lastmod>2024-03-03T03:09:44.420Z</lastmod>
+    <lastmod>2024-03-03T14:18:36.659Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/articles/misc.html</loc>
-    <lastmod>2024-03-03T03:09:23.110Z</lastmod>
+    <lastmod>2024-03-03T14:18:15.327Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/articles/exposures.html</loc>
-    <lastmod>2024-03-03T03:09:08.979Z</lastmod>
+    <lastmod>2024-03-03T14:18:01.829Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/articles/actxps.html</loc>
-    <lastmod>2024-03-03T03:09:01.688Z</lastmod>
+    <lastmod>2024-03-03T14:17:54.456Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/articles/exp_summary.html</loc>
-    <lastmod>2024-03-03T03:09:16.423Z</lastmod>
+    <lastmod>2024-03-03T14:18:09.177Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/articles/transactions.html</loc>
-    <lastmod>2024-03-03T03:09:32.646Z</lastmod>
+    <lastmod>2024-03-03T14:18:24.844Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/changelog.html</loc>
-    <lastmod>2024-03-03T03:09:44.815Z</lastmod>
+    <lastmod>2024-03-03T14:18:37.061Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/ExposedDF.add_transactions.html</loc>
-    <lastmod>2024-03-03T03:09:57.528Z</lastmod>
+    <lastmod>2024-03-03T14:18:49.799Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/ExposedDF.from_DataFrame.html</loc>
-    <lastmod>2024-03-03T03:10:04.188Z</lastmod>
+    <lastmod>2024-03-03T14:18:56.410Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/ExpStats.html</loc>
-    <lastmod>2024-03-03T03:10:19.348Z</lastmod>
+    <lastmod>2024-03-03T14:19:11.862Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/frac_durations.html</loc>
-    <lastmod>2024-03-03T03:10:32.233Z</lastmod>
+    <lastmod>2024-03-03T14:19:24.303Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/load_toy_census.html</loc>
-    <lastmod>2024-03-03T03:10:33.117Z</lastmod>
+    <lastmod>2024-03-03T14:19:25.177Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/qx_iamb.html</loc>
-    <lastmod>2024-03-03T03:10:39.724Z</lastmod>
+    <lastmod>2024-03-03T14:19:31.638Z</lastmod>
   </url>
   <url>
     <loc>https://mattheaphy.github.io/actxpspy/reference/SplitExposedDF.html</loc>
-    <lastmod>2024-03-03T03:10:46.148Z</lastmod>
+    <lastmod>2024-03-03T14:19:38.011Z</lastmod>
   </url>
 </urlset>

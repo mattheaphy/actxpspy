@@ -151,6 +151,18 @@ class TestStartEnd():
         assert max(with_start_date.data['pol_date_yr']) == date(2019, 12, 31)
 
 
+# All terminations have termination dates
+class TestTermDates():
+
+    def test_term_date_py(self):
+        assert (study_py.data['status'] != "Active").sum() == \
+            study_py.data['term_date'].is_not_null().sum()
+
+    def test_term_date_cy(self):
+        assert (study_cy.data['status'] != "Active").sum() == \
+            study_cy.data['term_date'].is_not_null().sum()
+
+
 exposed_strings = ExposedDF(toy_census, "2020-12-31", "2016-04-01")
 exposed_dates = ExposedDF(toy_census, date(2020, 12, 31), date(2016, 4, 1))
 
@@ -404,7 +416,8 @@ check_period_end_split = (
 class TestSplitDateRoll():
 
     def test_study_split_roll_1(self):
-        assert all(study_split.data['cal_yr'] <= study_split.data['cal_yr_end'])
+        assert all(study_split.data['cal_yr'] <=
+                   study_split.data['cal_yr_end'])
 
     def test_study_split_roll_2(self):
         assert check_period_end_split == 0

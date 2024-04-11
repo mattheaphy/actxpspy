@@ -1,3 +1,7 @@
+## v1.0.2
+
+- Small correction to the final policy year exposure for leap years
+
 ## v1.0.0
 
 - To improve speed and efficiency, the data frame backend was changed from Pandas to Polars. 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "actxps"
-version = "1.0.1"
+version = "1.0.2"
 description = "Create Actuarial Experience Studies: Prepare Data, Summarize Results, and Create Reports"
 authors = [
   "Matt Heaphy <mattrmattrs@gmail.com>"

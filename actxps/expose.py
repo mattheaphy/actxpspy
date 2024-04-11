@@ -352,15 +352,20 @@ class ExposedDF():
             data = data.with_columns(
                 cal_b=add_per(pl.col('issue_date'), pl.col('time') - 1),
                 cal_e=(add_per(pl.col('issue_date'), pl.col('time')).
-                       dt.offset_by('-1d')),
-                exposure=(pl.when(pl.col('last_per') & ~pl.col('status').
-                                  is_in(pl.Series(target_status,
-                                                  dtype=status_levels))).
-                          then(pl.col('tot_per') % 1).
-                          otherwise(1).
-                          # exposure = 0 is possible if exactly 1 period
-                          # has elapsed. replace these with 1's.
-                          replace(0, 1))
+                       dt.offset_by('-1d'))
+            ).with_columns(
+                exposure=(
+                    pl.when(pl.col('last_per') & ~pl.col('status').
+                            is_in(pl.Series(target_status,
+                                            dtype=status_levels))).
+                    then(((pl.col('last_date') -
+                           pl.col('cal_b')).dt.total_days() + 1) /
+                         ((pl.col('cal_e') -
+                           pl.col('cal_b')).dt.total_days() + 1)).
+                    otherwise(1).
+                    # exposure = 0 is possible if exactly 1 period
+                    # has elapsed. replace these with 1's.
+                    replace(0, 1))
             ).drop(
                 ['last_per', 'last_date', 'tot_per', 'rep_n']
             ).filter(

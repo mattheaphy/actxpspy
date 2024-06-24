@@ -408,3 +408,9 @@ def _check_convert_df(data: pl.DataFrame | pd.DataFrame) -> pl.DataFrame:
         '`data` must be a DataFrame'
 
     return data
+
+
+def _check_missing_dates(x: pl.Series):
+    assert x.is_not_null().all(), \
+        f"Missing values are not allowed in the `{x.name}` column.\n" + \
+        "Make sure all dates are in YYYY-MM-DD format."

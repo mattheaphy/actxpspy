@@ -11,7 +11,7 @@ expo.add_transactions(withdrawals)
 withdrawals4 = withdrawals.clone()
 withdrawals4.columns = list('abcd')
 withdrawals4 = withdrawals4.with_columns(
-    c = pl.when(pl.col('c') == 'Base').then(pl.lit('X')).otherwise(pl.lit('Y'))
+    c=pl.when(pl.col('c') == 'Base').then(pl.lit('X')).otherwise(pl.lit('Y'))
 )
 
 
@@ -36,7 +36,7 @@ class TestAddTrx():
         expo.add_transactions(withdrawals3)
 
         assert n == len(expo.data)
-    
+
     def test_dupplicate_error(self):
         with pytest.raises(ValueError,  match="`trx_data` contains transaction"):
             expo.add_transactions(withdrawals)
@@ -62,3 +62,16 @@ class TestTrxName():
     def test_name_conflict(self):
         with pytest.raises(ValueError, match='`trx_data` contains transaction'):
             expo.add_transactions(withdrawals)
+
+
+# Date format checks work"
+class TestTrxDateFormatChecks():
+
+    def test_error_missing_issue_dates(self):
+        withdrawals5 = withdrawals.clone()
+        withdrawals5[41, "trx_date"] = None
+
+        with pytest.raises(
+                AssertionError,
+                match="Missing values are not allowed in the `trx_date`"):
+            expo.add_transactions(withdrawals5)

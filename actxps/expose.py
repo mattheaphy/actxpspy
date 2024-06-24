@@ -6,7 +6,8 @@ from datetime import date
 from actxps.tools import (
     arg_match,
     _verify_col_names,
-    _check_convert_df
+    _check_convert_df,
+    _check_missing_dates
 )
 from actxps.dates import frac_interval, _date_str
 from warnings import warn
@@ -18,7 +19,7 @@ class ExposedDF():
     """
     Exposed data frame class
 
-    Convert a data frame of census-level records into an object with 
+    Convert a data frame of census-level records into an object with
     exposure-level records.
 
 
@@ -27,10 +28,10 @@ class ExposedDF():
     data : pl.DataFrame | pd.DataFrame
         A data frame with census-level records
     end_date : date | str
-        Experience study end date. If a string is passed, it must be in 
+        Experience study end date. If a string is passed, it must be in
         %Y-%m-%d format.
     start_date : date | str, default=date(1900, 1, 1)
-        Experience study start date. If a string is passed, it must be in 
+        Experience study start date. If a string is passed, it must be in
         %Y-%m-%d format.
     target_status : str | list | np.ndarray, default=`None`
         Target status values
@@ -59,7 +60,8 @@ class ExposedDF():
         existing columns in the original input data plus new columns for
         exposures and observation periods. Observation periods include counters
         for policy exposures, start dates, and end dates. Both start dates and
-        end dates are inclusive bounds.
+        end dates are inclusive bounds. All columns containing dates must be in
+        YYYY-MM-DD format.
 
         For policy year exposures, two observation period columns are returned.
         Columns beginning with (`pol_`) are integer policy periods. Columns
@@ -74,7 +76,7 @@ class ExposedDF():
         Names of the start and end date columns in `data` for each exposure
         period
     trx_types: list
-        List of transaction types that have been attached to `data` using 
+        List of transaction types that have been attached to `data` using
         the `add_transactions()` method.
 
 
@@ -102,7 +104,7 @@ class ExposedDF():
 
     **Alternative class constructors**
 
-    - `expose_py()`, `expose_pq()`, `expose_pm()`, `expose_pw()`, `expose_cy()`, 
+    - `expose_py()`, `expose_pq()`, `expose_pm()`, `expose_pw()`, `expose_cy()`,
         `expose_cq()`, `expose_cm()`, `expose_cw()`
 
         Convenience constructor functions for specific exposure calculations.
@@ -116,11 +118,11 @@ class ExposedDF():
         `q` = quarters
         `m` = months
         `w` = weeks
-        Each constructor has the same inputs as the `__init__` method except 
+        Each constructor has the same inputs as the `__init__` method except
         that `expo_length` and `cal_expo` arguments are prepopulated.
 
     - `from_DataFrame()`
-        Convert a data frame that already has exposure-level records into an 
+        Convert a data frame that already has exposure-level records into an
         `ExposedDF` object.
 
 
@@ -135,7 +137,7 @@ class ExposedDF():
     ```{python}
     import actxps as xp
 
-    xp.ExposedDF(xp.load_toy_census(), "2020-12-31", 
+    xp.ExposedDF(xp.load_toy_census(), "2020-12-31",
                  target_status='Surrender')
     ```
     """
@@ -203,13 +205,23 @@ class ExposedDF():
             else:
                 floor_date = ('1' + interval, '-1d')
 
+        n_term_dates = data[col_term_date].is_not_null().sum()
+
         # column renames and name conflicts
         data = data.rename({
             col_pol_num: 'pol_num',
             col_status: 'status',
             col_issue_date: 'issue_date',
             col_term_date: 'term_date'
-        })
+        }).with_columns(
+            pl.col("issue_date", "term_date").cast(pl.Date)
+        )
+
+        _check_missing_dates(data["issue_date"])
+
+        assert n_term_dates == data["term_date"].is_not_null().sum(), \
+            ("Bad termination date formats were detected.\n" +
+             "Make sure all dates are in YYYY-MM-DD format.")
 
         # check for potential name conflicts
         x = {"exposure",
@@ -237,6 +249,9 @@ class ExposedDF():
             status_levels = pl.Enum(status_levels)
             default_status = pl.Series([default_status],
                                        dtype=status_levels)
+            
+        assert default_status[0] not in target_status, \
+            "`default_status` is not allowed to be the same as `target_status`"
 
         # pre-exposure updates
         # drop policies issued after the study end and
@@ -895,7 +910,8 @@ class ExposedDF():
         trx_data : pl.DataFrame | pd.DataFrame
             A data frame containing transactions details. This data frame must
             have columns for policy numbers, transaction dates, transaction
-            types, and transaction amounts.
+            types, and transaction amounts. Transaction dates must be in 
+            YYYY-MM-DD format.
         col_pol_num : str, default='pol_num'
             Name of the column in `trx_data` containing the policy number
         col_trx_date : str, default='trx_date'
@@ -943,7 +959,11 @@ class ExposedDF():
             col_trx_date: 'trx_date',
             col_trx_type: 'trx_type',
             col_trx_amt: 'trx_amt'
-        })
+        }).with_columns(
+            pl.col("trx_date").cast(pl.Date)
+        )
+        
+        _check_missing_dates(trx_data["trx_date"])
 
         # check for conflicting transaction types
         new_trx_types = trx_data['trx_type'].unique().to_list()

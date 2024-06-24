@@ -108,18 +108,14 @@ class TestRollDates():
 leap_day = pl.DataFrame({'pol_num': 1,
                          'status': 'Active',
                          'issue_date': date(2020, 2, 29),
-                         'term_date': None}).with_columns(
-                             pl.col('term_date').cast(date)
-)
+                         'term_date': None})
 
 leap_expose = ExposedDF.expose_pm(leap_day, end_date="2021-02-28")
 
 march_1 = pl.DataFrame({'pol_num': 1,
                         'status': 'Active',
                         'issue_date': date(2019, 3, 1),
-                        'term_date': None}).with_columns(
-    pl.col('term_date').cast(date)
-)
+                        'term_date': None})
 
 march_1_expose = ExposedDF.expose_pm(march_1, end_date="2020-02-29")
 
@@ -185,7 +181,7 @@ toy_census2 = toy_census.rename(renamer)
 class TestRenames():
 
     def test_name_error(self):
-        with pytest.raises(pl.ColumnNotFoundError, match='status'):
+        with pytest.raises(pl.ColumnNotFoundError, match='term_date'):
             ExposedDF(toy_census2, '2020-12-31')
 
     def test_rename_works(self):
@@ -220,6 +216,37 @@ class TestRenames():
         with pytest.warns(UserWarning, match="`data` contains the following"):
             ExposedDF.expose_cy(toy_census.with_columns(cal_yr_end=1),
                                 "2020-12-31")
+
+
+# Date format checks work
+class TestDateFormatChecks():
+
+    def test_error_missing_issue_dates(self):
+        toy_census3 = toy_census.clone()
+        toy_census3[0, "issue_date"] = None
+
+        with pytest.raises(
+                AssertionError,
+                match="Missing values are not allowed in the `issue_date`"):
+            ExposedDF.expose_py(toy_census3, "2020-12-31")
+
+
+# An error is thrown if the default status is a target status
+class TestDefaultTargetStatusCollision():
+
+    def test_collision(self):
+        all_deaths = pl.DataFrame({
+            "pol_num": range(1, 3),
+            "status": ["Death"] * 2,
+            "issue_date": ["2011-05-27"] * 2,
+            "term_date": ["2012-03-17", "2012-09-17"]})
+
+        with pytest.raises(
+            AssertionError,
+            match="`default_status` is not allowed to be the same as `target_status"
+        ):
+            ExposedDF(all_deaths, end_date="2022-12-31",
+                      target_status=["Death", "Surrender"])
 
 
 expo = ExposedDF(toy_census, "2020-12-31", target_status="Surrender")

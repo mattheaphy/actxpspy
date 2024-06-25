@@ -160,7 +160,8 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#v1.0.2" id="toc-v1.0.2" class="nav-link active" data-scroll-target="#v1.0.2">v1.0.2</a></li>
+  <li><a href="#v1.1.0" id="toc-v1.1.0" class="nav-link active" data-scroll-target="#v1.1.0">v1.1.0</a></li>
+  <li><a href="#v1.0.2" id="toc-v1.0.2" class="nav-link" data-scroll-target="#v1.0.2">v1.0.2</a></li>
   <li><a href="#v1.0.0" id="toc-v1.0.0" class="nav-link" data-scroll-target="#v1.0.0">v1.0.0</a></li>
   <li><a href="#v0.0.1-2024-02-18" id="toc-v0.0.1-2024-02-18" class="nav-link" data-scroll-target="#v0.0.1-2024-02-18">v0.0.1 (2024-02-18)</a></li>
   <li><a href="#v0.0.0.9000-2023-12-14" id="toc-v0.0.0.9000-2023-12-14" class="nav-link" data-scroll-target="#v0.0.0.9000-2023-12-14">v0.0.0.9000 (2023-12-14)</a></li>
@@ -187,6 +188,20 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
+<section id="v1.1.0" class="level2">
+<h2 class="anchored" data-anchor-id="v1.1.0">v1.1.0</h2>
+<ul>
+<li><p><code>expose_split()</code> bug fixes:</p>
+<ul>
+<li><code>ExposedDF.expose_split()</code> was updated to respect the values of <code>start_date</code> and <code>end_date</code> originally passed to the <code>ExposedDF()</code> class.</li>
+<li>Future policy anniversary dates falling on February 29th leap days are now consistent with <code>ExposedDF()</code></li>
+<li>New tests were added to verify that the sum of policy year exposures (<code>exposure_pol</code>) after calling <code>.expose_split()</code> match exposures produced by <code>ExposedDF.expose_py()</code>.</li>
+</ul></li>
+<li><p><code>ExposedDF()</code> bug fix - quarterly and monthly calendar exposures periods now strictly calculate exposures based on month-end dates. In the prior version, months ending on the 28-30 would use that same day of month for subsequent exposure periods.</p></li>
+<li><p><code>ExposedDF()</code> and <code>ExposedDF.add_transactions()</code> now allow date columns to be<br>
+passed as strings in YYYY-MM-DD format. Any strings are converted to date behind-the-scenes, and any missing values will results in an error message.</p></li>
+</ul>
+</section>
 <section id="v1.0.2" class="level2">
 <h2 class="anchored" data-anchor-id="v1.0.2">v1.0.2</h2>
 <ul>

@@ -9,7 +9,7 @@ from actxps.tools import (
     _check_convert_df,
     _check_missing_dates
 )
-from actxps.dates import frac_interval, _date_str
+from actxps.dates import _delta_frac, _date_str
 from warnings import warn
 from functools import singledispatchmethod
 from itertools import product
@@ -191,19 +191,13 @@ class ExposedDF():
         abbrev = ExposedDF.abbr_period[expo_length]
         interval = ExposedDF.abbr_pl[expo_length]
 
-        # call frac_intervals using a polars struct
-        def per_frac(x):
-            return frac_interval(x.struct[0], x.struct[1], expo_length)
+        # call _delta_frac using a polars struct
+        def per_frac(x, cal=False):
+            return _delta_frac(x.struct[0], x.struct[1], expo_length, cal)
 
         # add time intervals to a date expression
         def add_per(x: pl.Expr, n: pl.Expr):
             return (x.dt.offset_by(pl.format('{}', n.cast(str) + interval)))
-
-        if cal_expo:
-            if expo_length != 'week':
-                floor_date = '1' + interval,
-            else:
-                floor_date = ('1' + interval, '-1d')
 
         n_term_dates = data[col_term_date].is_not_null().sum()
 
@@ -249,7 +243,7 @@ class ExposedDF():
             status_levels = pl.Enum(status_levels)
             default_status = pl.Series([default_status],
                                        dtype=status_levels)
-            
+
         assert default_status[0] not in target_status, \
             "`default_status` is not allowed to be the same as `target_status`"
 
@@ -273,16 +267,22 @@ class ExposedDF():
 
         if cal_expo:
 
+            if expo_length != 'week':
+                off = ''
+            else:
+                off = '-1d'
+
             start_dates = pl.Series(pl.repeat(start_date, len(data),
                                               eager=True))
             data = data.with_columns(
                 first_date=pl.max_horizontal('issue_date', start_dates),
             ).with_columns(
-                cal_b=pl.col('first_date').dt.truncate(*floor_date)
+                cal_b=(pl.col('first_date').dt.truncate('1' + interval).
+                       dt.offset_by(off))
             ).with_columns(
                 tot_per=pl.struct(pl.col('cal_b').dt.offset_by('-1d'),
                                   pl.col('last_date')).
-                map_batches(per_frac)
+                map_batches(lambda x: per_frac(x, True))
             )
 
         else:
@@ -962,7 +962,7 @@ class ExposedDF():
         }).with_columns(
             pl.col("trx_date").cast(pl.Date)
         )
-        
+
         _check_missing_dates(trx_data["trx_date"])
 
         # check for conflicting transaction types

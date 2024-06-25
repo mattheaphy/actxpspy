@@ -108,18 +108,14 @@ class TestRollDates():
 leap_day = pl.DataFrame({'pol_num': 1,
                          'status': 'Active',
                          'issue_date': date(2020, 2, 29),
-                         'term_date': None}).with_columns(
-                             pl.col('term_date').cast(date)
-)
+                         'term_date': None})
 
 leap_expose = ExposedDF.expose_pm(leap_day, end_date="2021-02-28")
 
 march_1 = pl.DataFrame({'pol_num': 1,
                         'status': 'Active',
                         'issue_date': date(2019, 3, 1),
-                        'term_date': None}).with_columns(
-    pl.col('term_date').cast(date)
-)
+                        'term_date': None})
 
 march_1_expose = ExposedDF.expose_pm(march_1, end_date="2020-02-29")
 
@@ -151,6 +147,18 @@ class TestStartEnd():
         assert max(with_start_date.data['pol_date_yr']) == date(2019, 12, 31)
 
 
+# All terminations have termination dates
+class TestTermDates():
+
+    def test_term_date_py(self):
+        assert (study_py.data['status'] != "Active").sum() == \
+            study_py.data['term_date'].is_not_null().sum()
+
+    def test_term_date_cy(self):
+        assert (study_cy.data['status'] != "Active").sum() == \
+            study_cy.data['term_date'].is_not_null().sum()
+
+
 exposed_strings = ExposedDF(toy_census, "2020-12-31", "2016-04-01")
 exposed_dates = ExposedDF(toy_census, date(2020, 12, 31), date(2016, 4, 1))
 
@@ -173,7 +181,7 @@ toy_census2 = toy_census.rename(renamer)
 class TestRenames():
 
     def test_name_error(self):
-        with pytest.raises(pl.ColumnNotFoundError, match='status'):
+        with pytest.raises(pl.ColumnNotFoundError, match='term_date'):
             ExposedDF(toy_census2, '2020-12-31')
 
     def test_rename_works(self):
@@ -208,6 +216,37 @@ class TestRenames():
         with pytest.warns(UserWarning, match="`data` contains the following"):
             ExposedDF.expose_cy(toy_census.with_columns(cal_yr_end=1),
                                 "2020-12-31")
+
+
+# Date format checks work
+class TestDateFormatChecks():
+
+    def test_error_missing_issue_dates(self):
+        toy_census3 = toy_census.clone()
+        toy_census3[0, "issue_date"] = None
+
+        with pytest.raises(
+                AssertionError,
+                match="Missing values are not allowed in the `issue_date`"):
+            ExposedDF.expose_py(toy_census3, "2020-12-31")
+
+
+# An error is thrown if the default status is a target status
+class TestDefaultTargetStatusCollision():
+
+    def test_collision(self):
+        all_deaths = pl.DataFrame({
+            "pol_num": range(1, 3),
+            "status": ["Death"] * 2,
+            "issue_date": ["2011-05-27"] * 2,
+            "term_date": ["2012-03-17", "2012-09-17"]})
+
+        with pytest.raises(
+            AssertionError,
+            match="`default_status` is not allowed to be the same as `target_status"
+        ):
+            ExposedDF(all_deaths, end_date="2022-12-31",
+                      target_status=["Death", "Surrender"])
 
 
 expo = ExposedDF(toy_census, "2020-12-31", target_status="Surrender")
@@ -350,6 +389,19 @@ study_split = study_cy.expose_split().add_transactions(withdrawals)
 study_cy = study_cy.add_transactions(withdrawals)
 
 
+def py_sum_check(py, split):
+    py_sums = (py.data.group_by('pol_num', 'pol_yr').
+               agg(exposure=pl.col('exposure').sum()).
+               with_columns(pl.col('pol_yr').cast(int)))
+    split_sums = (split.data.group_by('pol_num', 'pol_yr').
+                  agg(exposure_pol=pl.col('exposure_pol').sum()).
+                  with_columns(pl.col('pol_yr').cast(int)))
+    return (py_sums.join(split_sums, on=['pol_num', 'pol_yr'],
+                         how='inner').
+            filter((pl.col('exposure') - pl.col('exposure_pol')).abs() > 1E-8).
+            height)
+
+
 # expose_split() is consistent with expose_cy()
 class TestSplitEquivalence():
 
@@ -368,6 +420,99 @@ class TestSplitEquivalence():
     def test_trx_amt_2(self):
         assert sum(study_cy.data['trx_amt_Rider']) == \
             sum(study_split.data['trx_amt_Rider'])
+
+    def test_min_max_expo_cy(self):
+        assert study_split.data["exposure_cal"].is_between(0, 1).all()
+
+    def test_min_max_expo_py(self):
+        assert study_split.data["exposure_pol"].is_between(0, 1).all()
+
+    def test_expo_py(self):
+        assert py_sum_check(study_py, study_split) == 0
+
+
+study_py2 = ExposedDF.expose_py(census_dat, "2019-02-27",
+                                target_status="Surrender",
+                                start_date="2010-06-15")
+study_cy2 = ExposedDF.expose_cq(census_dat, "2019-02-27",
+                                target_status="Surrender",
+                                start_date="2010-06-15")
+study_split2 = study_cy2.expose_split()
+
+
+# expose_split() is consistent with expose_cy() when using atypical start and
+#   end dates
+class TestSplitEquivalence2():
+
+    def test_expo(self):
+        assert abs(sum(study_cy2.data['exposure']) -
+                   sum(study_split2.data['exposure_cal'])) < 1E-8
+
+    def test_term_count(self):
+        assert sum(study_cy2.data['status'] != "Active") == \
+            sum(study_split2.data['status'] != "Active")
+
+    def test_min_max_expo_cy(self):
+        assert study_split2.data["exposure_cal"].is_between(0, 1).all()
+
+    def test_min_max_expo_py(self):
+        assert study_split2.data["exposure_pol"].is_between(0, 1).all()
+
+    def test_expo_py(self):
+        assert py_sum_check(study_py2, study_split2) == 0
+
+
+# odd census
+odd_census = pl.DataFrame(
+    # death in first month
+    [["D1", "Death", "2022-04-15", "2022-04-25"],
+     # death in first year
+     ["D2", "Death", "2022-04-15", "2022-09-25"],
+        # death after 18 months
+        ["D3", "Death", "2022-04-15", "2023-09-25"],
+        # surrender in first month
+        ["S1", "Surrender", "2022-11-10", "2022-11-20"],
+        # surrender in first year
+        ["S2", "Surrender", "2022-11-10", "2023-3-20"],
+        # surrender after 18 months
+        ["S3", "Surrender", "2022-11-10", "2024-3-20"],
+        # active
+        ["A", "Active", "2022-6-20", None]],
+    schema=['pol_num', 'status', 'issue_date', 'term_date'],
+    orient="row"
+)
+
+odd_study = ExposedDF.expose_cm(odd_census, "2024-05-19",
+                                target_status="Surrender",
+                                default_status="Active",
+                                start_date="2022-04-10")
+odd_py = ExposedDF.expose_py(odd_census, "2024-05-19",
+                             target_status="Surrender",
+                             default_status="Active",
+                             start_date="2022-04-10")
+odd_split = odd_study.expose_split()
+
+
+# expose_split() checks with odd dates
+class TestSplitOdddates():
+
+    def test_expo(self):
+        assert abs(sum(odd_study.data['exposure']) -
+                   sum(odd_split.data['exposure_cal'])) < 1E-8
+
+    def test_term_count(self):
+        assert sum(odd_study.data['status'] != "Active") == \
+            sum(odd_split.data['status'] != "Active")
+
+    def test_min_max_expo_cy(self):
+        assert odd_split.data["exposure_cal"].is_between(0, 1).all()
+
+    def test_min_max_expo_py(self):
+        assert odd_split.data["exposure_pol"].is_between(0, 1).all()
+
+    def test_expo_py(self):
+        assert abs(odd_py.data["exposure"].sum() -
+                   odd_split.data["exposure_pol"].sum()) < 1E-8
 
 
 # expose_split() warns about transactions attached too early
@@ -404,7 +549,8 @@ check_period_end_split = (
 class TestSplitDateRoll():
 
     def test_study_split_roll_1(self):
-        assert all(study_split.data['cal_yr'] <= study_split.data['cal_yr_end'])
+        assert all(study_split.data['cal_yr'] <=
+                   study_split.data['cal_yr_end'])
 
     def test_study_split_roll_2(self):
         assert check_period_end_split == 0

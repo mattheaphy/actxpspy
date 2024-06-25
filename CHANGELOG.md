@@ -1,3 +1,24 @@
+## v1.1.0
+
+- `expose_split()` bug fixes: 
+
+  - `ExposedDF.expose_split()` was updated to respect the values of `start_date` 
+    and `end_date` originally passed to the `ExposedDF()` class.
+  - Future policy anniversary dates falling on February 29th leap days are now
+    consistent with `ExposedDF()`
+  - New tests were added to verify that the sum of policy year exposures
+    (`exposure_pol`) after calling `.expose_split()` match exposures produced by
+    `ExposedDF.expose_py()`.
+
+- `ExposedDF()` bug fix - quarterly and monthly calendar exposures periods now
+  strictly calculate exposures based on month-end dates. In the prior version,
+  months ending on the 28-30 would use that same day of month for subsequent 
+  exposure periods.
+
+- `ExposedDF()` and `ExposedDF.add_transactions()` now allow date columns to be  
+  passed as strings in YYYY-MM-DD format. Any strings are converted to date
+  behind-the-scenes, and any missing values will results in an error message. 
+
 ## v1.0.2
 
 - Small correction to the final policy year exposure for leap years

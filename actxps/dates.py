@@ -251,9 +251,10 @@ def frac_interval(start: str | date | list | pl.Series,
     return _delta_frac(start, end, dur_length)
 
 
-def _delta_frac(start: pl.Series, end: pl.Series, dur_length: str) -> pl.Series:
+def _delta_frac(start: pl.Series, end: pl.Series, dur_length: str,
+                cal_periods: bool = False) -> pl.Series:
     """
-    Internal function for calculating one set of fractional durations.
+    Internal function for calculating fractional durations.
 
     This function is used by `frac_interval()` and is not meant to be called
     directly.
@@ -267,6 +268,9 @@ def _delta_frac(start: pl.Series, end: pl.Series, dur_length: str) -> pl.Series:
     dur_length : str
         Duration length. Only applies to `frac_interval()`. Must be 'year', 
         'quarter', 'month', or 'week'
+    cal_periods : bool, default=False
+        If `True`, then fractional year, quarter, or month periods are
+        determined based on calendar periods.
 
     Returns
     ----------
@@ -289,9 +293,12 @@ def _delta_frac(start: pl.Series, end: pl.Series, dur_length: str) -> pl.Series:
     # left bounding date
     l = ranges.list.last()
     # right bounding date. Note that we're not simply adding a year to l because
-    #   doing so would create a difference of 1 day when `l` 2/28 and the 
+    #   doing so would create a difference of 1 day when `l` == 2/28 and the
     #   following year is a leap year and `start` is a leap day.
     r = ranges.list.first().dt.offset_by((n + 1).cast(str) + interval[1:])
+    if cal_periods:
+        l = l.dt.month_end()
+        r = r.dt.month_end()
     # complete periods + fractional period
     res = (n + (end - l).dt.total_days() / (r - l).dt.total_days())
 

@@ -73,6 +73,8 @@ class SplitExposedDF(ExposedDF):
         target_status = pl.Series(expo.target_status, dtype=str)
         default_status = expo.default_status
         date_cols = expo.date_cols
+        start_date = expo.start_date
+        end_date = expo.end_date
         expo_length = expo.expo_length
 
         def pol_frac(x: pl.Expr, start: str | pl.Expr,
@@ -89,14 +91,16 @@ class SplitExposedDF(ExposedDF):
                     ((end - start).dt.total_days() + 1))
 
         def cal_frac(x: pl.Expr):
-            return pol_frac(x, 'cal_b', 'cal_e')
+            return pol_frac(x, 'hold_cal_b', 'hold_cal_e')
 
         def add_yr(x: pl.Expr, n: pl.Expr):
             return (x.dt.offset_by(pl.format('{}y', n)))
 
         # time fractions
-        # h = yearfrac from boy to anniv
-        # v = yearfrac from boy to term
+        # b = fraction from boy to cal_b
+        #     - usually zero except for new contracts and a truncated start date
+        # h = fraction from boy to anniv
+        # v = fraction from boy to the earlier of termination and cal_e
 
         data = expo.data.lazy()
         # temporary generic date column names
@@ -104,15 +108,27 @@ class SplitExposedDF(ExposedDF):
             data.rename({date_cols[0]: 'cal_b',
                          date_cols[1]: 'cal_e'}).
             with_columns(
-                anniv=add_yr(pl.col('issue_date'),
-                             pl.col('cal_b').dt.year() -
-                             pl.col('issue_date').dt.year())
+                pol_yr=(pl.col('cal_b').dt.year() -
+                        pl.col('issue_date').dt.year())
             ).
             with_columns(
+                anniv=add_yr(pl.col('issue_date'), pl.col('pol_yr'))
+            ).
+            with_columns(
+                hold_cal_b=pl.col('cal_b'),
+                hold_cal_e=pl.col('cal_e'),
                 split=pl.col('anniv').is_between(pl.col('cal_b'),
                                                  pl.col('cal_e')),
-                h=cal_frac(pl.col('anniv').dt.offset_by('-1d')),
-                v=cal_frac(pl.col('term_date'))
+                cal_b=pl.max_horizontal(start_date, 'issue_date', 'cal_b'),
+                cal_e=pl.min_horizontal(end_date, 'cal_e')
+            ).with_columns(
+                b=cal_frac(pl.col('cal_b').dt.offset_by('-1d')),
+                h=(pl.when(pl.col('split')).
+                   then(cal_frac(pl.col('anniv').dt.offset_by('-1d'))).
+                   otherwise(0)),
+                v=cal_frac(pl.when(pl.col('term_date').is_null()).
+                           then(pl.col('cal_e')).
+                           otherwise(pl.col('term_date')))
             ).collect())
 
         pre_anniv = (
@@ -120,15 +136,11 @@ class SplitExposedDF(ExposedDF):
             filter(pl.col('split')).
             with_columns(
                 piece=1,
-                cal_b=pl.max_horizontal(pl.col('issue_date'),
-                                        pl.col('cal_b')),
-                cal_e=pl.col('anniv').dt.offset_by('-1d'),
-                exposure=pl.col('h'),
-                exposure_pol=1 - pol_frac(
-                    pl.col('cal_b').dt.offset_by('-1d'),
-                    add_yr(pl.col('anniv'), pl.lit(-1)),
-                    pl.col('anniv').dt.offset_by('-1d')
-                )
+                next_anniv=pl.col('anniv')
+            ).with_columns(
+                cal_e=pl.min_horizontal(
+                    end_date, pl.col('next_anniv').dt.offset_by('-1d')),
+                exposure=pl.min_horizontal('h', 'v') - pl.col('b')
             )
         )
 
@@ -137,20 +149,13 @@ class SplitExposedDF(ExposedDF):
             with_columns(
                 piece=2,
                 cal_b=(pl.when(pl.col('split')).
-                       then(pl.col('anniv')).
-                       otherwise(pl.col('cal_b'))),
-                exposure=(pl.when(pl.col('split')).
-                          then(1 - pl.col('h')).
-                          otherwise(1)),
-                anniv=(pl.when(pl.col('anniv') > pl.col('cal_e')).
-                       then(add_yr(pl.col('anniv'), pl.lit(-1))).
-                       otherwise(pl.col('anniv')))).
-            with_columns(
-                exposure_pol=pol_frac(
-                    pl.col('cal_e'),
-                    'anniv',
-                    add_yr(pl.col('anniv'), pl.lit(1)).dt.offset_by('-1d'),
-                    pl.col('cal_b'))
+                       then(pl.max_horizontal('anniv', start_date)).
+                       otherwise(pl.col('cal_b')))
+            ).with_columns(
+                pol_yr=pl.col('pol_yr') + (pl.col('cal_b') >= pl.col('anniv'))
+            ).with_columns(
+                exposure=pl.col('v') - pl.max_horizontal('h', 'b'),
+                next_anniv=add_yr(pl.col('issue_date'), pl.col('pol_yr'))
             )
         )
 
@@ -160,13 +165,12 @@ class SplitExposedDF(ExposedDF):
                    (pl.col('term_date').is_null() |
                     (pl.col('term_date') >= pl.col('cal_b')))).
             with_columns(
+                anniv=add_yr(pl.col('issue_date'), pl.col('pol_yr') - 1),
                 term_date=(pl.when(pl.col('term_date').
                                    is_between(pl.col('cal_b'),
                                               pl.col('cal_e'))).
                            then(pl.col('term_date')).
-                           otherwise(None)),
-                pol_yr=(pl.col('anniv').dt.year() -
-                        pl.col('issue_date').dt.year() + pl.col('piece') - 1)).
+                           otherwise(None))).
             with_columns(
                 status=(pl.when(pl.col('term_date').is_null()).
                         then(pl.lit(default_status)).
@@ -179,46 +183,36 @@ class SplitExposedDF(ExposedDF):
                               then(
                                   pl.when(
                                       (pl.col('piece') == 1) |
-                                      (pl.col('cal_b') == pl.col('issue_date'))
+                                      (pl.col('cal_b') == pl.col('issue_date')) |
+                                      (pl.col('cal_b') == start_date)
                                   ).
                                   then(1).
-                                  otherwise(1 - pl.col('h'))).
+                                  otherwise(1 - (pl.col('h') - pl.col('b')))).
                               when(pl.col('term_date').is_null()).
                               then(pl.col('exposure')).
                               when(pl.col('piece') == 1).
-                              then(pl.col('v')).
-                              otherwise(pl.col('v') - pl.col('h'))),
+                              then(pl.col('v') - pl.col('b')).
+                              otherwise(pl.col('v') -
+                                        pl.max_horizontal('h', 'b'))),
 
-                exposure_pol=(pl.when(pl.col('claims')).
-                              then(
-                                  pl.when(pl.col('piece') == 1).
-                                  then(pl.col('exposure_pol')).
-                                  when(pl.col('split')).
-                                  then(1).
-                                  otherwise(1 - pol_frac(
-                                      pl.col('cal_b').dt.offset_by('-1d'),
-                                      'anniv',
-                                      (add_yr(pl.col('anniv'), pl.lit(1)).
-                                       dt.offset_by('-1d'))
-                                  ))).
-                              when(pl.col('term_date').is_null()).
-                              then(pl.col('exposure_pol')).
-                              when(pl.col('piece') == 1).
-                              then(pol_frac(
-                                  pl.col('term_date'),
-                                  add_yr(pl.col('anniv'), pl.lit(-1)),
-                                  pl.col('anniv').dt.offset_by('-1d')) -
-                    (1 - pl.col('exposure_pol'))).
-                    otherwise(pol_frac(
-                        pl.col('term_date'),
+                exposure_pol=(
+                    pl.when(pl.col('claims')).
+                    then((1 - pol_frac(
+                        pl.col('cal_b').dt.offset_by('-1d'),
                         'anniv',
-                        (add_yr(pl.col('anniv'), pl.lit(1)).
-                         dt.offset_by('-1d'))
+                        pl.col('next_anniv').dt.offset_by('-1d'))
+                    )).
+                    otherwise(pol_frac(
+                        pl.min_horizontal('cal_e', 'term_date'),
+                        'anniv',
+                        pl.col('next_anniv').dt.offset_by('-1d'),
+                        pl.col('cal_b')#.dt.offset_by('-1d')
                     ))
                 )
             ).
             sort('pol_num', 'cal_b', 'piece').
-            drop(['h', 'v', 'split', 'anniv', 'claims', 'exposure', 'piece'])
+            drop(['b', 'h', 'v', 'split', 'anniv', 'next_anniv', 'claims',
+                  'exposure', 'piece', 'hold_cal_b', 'hold_cal_e'])
         )
 
         data = (relocate(data, 'pol_yr', after='cal_e').

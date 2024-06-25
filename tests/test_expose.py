@@ -389,6 +389,19 @@ study_split = study_cy.expose_split().add_transactions(withdrawals)
 study_cy = study_cy.add_transactions(withdrawals)
 
 
+def py_sum_check(py, split):
+    py_sums = (py.data.group_by('pol_num', 'pol_yr').
+               agg(exposure=pl.col('exposure').sum()).
+               with_columns(pl.col('pol_yr').cast(int)))
+    split_sums = (split.data.group_by('pol_num', 'pol_yr').
+                  agg(exposure_pol=pl.col('exposure_pol').sum()).
+                  with_columns(pl.col('pol_yr').cast(int)))
+    return (py_sums.join(split_sums, on=['pol_num', 'pol_yr'],
+                         how='inner').
+            filter((pl.col('exposure') - pl.col('exposure_pol')).abs() > 1E-8).
+            height)
+
+
 # expose_split() is consistent with expose_cy()
 class TestSplitEquivalence():
 
@@ -407,6 +420,99 @@ class TestSplitEquivalence():
     def test_trx_amt_2(self):
         assert sum(study_cy.data['trx_amt_Rider']) == \
             sum(study_split.data['trx_amt_Rider'])
+
+    def test_min_max_expo_cy(self):
+        assert study_split.data["exposure_cal"].is_between(0, 1).all()
+
+    def test_min_max_expo_py(self):
+        assert study_split.data["exposure_pol"].is_between(0, 1).all()
+
+    def test_expo_py(self):
+        assert py_sum_check(study_py, study_split) == 0
+
+
+study_py2 = ExposedDF.expose_py(census_dat, "2019-02-27",
+                                target_status="Surrender",
+                                start_date="2010-06-15")
+study_cy2 = ExposedDF.expose_cq(census_dat, "2019-02-27",
+                                target_status="Surrender",
+                                start_date="2010-06-15")
+study_split2 = study_cy2.expose_split()
+
+
+# expose_split() is consistent with expose_cy() when using atypical start and
+#   end dates
+class TestSplitEquivalence2():
+
+    def test_expo(self):
+        assert abs(sum(study_cy2.data['exposure']) -
+                   sum(study_split2.data['exposure_cal'])) < 1E-8
+
+    def test_term_count(self):
+        assert sum(study_cy2.data['status'] != "Active") == \
+            sum(study_split2.data['status'] != "Active")
+
+    def test_min_max_expo_cy(self):
+        assert study_split2.data["exposure_cal"].is_between(0, 1).all()
+
+    def test_min_max_expo_py(self):
+        assert study_split2.data["exposure_pol"].is_between(0, 1).all()
+
+    def test_expo_py(self):
+        assert py_sum_check(study_py2, study_split2) == 0
+
+
+# odd census
+odd_census = pl.DataFrame(
+    # death in first month
+    [["D1", "Death", "2022-04-15", "2022-04-25"],
+     # death in first year
+     ["D2", "Death", "2022-04-15", "2022-09-25"],
+        # death after 18 months
+        ["D3", "Death", "2022-04-15", "2023-09-25"],
+        # surrender in first month
+        ["S1", "Surrender", "2022-11-10", "2022-11-20"],
+        # surrender in first year
+        ["S2", "Surrender", "2022-11-10", "2023-3-20"],
+        # surrender after 18 months
+        ["S3", "Surrender", "2022-11-10", "2024-3-20"],
+        # active
+        ["A", "Active", "2022-6-20", None]],
+    schema=['pol_num', 'status', 'issue_date', 'term_date'],
+    orient="row"
+)
+
+odd_study = ExposedDF.expose_cm(odd_census, "2024-05-19",
+                                target_status="Surrender",
+                                default_status="Active",
+                                start_date="2022-04-10")
+odd_py = ExposedDF.expose_py(odd_census, "2024-05-19",
+                             target_status="Surrender",
+                             default_status="Active",
+                             start_date="2022-04-10")
+odd_split = odd_study.expose_split()
+
+
+# expose_split() checks with odd dates
+class TestSplitOdddates():
+
+    def test_expo(self):
+        assert abs(sum(odd_study.data['exposure']) -
+                   sum(odd_split.data['exposure_cal'])) < 1E-8
+
+    def test_term_count(self):
+        assert sum(odd_study.data['status'] != "Active") == \
+            sum(odd_split.data['status'] != "Active")
+
+    def test_min_max_expo_cy(self):
+        assert odd_split.data["exposure_cal"].is_between(0, 1).all()
+
+    def test_min_max_expo_py(self):
+        assert odd_split.data["exposure_pol"].is_between(0, 1).all()
+
+    def test_expo_py(self):
+        assert abs(odd_py.data["exposure"].sum() -
+                   odd_split.data["exposure_pol"].sum()) < 1E-8
 
 
 # expose_split() warns about transactions attached too early
